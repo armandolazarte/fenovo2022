@@ -15,7 +15,7 @@
                                     </h4>
                                 </div>
                                 <div class="icons d-flex">
-                                    <a href="{{ route('ingresos.add') }}">
+                                    <a href="{{ (Auth::user()->rol() == 'contable')?route('ingresos.addNocongelados'):route('ingresos.add') }}">
                                         <i class="fa fa-2x fa-plus-circle text-primary"></i>
                                     </a>
                                 </div>
@@ -35,11 +35,7 @@
                                                 <tr class="bg-dark text-white">
                                                     <th>#</th>
                                                     <th>Fecha</th>
-                                                    @if (\Auth::user()->rol() == 'base')
-                                                    <th>Origen</th>
-                                                    @else
                                                     <th>Proveedor</th>
-                                                    @endif
                                                     <th>Items</th>
                                                     <th>Nro compra</th>
                                                     <th>Edicion</th>

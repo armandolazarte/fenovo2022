@@ -19,45 +19,75 @@
                 <div class="col-lg-12 col-xl-12">
                     <div class="card card-custom gutter-b bg-white border-0">
                         <div class="card-body">
-                            {{ Form::open(['route' => 'ingresos.store']) }}
+                            {{ Form::open(['route' => 'ingresos.storeNocongelados']) }}
+
                             <div class="form-group d-none">
                                 <input type="hidden" name="type" id="type" value="COMPRA" />
                                 <input type="hidden" name="to" id="to" value="1" />
                             </div>
-                            <div class="form-group row">
-                                <div class="col-md-3">
-                                    <label class="text-body">Proveedor</label>
-                                    <fieldset class="form-group mb-3">
-                                        {{ Form::select('from', $proveedores, null, ['class' => 'js-example-basic-single form-control bg-transparent proveedor', 'placeholder' => 'seleccione ...', 'required' => 'true']) }}
-                                    </fieldset>
-                                </div>
+
+                            <div class="row mb-3">
                                 <div class="col-md-2">
                                     <label class="text-body">Fecha</label>
-                                    <input type="date" name="date" value="{{ date('Y-m-d', strtotime(now())) }}"
-                                        class="form-control datepicker mb-3">
+                                    <input type="date" name="date" id="date"
+                                        value="{{ date('Y-m-d', strtotime(now())) }}" class="form-control datepicker mb-3">
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <label class="text-body">Tipo compra</label>
-                                    <select class="form-control bg-transparent" name="subtype" id="subtype">
-                                        <option value="FACTURA" selected>F</option>
+                                    <select class="form-control" name="subtype" id="subtype">
+                                        <option value="FA" selected>FACTURA - A</option>
+                                        <option value="FB">FACTURA - B</option>
+                                        <option value="FC">FACTURA - C</option>
+                                        <option value="FM">FACTURA - M</option>
                                         <option value="CYO">CYO</option>
                                         <option value="REMITO">R</option>
                                     </select>
                                 </div>
                                 <div class="col-md-2">
-                                    <label class="text-dark">Comprobante</label>
-                                    <input type="text" id="voucher_number" name="voucher_number" value=""
+                                    <label class="text-dark">Punto Vta</label>
+                                    <input type="text" id="puntoVenta" name="puntoVenta" value=""
                                         class="form-control text-center" required="true">
                                 </div>
-                               
+                                <div class="col-md-2">
+                                    <label class="text-dark">Comprobante</label>
+                                    <input type="text" id="comprobante" name="comprobante" value=""
+                                        class="form-control text-center" required="true">
+                                </div>
+                                
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label class="text-body">Proveedor</label>
+                                    <fieldset class="form-group mb-3">
+                                        {{ Form::select('from', $proveedores, null, ['class' => 'js-example-basic-single form-control bg-transparent proveedor', 'placeholder' => 'seleccione ...', 'required' => 'true']) }}
+                                    </fieldset>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="text-body">Depósito final</label>
+                                    <select class="form-control bg-transparent" name="deposito" id="deposito">
+                                        @foreach ($depositos as $deposito)
+                                            <option value="{{ $deposito->id }}">{{ $deposito->razon_social }} -
+                                                {{ $deposito->description }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="col-md-2">
+
+                                </div>
                                 <div class="col-md-2 text-center">
                                     <label class="text-dark">Guardar</label>
                                     <fieldset class="form-group mb-3">
-                                        <button type="submit" class="btn btn-link btn-guardar-ingreso text-primary"><i
-                                                class="fa fa-save"></i> </button>
+                                        <button type="submit" class="btn btn-link btn-guardar-ingreso text-primary">
+                                            <i class="fa fa-save"></i> 
+                                        </button>
                                     </fieldset>
                                 </div>
+
                             </div>
+
                             {{ Form::close() }}
                         </div>
 
@@ -80,7 +110,7 @@
     @section('js')
         <script>
             jQuery(document).ready(function() {
-                jQuery(".proveedor").select2('open')
+                jQuery("#date").select();
             });
 
             jQuery(".proveedor").on('change', function() {
