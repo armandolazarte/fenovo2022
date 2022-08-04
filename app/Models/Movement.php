@@ -81,10 +81,10 @@ class Movement extends Model
     public function group_movement_salida_products()
     {
        return $this->hasMany(MovementProduct::class)->where('egress', '>', 0)
-                                                    ->where('circuito', '!=', 'CyO')
-                                                    ->where('invoice',true)
-                                                    ->select(['*',DB::raw("SUM(bultos) as bultos")])
-                                                    ->groupBy('product_id');
+                    ->where('circuito', '!=', 'CyO')
+                    ->where('invoice',true)
+                    ->select(['*',DB::raw("SUM(bultos) as bultos")])
+                    ->groupBy('product_id');
     }
 
     public function salida_products_no_cyo()
@@ -144,12 +144,20 @@ class Movement extends Model
 
     public function verifSiFactura()
     {
-        return MovementProduct::where('movement_id', $this->id)->where('entidad_id',\Auth::user()->store_active)->where('invoice', true)->count();
+        return MovementProduct::where('movement_id', $this->id)
+                              ->where('entidad_id',\Auth::user()->store_active)
+                              ->where('entidad_tipo', 'S')
+                              ->where('invoice', true)
+                              ->count();
     }
 
     public function verifSiCreatePanama()
     {
-        return MovementProduct::where('movement_id', $this->id)->where('entidad_id',\Auth::user()->store_active)->where('invoice', false)->count();
+        return MovementProduct::where('movement_id', $this->id)
+                             ->where('entidad_id',\Auth::user()->store_active)
+                             ->where('entidad_tipo', 'S')
+                             ->where('invoice', false)
+                             ->count();
     }
 
     public function hasInvoices()
