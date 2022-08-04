@@ -65,13 +65,9 @@ namespace App\Models{
 /**
  * App\Models\Base08
  *
- * @property int|null $cod_fenovo
- * @property int|null $stock
  * @method static \Illuminate\Database\Eloquent\Builder|Base08 newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Base08 newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Base08 query()
- * @method static \Illuminate\Database\Eloquent\Builder|Base08 whereCodFenovo($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Base08 whereStock($value)
  */
 	class Base08 extends \Eloquent {}
 }
@@ -364,6 +360,8 @@ namespace App\Models{
  * @property string|null $costo_fenovo_total
  * @property string|null $url
  * @property int|null $cyo
+ * @property-read \App\Models\Panamas|null $flete
+ * @property-read \App\Models\Panamas|null $panama
  * @property-read \App\Models\VoucherType|null $tipoFactura
  * @method static \Illuminate\Database\Eloquent\Builder|Invoice newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Invoice newQuery()
@@ -567,6 +565,7 @@ namespace App\Models{
  * @property string|null $circuito Cta y Orden
  * @property int|null $punto_venta
  * @property int|null $iibb
+ * @property int|null $palet
  * @property float|null $entry
  * @property float|null $egress
  * @property float|null $balance
@@ -593,6 +592,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder|MovementProduct whereIibb($value)
  * @method static \Illuminate\Database\Eloquent\Builder|MovementProduct whereInvoice($value)
  * @method static \Illuminate\Database\Eloquent\Builder|MovementProduct whereMovementId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|MovementProduct wherePalet($value)
  * @method static \Illuminate\Database\Eloquent\Builder|MovementProduct whereProductId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|MovementProduct wherePuntoVenta($value)
  * @method static \Illuminate\Database\Eloquent\Builder|MovementProduct whereTasiva($value)
@@ -943,6 +943,7 @@ namespace App\Models{
  * @property string|null $cod_descuento
  * @property int|null $iibb
  * @property int $active
+ * @property string $palet
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property-read \App\Models\ProductCategory|null $product_category
@@ -984,6 +985,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder|Product whereOnlineSale($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Product wherePackagePalet($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Product wherePackageRow($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Product wherePalet($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Product wherePorcentajeBruto($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Product whereProveedorId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Product wherePublicationDate($value)
@@ -1015,10 +1017,12 @@ namespace App\Models{
  * @property string $active
  * @property Collection|Product[] $products
  * @package App\Models
+ * @property string|null $abrev
  * @property-read int|null $products_count
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory query()
+ * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory whereAbrev($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory whereActive($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory whereName($value)
@@ -1641,6 +1645,7 @@ namespace App\Models{
  * @property string|null $nro_pedido
  * @property string|null $pausado
  * @property string|null $circuito
+ * @property int|null $palet
  * @property-read \App\Models\Product|null $producto
  * @method static \Illuminate\Database\Eloquent\Builder|SessionProduct newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|SessionProduct newQuery()
@@ -1654,6 +1659,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder|SessionProduct whereListId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|SessionProduct whereNeto($value)
  * @method static \Illuminate\Database\Eloquent\Builder|SessionProduct whereNroPedido($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|SessionProduct wherePalet($value)
  * @method static \Illuminate\Database\Eloquent\Builder|SessionProduct wherePausado($value)
  * @method static \Illuminate\Database\Eloquent\Builder|SessionProduct whereProductId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|SessionProduct whereQuantity($value)
@@ -1734,6 +1740,7 @@ namespace App\Models{
  * @property int|null $recibe_traslado
  * @property float|null $comision_distribucion
  * @property int|null $cip Codigo Impresion Pananma
+ * @property string|null $password
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Customer[] $customers
@@ -1764,6 +1771,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder|Store whereLogisticaExpress($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Store whereLon($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Store whereOnlineSale($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Store wherePassword($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Store wherePrintType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Store wherePuntoVenta($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Store whereRazonSocial($value)

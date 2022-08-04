@@ -15,9 +15,12 @@
     <div class="d-flex flex-column-fluid">
         <div class="container-fluid">
             <div class="row">
+                @if (isset($list_id))
+                    <input type="hidden" name="list_id" id="list_id" value="{{ $list_id }}">
+                @endif
                 @include('admin.movimientos.salidas.partials.form-select-cliente')
                 <div class="col-md-12" id="divAlertStock"></div>
-                <div style="width: 100%" id="session_products_table"></div>
+                <div class="col-md-12" id="session_products_table"></div>
             </div>
         </div>
     </div>
@@ -45,6 +48,15 @@
             jQuery('.movimientoPopup').addClass('offcanvas-on');
         }
 
+        const cambioPalet = (id, palet)=>{
+            var url = "{{ route('store.session.product.item') }}";
+            jQuery.ajax({
+                url: url,
+                type: 'POST',
+                data: {id, palet}
+            });            
+        }
+
         const actualizarMovimiento = () => {
             var url = "{{ route('store.session.product.item') }}";
             jQuery.ajax({
@@ -52,7 +64,7 @@
                 type: 'POST',
                 data: {
                     id: jQuery("#session_product_id").val(),
-                    quantity: jQuery("#session_product_quantity").val()
+                    quantity: jQuery("#session_product_quantity").val(),
                 },
                 beforeSend: function() {
                     jQuery('#loader').removeClass('hidden');
@@ -185,6 +197,7 @@
                         },
                         success: function(data) {
                             if (data['type'] == 'success') {
+                                jQuery("#divAlertStock").html('');
                                 cargarTablaProductos();
                             }
                         }
@@ -332,7 +345,12 @@
             var to_type = jQuery("#to_type").val();
             var product_id = jQuery("#product_search").val();
             var to = jQuery("#to").val();
-            var list_id = to_type + '_' + to;
+            var nro_pedido = jQuery("#nro_pedido").val();
+            if(nro_pedido){
+                var list_id = to_type + '_' + to + '_' + nro_pedido;
+            }else{
+                var list_id = to_type + '_' + to;
+            }
             var unidades = jQuery("#unidades_a_enviar").serializeArray();
             var formData = {
                 list_id,
@@ -383,9 +401,12 @@
         })
 
         jQuery('#btnPrintCerrarSalida').click(function(e) {
-            var to_type = jQuery("#to_type").val();
-            var to = jQuery("#to").val();
-            var list_id = to_type + '_' + to;
+            var list_id = jQuery("#list_id").val();
+            if(!list_id || list_id == ''){
+                var to_type = jQuery("#to_type").val();
+                var to = jQuery("#to").val();
+                var list_id = to_type + '_' + to;
+            }
             var url = "{{ route('salidas.pendiente.print', '') }}" + "?list_id=" + list_id;
             window.open(url, '_blank');
         })
@@ -415,10 +436,10 @@
                 success: function(data) {
                     jQuery("#btnCloseSalida").attr('disabled',false);
                     if (data['type'] == 'error') {
-                        toastr.error(data['msj'], 'ERROR');
                         jQuery("#divAlertStock").html('');
                         jQuery("#divAlertStock").html(data['alert']);
                         cargarTablaProductos()
+                        jQuery('#closeSalida').removeClass('offcanvas-on');
                     } else {
                         toastr.info(data['msj'], 'EXITO');
                         setTimeout(() => {

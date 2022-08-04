@@ -19,7 +19,6 @@ const add = (route) => {
 }
 
 const store = (route) => {
-    jQuery('.btn-guardar').prop('disabled', true);
     var elements = document.querySelectorAll('.is-invalid');
     var form = jQuery('#formData').serialize();
     jQuery.ajax({
@@ -41,7 +40,6 @@ const store = (route) => {
             } else {
                 toastr.error(data['msj'], 'Verifique');
             }
-            jQuery('.btn-guardar').prop('disabled', true);
         },
         error: function (data) {
             var lista_errores = "";
@@ -184,7 +182,7 @@ jQuery('.show-t').on('click', function () {
                 previous: "Anterior",
             },
             //processing: "Procesando...",
-            processing: "<div> <span class='fa-stack fa-lg'> <i class='fa fa-spinner fa-spin fa-stack-2x fa-fw'></i> </span> Aguarde por favor ... </div>",
+            processing: "<span class='fa-stack fa-lg'> <i class='fas fa-cog fa-spin fa-stack-2x fa-fw'></i> </span> Aguarde... ",
             search: "Buscar:",
             searchPlaceholder: "Palabra a buscar",
             zeroRecords: "No se encontraron resultados",
