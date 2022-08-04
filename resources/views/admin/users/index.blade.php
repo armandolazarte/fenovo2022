@@ -75,12 +75,12 @@
             {data: 'user_id', 'class':'text-center', orderable: false, searchable: false},
             {data: 'username'},
             {data: 'email'},
-            {data: 'rol'},
+            {data: 'rol', 'class':'text-danger'},
             {data: 'vincular','class':'text-center', orderable: false, searchable: false},
             {data: 'asociadas','class':'text-center', orderable: false, searchable: false},
             {data: 'tienda', orderable: false, searchable: false},
-            {data: 'edit', orderable: false, searchable: false},
-            {data: 'destroy', orderable: false, searchable: false},
+            {data: 'edit', 'class':'text-center', orderable: false, searchable: false},
+            {data: 'destroy', 'class':'text-center', orderable: false, searchable: false},
             
         ]
     });   

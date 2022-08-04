@@ -36,7 +36,7 @@
                                     <input type="date" name="date" value="{{ date('Y-m-d', strtotime(now())) }}"
                                         class="form-control datepicker mb-3">
                                 </div>
-                                <div class="@if(isset($depositos)) col-md-1 @else col-md-3 @endif">
+                                <div class="col-md-3">
                                     <label class="text-body">Tipo compra</label>
                                     <select class="form-control bg-transparent" name="subtype" id="subtype">
                                         <option value="FACTURA" selected>F</option>
@@ -49,16 +49,7 @@
                                     <input type="text" id="voucher_number" name="voucher_number" value=""
                                         class="form-control text-center" required="true">
                                 </div>
-                                @if(isset($depositos))
-                                    <div class="col-md-2">
-                                        <label class="text-body">Depósito final</label>
-                                        <select class="form-control bg-transparent" name="deposito" id="deposito">
-                                            @foreach ($depositos as $deposito)
-                                                <option value="{{$deposito->id}}">{{$deposito->razon_social}} - {{$deposito->description}}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                @endif
+                               
                                 <div class="col-md-2 text-center">
                                     <label class="text-dark">Guardar</label>
                                     <fieldset class="form-group mb-3">
