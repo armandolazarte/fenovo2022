@@ -222,6 +222,7 @@ class IngresosController extends Controller
             return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
         }
     }
+
     public function close(Request $request)
     {
         $tienda = ($request->tienda != 0) ? $request->tienda : null;
@@ -915,17 +916,26 @@ class IngresosController extends Controller
         $data            = $request->all();
         $data['user_id'] = \Auth::user()->id;
         $movement        = MovementTemp::create($data);
-        return redirect()->route('ingresos.editNoCongelados', ['id' => $movement->id]);
+        return redirect()->route('ingresos.editNocongelados', ['id' => $movement->id]);
     }
 
     public function editNoCongelados(Request $request)
     {
-        $movement    = MovementTemp::find($request->id);
-        $productos   = $this->productRepository->getByProveedorIdPluck($movement->from);
-        $stores      = Store::orderBy('description', 'asc')->where('active', 1)->get();
-        $proveedor   = Proveedor::find($movement->from);
-        $movimientos = MovementProductTemp::where('movement_id', $request->id)->orderBy('created_at', 'asc')->get();
-        $depositos = Store::orderBy('cod_fenovo', 'asc')->where('active', 1)->where('store_type', 'D')->get();        
-        return view('admin.movimientos.ingresos.edit', compact('movement', 'proveedor', 'productos', 'movimientos', 'stores', 'depositos'));
+        $movement = MovementTemp::find($request->id);
+        $productos       = $this->productRepository->getByProveedorIdPluck($movement->from);
+        $stores          = Store::orderBy('description', 'asc')->where('active', 1)->get();
+        $proveedor       = Proveedor::find($movement->from);
+        $movimientos     = MovementProductTemp::where('movement_id', $request->id)->orderBy('created_at', 'asc')->get();
+        $depositos       = Store::orderBy('cod_fenovo', 'asc')->where('active', 1)->where('store_type', 'D')->get();
+        return view('admin.movimientos.ingresosNoCongelados.edit', compact('movement', 'proveedor', 'productos', 'movimientos', 'stores', 'depositos'));
+    }
+
+    public function checkVoucher(Request $request)
+    {
+        $compra = Movement::whereVoucherNumber($request->voucher)->whereFrom($request->proveedorId)->whereSubtype($request->subtype)->first();
+        if ($compra) {
+            return new JsonResponse(['msj' => 'Compra registrada ...', 'type' => 'success']);
+        }
+        return new JsonResponse(['msj' => 'Compra no registrada ...', 'type' => 'error']);
     }
 }

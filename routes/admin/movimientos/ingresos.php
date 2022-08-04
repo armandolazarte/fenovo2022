@@ -18,6 +18,8 @@ Route::get('ingresos/checked', [IngresosController::class, 'checkedCerrada'])->n
 Route::get('ingresos/add/no-congelados', [IngresosController::class, 'addNocongelados'])->name('ingresos.addNocongelados');
 Route::post('ingresos/store/no-congelados', [IngresosController::class, 'storeNocongelados'])->name('ingresos.storeNocongelados');
 Route::get('ingresos/edit/no-congelados', [IngresosController::class, 'editNocongelados'])->name('ingresos.editNocongelados');
+Route::post('ingresos/check-voucher', [IngresosController::class, 'checkVoucher'])->name('ingresos.checkVoucher');
+
 
 Route::get('ingresos/edit', [IngresosController::class, 'edit'])->name('ingresos.edit');
 Route::get('ingresos/edit-ingreso', [IngresosController::class, 'editIngreso'])->name('ingresos.editIngreso');

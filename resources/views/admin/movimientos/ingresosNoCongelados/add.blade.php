@@ -24,13 +24,17 @@
                             <div class="form-group d-none">
                                 <input type="hidden" name="type" id="type" value="COMPRA" />
                                 <input type="hidden" name="to" id="to" value="1" />
+                                <input type="hidden" name="voucher_number" id="voucher_number" value="0" />
+
                             </div>
 
                             <div class="row mb-3">
-                                <div class="col-md-2">
-                                    <label class="text-body">Fecha</label>
-                                    <input type="date" name="date" id="date"
-                                        value="{{ date('Y-m-d', strtotime(now())) }}" class="form-control datepicker mb-3">
+
+                                <div class="col-md-4">
+                                    <label class="text-body">Proveedor</label>
+                                    <fieldset class="form-group mb-3">
+                                        {{ Form::select('from', $proveedores, null, ['id' => 'from', 'class' => 'js-example-basic-single form-control bg-transparent proveedor', 'placeholder' => 'seleccione ...', 'required' => 'true']) }}
+                                    </fieldset>
                                 </div>
                                 <div class="col-md-2">
                                     <label class="text-body">Tipo compra</label>
@@ -45,25 +49,24 @@
                                 </div>
                                 <div class="col-md-2">
                                     <label class="text-dark">Punto Vta</label>
-                                    <input type="text" id="puntoVenta" name="puntoVenta" value=""
-                                        class="form-control text-center" required="true">
+                                    <input type="number" id="puntoVenta" name="puntoVenta" value=""
+                                        onkeyup="numerico(5, this)" class="form-control text-center" required="true">
                                 </div>
                                 <div class="col-md-2">
                                     <label class="text-dark">Comprobante</label>
-                                    <input type="text" id="comprobante" name="comprobante" value=""
-                                        class="form-control text-center" required="true">
+                                    <input type="number" id="comprobanteNro" name="comprobanteNro" value=""
+                                        onkeyup="numerico(8, this)" class="form-control text-center" required="true"
+                                        onblur="checkComprobante()">
                                 </div>
-                                
+
                             </div>
 
                             <div class="row mb-3">
-                                <div class="col-md-4">
-                                    <label class="text-body">Proveedor</label>
-                                    <fieldset class="form-group mb-3">
-                                        {{ Form::select('from', $proveedores, null, ['class' => 'js-example-basic-single form-control bg-transparent proveedor', 'placeholder' => 'seleccione ...', 'required' => 'true']) }}
-                                    </fieldset>
+                                <div class="col-md-2">
+                                    <label class="text-body">Fecha</label>
+                                    <input type="date" name="date" id="date"
+                                        value="{{ date('Y-m-d', strtotime(now())) }}" class="form-control datepicker mb-3">
                                 </div>
-
                                 <div class="col-md-4">
                                     <label class="text-body">Depósito final</label>
                                     <select class="form-control bg-transparent" name="deposito" id="deposito">
@@ -80,8 +83,8 @@
                                 <div class="col-md-2 text-center">
                                     <label class="text-dark">Guardar</label>
                                     <fieldset class="form-group mb-3">
-                                        <button type="submit" class="btn btn-link btn-guardar-ingreso text-primary">
-                                            <i class="fa fa-save"></i> 
+                                        <button type="submit" class="btn btn-dark">
+                                            <i class="fa fa-save text-black-50"></i>
                                         </button>
                                     </fieldset>
                                 </div>
@@ -110,24 +113,43 @@
     @section('js')
         <script>
             jQuery(document).ready(function() {
-                jQuery("#date").select();
+
             });
 
-            jQuery(".proveedor").on('change', function() {
-                const id = this.value;
+            const numerico = (longitud, objeto) => {
+                if (objeto.value.length > longitud) {
+                    objeto.value = objeto.value.substring(0, objeto.value.length - 1);
+                    return
+                };
+            }
+
+            const checkComprobante = () => {
+
+                let puntoVenta = jQuery("#puntoVenta").val().padStart(5, "0");
+                jQuery("#puntoVenta").val(puntoVenta);
+                let comprobanteNro = jQuery("#comprobanteNro").val().padStart(8, "0");
+                jQuery("#comprobanteNro").val(comprobanteNro);
+                jQuery("#voucher_number").val(jQuery("#puntoVenta").val() + jQuery("#comprobanteNro").val());
+
+                let proveedorId = jQuery("#from").val();
+                let subtype = jQuery("#subtype").val();
+
                 jQuery.ajax({
-                    url: '{{ route('products.getProductByProveedor') }}',
-                    type: 'GET',
+                    url: '{{ route('ingresos.checkVoucher') }}',
+                    type: 'POST',
                     data: {
-                        id
+                        voucher,
+                        proveedorId,
+                        subtype
                     },
                     success: function(data) {
                         if (data['type'] == 'success') {
-                            jQuery("#data").html(data['html']);
-                            jQuery("#product_id").select2({});
+                            jQuery("#puntoVenta").select()
+                            toastr.error(data['msj'], 'Verifique');
                         }
                     }
                 });
-            })
+            }
+
         </script>
     @endsection
