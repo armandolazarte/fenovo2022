@@ -18,11 +18,11 @@
                     </a>
                     <div class="dropdown-menu bg-dark">
 
-                                                    
+
                         <a class="dropdown-item" href="{{ url('productos') }}">
                             <span class="text-black-50"> Lista de productos </span>
                         </a>
-                      
+
 
                         <a class="dropdown-item" href="{{ route('productos.stock.deposito') }}">
                             <span class="text-black-50"> Stock de productos en Friotekas </span>
@@ -92,13 +92,16 @@
                         <a class="dropdown-item text-black-50" href="{{ route('senasa.index') }}">
                             Senasa
                         </a>
+                        <a class="dropdown-item text-black-50" href="{{ route('invoice.index') }}">
+                            Facturas generadas
+                        </a>
                         <a class="dropdown-item text-black-50" href="{{ route('nc.index') }}">
                             Notas de <span class=" text-warning">Crédito</span>
                         </a>
                         <a class="dropdown-item text-black-50" href="{{ route('nd.index') }}">
-                            Notas de <span class="text-warning">Dédito</span>
+                            Notas de <span class="text-warning">Débito</span>
                         </a>
-                        
+
                         @endif
                     </div>
                 </li>
@@ -116,7 +119,7 @@
                 </li>
                 @endcan
 
-    
+
                 @can('stores.index')
                 <li class="nav-item" title="Lista de franquicias">
                     <a href="{{ url('tiendas') }}" class="nav-link mt-2">
