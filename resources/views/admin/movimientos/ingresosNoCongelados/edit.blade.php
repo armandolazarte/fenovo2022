@@ -77,7 +77,7 @@
                         </div>
                         <div class="col-8">
                             <div id="dataTemp">
-                                @include('admin.movimientos.ingresos.detalleTemp')
+                                @include('admin.movimientos.ingresosNoCongelados.detalleTemp')
                             </div>
                         </div>
                     </div>
@@ -122,7 +122,7 @@
         </div>
     </div>
 
-    @include('admin.movimientos.ingresos.modal')
+    @include('admin.movimientos.ingresosNoCongelados.modal')
 @endsection
 
 @section('js')
@@ -150,7 +150,7 @@
         jQuery("#product_id").on('change', function() {
             const productId = jQuery("#product_id").val();
             jQuery.ajax({
-                url: '{{ route('detalle-ingresos.check') }}',
+                url: '{{ route('detalle-ingresos.check.noCongelado') }}',
                 type: 'POST',
                 data: {
                     productId
@@ -170,7 +170,7 @@
         const editarProducto = (id) => {
             var elements = document.querySelectorAll('.is-invalid');
             jQuery.ajax({
-                url: '{{ route('ingresos.editProduct') }}',
+                url: '{{ route('ingresos.editProduct.noCongelado') }}',
                 type: 'GET',
                 data: {
                     id
@@ -182,6 +182,7 @@
                             tags: true
                         })
                         jQuery('.editpopup').addClass('offcanvas-on');
+                        jQuery("#plistproveedor").select();
                     } else {
                         toastr.error(data['html'], 'Verifique');
                     }
@@ -189,10 +190,66 @@
             });
         }
 
-        const actualizarProducto = () => {
+
+        const calcularPrecios = ()=>{            
+            let validate = 0;
+            let plistproveedor = jQuery("#plistproveedor").val();
+
+            if(plistproveedor==0){
+                jQuery("#plistproveedor").addClass('bg-danger')
+            }else{
+                jQuery("#plistproveedor").removeClass('bg-danger')
+            }
+
+            if(plistproveedor>0){
+                calculatePrices(validate)
+            }            
+        };
+
+
+        function calculatePrices(validate = 1){
+
+            var plistproveedor = jQuery("#plistproveedor").val();
+            var descproveedor  = jQuery("#descproveedor").val();
+            var mupfenovo = jQuery("#mupfenovo").val();
+            var contribution_fund = jQuery("#contribution_fund").val();
+            var product_id = jQuery("#product_id").val();
+
+            jQuery.ajax({
+                url:"{{ route('calculate.product.prices') }}",
+                type:'GET',
+                data:{
+                    validate,
+                    plistproveedor,
+                    descproveedor,
+                    mupfenovo,
+                    contribution_fund,
+                    product_id
+                },
+                success:function(data){
+                    if(data['type'] == 'success'){
+                        jQuery("#costfenovo").val(data['costfenovo']);
+                        jQuery("#plist0neto").val(data['plist0neto']);
+                    }else{
+                        toastr.error(data['msj'],'ERROR!');
+                    }
+                },
+                error: function (data) {
+                    var lista_errores="";
+                    var data = data.responseJSON;
+                    jQuery.each(data.errors,function(index, value) {
+                        lista_errores+=value+'<br />';
+                        jQuery('#'+index).addClass('is-invalid');
+                    });
+                    toastr.error(lista_errores,'ERROR!');
+                },
+            });
+        }
+
+        const actualizarProductoNoCongelado = () => {
             var form = jQuery('#formData').serialize();
             jQuery.ajax({
-                url: '{{ route('ingresos.updateProduct') }}',
+                url: '{{ route('ingresos.updateProduct.noCongelado') }}',
                 type: 'POST',
                 data: form,
                 success: function(data) {

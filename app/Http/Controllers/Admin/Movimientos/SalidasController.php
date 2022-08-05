@@ -1396,10 +1396,11 @@ class SalidasController extends Controller
 
     public function updateStock($code = false)
     {
+        // Categorie_id = 1 CONGELADOS
         if ($code) {
-            $products = Product::where('cod_fenovo', $code)->get();
+            $products = Product::where('cod_fenovo', $code)->whereCategorieId(1)->get();
         } else {
-            $products = Product::all();
+            $products = Product::all()->whereCategorieId(1)->get();
         }
 
         foreach ($products as $p) {
@@ -1444,7 +1445,8 @@ class SalidasController extends Controller
             }
 
             // Obtengo el Stock de los movimientos
-            $stock = MovementProduct::whereEntidadId(1)->whereProductId($p->id)->orderBy('id', 'DESC')->limit(1)->first()->balance;
+            $produ = MovementProduct::whereEntidadId(1)->whereProductId($p->id)->orderBy('id', 'DESC')->limit(1)->first();
+            $stock = ($produ)?$produ->balance:0;
 
             // Obtengo el coeficiente de Stock
             $parametro = Coeficiente::find($p->id);
