@@ -63,17 +63,16 @@ class InvoiceController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $invoices = $this->invoiceRepository->all();
+            $invoices = Invoice::whereNotNull('cae')->whereNotNull('url')->orderBy('created_at','DESC')->get();
             return Datatables::of($invoices)
                 ->addIndexColumn()
                 ->addColumn('fecha', function ($invoice) {
                     return \Carbon\Carbon::parse($invoice->updated_at)->format('d/m/Y');
                 })
-                ->addColumn('acciones', function ($invoice) {
-                    $actions = '<a class="dropdown-item" href="' . route('$product->edit', ['id' => $invoice->id]) . '"><i class="fa fa-edit"></i> Editar</a>';
-                    return $actions;
+                ->editColumn('factura_nro', function ($invoice) {
+                    return '<a class="text-primary" title="Descargar factura" target="_blank" href="' . $invoice->url . '"> <i class="fa fa-download"></i> </a>';
                 })
-                ->rawColumns(['acciones'])
+                ->rawColumns(['factura_nro'])
                 ->make(true);
         }
 
