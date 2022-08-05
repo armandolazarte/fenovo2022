@@ -104,7 +104,9 @@
 @endsection
 
 @section('js')
+
     <script>
+   
 
         jQuery(document).ready(function() {
             jQuery("#unit_package").select2({
@@ -250,11 +252,11 @@
                     total = total + (valor * presentacion);
                 });
                 if (total > 0) {
-                    jQuery('#btn-guardar-producto').removeClass("d-none");
+                    jQuery('#btn-guardar-producto').prop('disabled', false);
                 }
                 jQuery('.total').val(total.toFixed(2))
             } else {
-                jQuery('#btn-guardar-producto').addClass("d-none");
+                jQuery('#btn-guardar-producto').prop('disabled', true);
                 jQuery('.total').val(0)
             }
         }
@@ -312,6 +314,7 @@
                     }
                 }
             });
+            
             jQuery.ajax({
                 url: '{{ route('detalle-ingresos.store.noCongelado') }}',
                 type: 'POST',
@@ -320,8 +323,8 @@
                 },
                 success: function(data) {
                     if (data['type'] == 'success') {
-                        actualizarIngreso();
                         jQuery("#dataTemp").html('');
+                        jQuery("#dataConfirm").html(data['html']);
                         jQuery("#product_id").val(null).trigger('change').select2('open');
                     }
                     if (data['type'] !== 'success') {
@@ -333,21 +336,6 @@
             jQuery('#loader').addClass('hidden');
         }
 
-        const actualizarIngreso = () => {
-            const id = jQuery("#movement_id").val();
-            jQuery.ajax({
-                url: '{{ route('detalle-movimiento.getMovements') }}',
-                type: 'GET',
-                data: {
-                    id
-                },
-                success: function(data) {
-                    if (data['type'] == 'success') {
-                        jQuery("#dataConfirm").html(data['html']);
-                    }
-                },
-            });
-        }
 
         const borrarDetalle = (movement_id, product_id) => {
             const route = '{{ route('detalle-ingresos.destroy.noCongelado') }}';

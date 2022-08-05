@@ -127,7 +127,8 @@ class DetalleIngresosController extends Controller
     public function storeNoCongelados(Request $request)
     {
         try {
-            $hoy = Carbon::parse(now())->format('Y-m-d');
+            $hoy         = Carbon::parse(now())->format('Y-m-d');
+            $movement_id = $request->datos[0]['movement_id'];
 
             foreach ($request->datos as $movimiento) {
                 $product               = Product::find($movimiento['product_id']);
@@ -162,7 +163,12 @@ class DetalleIngresosController extends Controller
                     $movimiento
                 );
             }
-            return new JsonResponse(['msj' => 'Guardado', 'type' => 'success']);
+
+            $movimientos = MovementProductTemp::where('movement_id', $movement_id)->orderBy('id', 'desc')->get();
+            return new JsonResponse([
+                'type' => 'success',
+                'html' => view('admin.movimientos.ingresosNoCongelados.detalleConfirm', compact('movimientos'))->render(),
+            ]);
         } catch (\Exception $e) {
             return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
         }

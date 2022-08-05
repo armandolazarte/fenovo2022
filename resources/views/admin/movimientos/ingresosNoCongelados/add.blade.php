@@ -128,7 +128,8 @@
                 let comprobanteNro = jQuery("#comprobanteNro").val().padStart(8, "0");
                 jQuery("#comprobanteNro").val(comprobanteNro);
                 jQuery("#voucher_number").val(jQuery("#puntoVenta").val() + jQuery("#comprobanteNro").val());
-
+                
+                let voucher = jQuery("#voucher_number").val();
                 let proveedorId = jQuery("#from").val();
                 let subtype = jQuery("#subtype").val();
 
