@@ -16,7 +16,7 @@
     <div class="d-flex flex-column-fluid">
         <div class="container-fluid">
             <div class="card gutter-b bg-white border-0">
-                <div class="card-body">
+                <div class="card-body h-300px">
                     <div class="row">
                         <input type="hidden" name="movement_id" id="movement_id" value={{ $movement->id }} />
                         <div class="col-md-3">
@@ -26,12 +26,12 @@
                                     class="form-control mb-3" readonly>
                             </fieldset>
                         </div>
-                        <div class="@if(isset($depositos)) col-md-2 @else col-md-3 @endif">
+                        <div class="col-md-2">
                             <label class="text-body">Fecha</label>
                             <input type="text" name="date" value="{{ date('d-m-Y', strtotime($movement->date)) }}"
                                 class="form-control datepicker mb-3" readonly>
                         </div>
-                        <div class="@if(isset($depositos)) col-md-1 @else col-md-3 @endif">
+                        <div class="col-md-1">
                             <label class="text-body">Tipo compra</label>
                             <input type="text" name="subtype" id="subtype" value="{{ $movement->subtype }}"
                                 class=" form-control" readonly>
@@ -82,28 +82,6 @@
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-xs-12 col-md-1 col-lg-1">
-                            <div class="form-group form-check">
-                                <input type="checkbox" class="form-check-input" id="checkTiendas" onclick="verDiv()">
-                                Venta directa
-                            </div>
-                        </div>
-
-                        <div id="divStore" style="display:none" class="col-xs-12 col-md-3 col-lg-3">
-                            <select id="tienda_destino" name="tienda_destino" class="js-example-responsive" style="width: 100%">
-                                <option value="0">Seleccione la tienda destino ...</option>
-                                @foreach ($stores as $store)
-                                    <option value="{{ $store->id }}">
-                                        {{ str_pad($store->cod_fenovo, 3, '0', STR_PAD_LEFT) }} - {{ $store->description }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                    </div>
-
-
                 </div>
             </div>
 
@@ -112,7 +90,7 @@
                     <div class="row">
                         <div class="col-lg-12 col-xl-12">
                             <div id="dataConfirm">
-                                @include('admin.movimientos.ingresos.detalleConfirm')
+                                @include('admin.movimientos.ingresosNoCongelados.detalleConfirm')
                             </div>
                         </div>
                     </div>
@@ -127,25 +105,12 @@
 
 @section('js')
     <script>
+
         jQuery(document).ready(function() {
             jQuery("#unit_package").select2({
                 tags: true
             })
-            jQuery("#tienda_destino").select2({
-                width:'resolve'
-            })
         });
-
-        const verDiv = () => {
-
-            if (jQuery('#checkTiendas').prop('checked')) {
-                jQuery('#divStore').show()
-            } else {
-                jQuery('#tienda_destino').val(0)
-                jQuery('#divStore').hide()
-                jQuery('#tienda_destino').val();
-            }
-        }
 
         jQuery("#product_id").on('change', function() {
             const productId = jQuery("#product_id").val();
@@ -190,7 +155,6 @@
             });
         }
 
-
         const calcularPrecios = ()=>{            
             let validate = 0;
             let plistproveedor = jQuery("#plistproveedor").val();
@@ -206,12 +170,12 @@
             }            
         };
 
-
         function calculatePrices(validate = 1){
 
             var plistproveedor = jQuery("#plistproveedor").val();
             var descproveedor  = jQuery("#descproveedor").val();
             var mupfenovo = jQuery("#mupfenovo").val();
+            var costfenovo = jQuery("#costfenovo").val();
             var contribution_fund = jQuery("#contribution_fund").val();
             var product_id = jQuery("#product_id").val();
 
@@ -223,6 +187,7 @@
                     plistproveedor,
                     descproveedor,
                     mupfenovo,
+                    costfenovo,
                     contribution_fund,
                     product_id
                 },
@@ -247,6 +212,7 @@
         }
 
         const actualizarProductoNoCongelado = () => {
+            var product_id = jQuery("#product_id").val();
             var form = jQuery('#formData').serialize();
             jQuery.ajax({
                 url: '{{ route('ingresos.updateProduct.noCongelado') }}',
@@ -257,7 +223,7 @@
                         toastr.info('Actualizado', 'Registro');
                         jQuery('.editpopup').removeClass('offcanvas-on');
                         jQuery("#dataTemp").html('');
-                        jQuery("#product_id").val(null).trigger('change').select2('open');
+                        jQuery("#product_id").val(product_id).trigger('change');
                     } else {
                         toastr.error(data['html'], 'Verifique');
                     }
@@ -347,7 +313,7 @@
                 }
             });
             jQuery.ajax({
-                url: '{{ route('detalle-ingresos.store') }}',
+                url: '{{ route('detalle-ingresos.store.noCongelado') }}',
                 type: 'POST',
                 data: {
                     datos: arrMovimientos
@@ -384,7 +350,7 @@
         }
 
         const borrarDetalle = (movement_id, product_id) => {
-            const route = '{{ route('detalle-ingresos.destroy') }}';
+            const route = '{{ route('detalle-ingresos.destroy.noCongelado') }}';
 
             ymz.jq_confirm({
                 title: 'Atención',
@@ -417,34 +383,6 @@
                 }
             })
         }
-
-        const destroy_local = (id, route) => {
-            ymz.jq_confirm({
-                title: 'Eliminar',
-                text: "confirma borrar registro ?",
-                no_btn: "Cancelar",
-                yes_btn: "Confirma",
-                no_fn: function() {
-                    return false;
-                },
-                yes_fn: function() {
-                    jQuery.ajax({
-                        url: route,
-                        type: 'POST',
-                        dataType: 'json',
-                        data: {
-                            id: id
-                        },
-                        success: function(data) {
-                            if (data['type'] == 'success') {
-                                let ruta = "{{ route('ingresos.index') }}";
-                                window.location = ruta;
-                            }
-                        }
-                    });
-                }
-            });
-        };
 
         const close_compra = (id) => {
 

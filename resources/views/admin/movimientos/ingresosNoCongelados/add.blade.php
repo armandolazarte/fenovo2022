@@ -25,11 +25,9 @@
                                 <input type="hidden" name="type" id="type" value="COMPRA" />
                                 <input type="hidden" name="to" id="to" value="1" />
                                 <input type="hidden" name="voucher_number" id="voucher_number" value="0" />
-
                             </div>
 
                             <div class="row mb-3">
-
                                 <div class="col-md-4">
                                     <label class="text-body">Proveedor</label>
                                     <fieldset class="form-group mb-3">
