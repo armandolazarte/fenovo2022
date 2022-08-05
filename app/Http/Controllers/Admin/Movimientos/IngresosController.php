@@ -903,6 +903,15 @@ class IngresosController extends Controller
     }
 
     // NO CONGELADOS
+
+    public function checkVoucher(Request $request)
+    {
+        $compra = Movement::whereVoucherNumber($request->voucher)->whereFrom($request->proveedorId)->whereSubtype($request->subtype)->first();
+        if ($compra) {
+            return new JsonResponse(['msj' => 'Compra registrada ...', 'type' => 'success']);
+        }
+        return new JsonResponse(['msj' => 'Compra no registrada ...', 'type' => 'error']);
+    }    
     public function addNoCongelados()
     {   // Obtengo los proveedores a los productos no congelados
         $productos   = Product::where('categorie_id', '!=', 1)->where('proveedor_id', '>', 0)->pluck('proveedor_id');
@@ -910,7 +919,6 @@ class IngresosController extends Controller
         $depositos   = Store::orderBy('cod_fenovo', 'asc')->where('active', 1)->where('store_type', 'D')->get();
         return view('admin.movimientos.ingresosNoCongelados.add', compact('proveedores', 'depositos'));
     }
-
     public function storeNoCongelados(Request $request)
     {
         $data            = $request->all();
@@ -918,7 +926,6 @@ class IngresosController extends Controller
         $movement        = MovementTemp::create($data);
         return redirect()->route('ingresos.editNocongelados', ['id' => $movement->id]);
     }
-
     public function editNoCongelados(Request $request)
     {
         $movement = MovementTemp::find($request->id);
@@ -929,13 +936,28 @@ class IngresosController extends Controller
         $depositos       = Store::orderBy('cod_fenovo', 'asc')->where('active', 1)->where('store_type', 'D')->get();
         return view('admin.movimientos.ingresosNoCongelados.edit', compact('movement', 'proveedor', 'productos', 'movimientos', 'stores', 'depositos'));
     }
-
-    public function checkVoucher(Request $request)
+    public function editProductNoCongelados(Request $request)
     {
-        $compra = Movement::whereVoucherNumber($request->voucher)->whereFrom($request->proveedorId)->whereSubtype($request->subtype)->first();
-        if ($compra) {
-            return new JsonResponse(['msj' => 'Compra registrada ...', 'type' => 'success']);
+        try {
+            $product      = Product::find($request->id);
+            $unit_package = explode('|', $product->unit_package);
+            return new JsonResponse([
+                'type' => 'success',
+                'html' => view('admin.movimientos.ingresosNoCongelados.insertByAjax', compact('product', 'unit_package'))->render(),
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
         }
-        return new JsonResponse(['msj' => 'Compra no registrada ...', 'type' => 'error']);
+    }
+    public function updateProductNoCongelados(Request $request)
+    {
+        try {
+            $data['unit_package'] = implode('|', $request->unit_package);
+            $data['unit_weight']  = $request->unit_weight;
+            Product::find($request->product_id)->update($data);
+            return new JsonResponse(['msj' => 'Actualización correcta !', 'type' => 'success']);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
     }
 }

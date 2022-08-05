@@ -87,6 +87,22 @@ class DetalleIngresosController extends Controller
         }
     }
 
+    public function checkNoCongelados(Request $request)
+    {
+        try {
+            $productId      = $request->productId;
+            $producto       = Product::find($productId);
+            $presentaciones = explode('|', $producto->unit_package);
+            return new JsonResponse([
+                'type' => 'success',
+                'html' => view('admin.movimientos.ingresosNoCongelados.detalleTemp', compact('producto', 'presentaciones'))->render(),
+
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
+    }
+
     public function destroy(Request $request)
     {
         try {
