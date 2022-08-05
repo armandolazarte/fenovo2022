@@ -10,6 +10,7 @@ use App\Models\MovementProductTemp;
 use App\Models\MovementTemp;
 use App\Models\OfertaStore;
 use App\Models\Product;
+use App\Models\ProductPrice;
 use App\Models\ProductStore;
 use App\Models\Proveedor;
 use App\Models\SessionOferta;
@@ -911,7 +912,7 @@ class IngresosController extends Controller
             return new JsonResponse(['msj' => 'Compra registrada ...', 'type' => 'success']);
         }
         return new JsonResponse(['msj' => 'Compra no registrada ...', 'type' => 'error']);
-    }    
+    }
     public function addNoCongelados()
     {   // Obtengo los proveedores a los productos no congelados
         $productos   = Product::where('categorie_id', '!=', 1)->where('proveedor_id', '>', 0)->pluck('proveedor_id');
@@ -928,13 +929,12 @@ class IngresosController extends Controller
     }
     public function editNoCongelados(Request $request)
     {
-        $movement = MovementTemp::find($request->id);
-        $productos       = $this->productRepository->getByProveedorIdPluck($movement->from);
-        $stores          = Store::orderBy('description', 'asc')->where('active', 1)->get();
-        $proveedor       = Proveedor::find($movement->from);
-        $movimientos     = MovementProductTemp::where('movement_id', $request->id)->orderBy('created_at', 'asc')->get();
-        $depositos       = Store::orderBy('cod_fenovo', 'asc')->where('active', 1)->where('store_type', 'D')->get();
-        return view('admin.movimientos.ingresosNoCongelados.edit', compact('movement', 'proveedor', 'productos', 'movimientos', 'stores', 'depositos'));
+        $movement    = MovementTemp::find($request->id);
+        $productos   = $this->productRepository->getByProveedorIdPluck($movement->from);
+        $proveedor   = Proveedor::find($movement->from);
+        $movimientos = MovementProductTemp::where('movement_id', $request->id)->orderBy('created_at', 'asc')->get();
+        $depositos   = Store::orderBy('cod_fenovo', 'asc')->where('active', 1)->where('store_type', 'D')->get();
+        return view('admin.movimientos.ingresosNoCongelados.edit', compact('movement', 'proveedor', 'productos', 'movimientos', 'depositos'));
     }
     public function editProductNoCongelados(Request $request)
     {
@@ -955,9 +955,19 @@ class IngresosController extends Controller
             $data['unit_package'] = implode('|', $request->unit_package);
             $data['unit_weight']  = $request->unit_weight;
             Product::find($request->product_id)->update($data);
+
+            $dataprice['plistproveedor']    = $request->plistproveedor;
+            $dataprice['descproveedor']     = $request->descproveedor;
+            $dataprice['costfenovo']        = $request->costfenovo;
+            $dataprice['mupfenovo']         = $request->mupfenovo;
+            $dataprice['contribution_fund'] = $request->contribution_fund;
+            $dataprice['plist0neto']        = $request->plist0neto;
+            ProductPrice::whereProductId($request->product_id)->update($dataprice);
+
             return new JsonResponse(['msj' => 'Actualización correcta !', 'type' => 'success']);
         } catch (\Exception $e) {
             return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
         }
     }
+    
 }

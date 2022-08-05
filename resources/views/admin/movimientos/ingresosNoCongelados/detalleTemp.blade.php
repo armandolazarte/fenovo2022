@@ -24,7 +24,7 @@
     </div>
     <div class="col-2">
         @if($loop->last)
-            <button id="btn-guardar-producto" onclick="guardarItem('{{ $producto->id }}', '{{ $producto->unit_weight }}')" class="btn-outline-dark rounded-pill"> 
+            <button id="btn-guardar-producto" onclick="guardarItem('{{ $producto->id }}', '{{ $producto->unit_weight }}')" class="btn btn-outline-dark rounded-pill" disabled="true"> 
                 Guardar 
             </button>
         @endif

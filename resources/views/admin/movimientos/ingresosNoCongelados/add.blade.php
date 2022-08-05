@@ -25,11 +25,9 @@
                                 <input type="hidden" name="type" id="type" value="COMPRA" />
                                 <input type="hidden" name="to" id="to" value="1" />
                                 <input type="hidden" name="voucher_number" id="voucher_number" value="0" />
-
                             </div>
 
                             <div class="row mb-3">
-
                                 <div class="col-md-4">
                                     <label class="text-body">Proveedor</label>
                                     <fieldset class="form-group mb-3">
@@ -130,7 +128,8 @@
                 let comprobanteNro = jQuery("#comprobanteNro").val().padStart(8, "0");
                 jQuery("#comprobanteNro").val(comprobanteNro);
                 jQuery("#voucher_number").val(jQuery("#puntoVenta").val() + jQuery("#comprobanteNro").val());
-
+                
+                let voucher = jQuery("#voucher_number").val();
                 let proveedorId = jQuery("#from").val();
                 let subtype = jQuery("#subtype").val();
 
