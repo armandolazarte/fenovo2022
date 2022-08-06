@@ -26,7 +26,7 @@
                                     class="form-control mb-3" readonly>
                             </fieldset>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-1">
                             <label class="text-body">Fecha</label>
                             <input type="text" name="date" value="{{ date('d-m-Y', strtotime($movement->date)) }}"
                                 class="form-control datepicker mb-3" readonly>
@@ -52,8 +52,10 @@
                                 @endforeach
                             </select>
                         </div>
+
+                        <div class="col-md-2"></div>
                         
-                        <div class="col-md-2 text-center">
+                        <div class="col-md-1 text-center">
                             <label class="text-dark font-size-bold">Cerrar</label>
                             <fieldset class="form-group">
                                 <button onclick="close_compra('{{ $movement->id }}')" class="btn btn-dark btn-cerrar-ingreso">
@@ -325,7 +327,6 @@
                     if (data['type'] == 'success') {
                         jQuery("#dataTemp").html('');
                         jQuery("#dataConfirm").html(data['html']);
-                        jQuery("#product_id").val(null).trigger('change').select2('open');
                     }
                     if (data['type'] !== 'success') {
                         toastr.error(data['msj'], 'Verifique');
@@ -374,18 +375,16 @@
 
         const close_compra = (id) => {
 
-            let tiendaDestino = jQuery('#tienda_destino').val();
-
             ymz.jq_confirm({
                 title: 'Compra ',
-                text: "Confirma el cierre de la  compra ?",
+                text: "Confirma el cierre de la compra ?",
                 no_btn: "Cancelar",
                 yes_btn: "Confirma",
                 no_fn: function() {
                     return false;
                 },
                 yes_fn: function() {
-                    let ruta = '{{ route('ingresos.close') }}'+'?id='+id+'&tienda='+tiendaDestino;
+                    let ruta = '{{ route('ingresos.closeNocongelados') }}'+'?id='+id;
                     window.location = ruta;
                 }
             });

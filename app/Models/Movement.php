@@ -10,7 +10,6 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Env;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -63,27 +62,29 @@ class Movement extends Model
         return $this->hasMany(MovementProduct::class);
     }
 
-    public function products_egress(){
+    public function products_egress()
+    {
         return $this->hasMany(MovementProduct::class)->where('egress', '>', 0);
     }
 
     public function movement_salida_products()
     {
-       return $this->hasMany(MovementProduct::class)->where('egress', '>', 0)->where('circuito', '!=', 'CyO');
+        return $this->hasMany(MovementProduct::class)->where('egress', '>', 0)->where('circuito', '!=', 'CyO');
     }
 
-    public function group_products_egress(){
+    public function group_products_egress()
+    {
         return $this->hasMany(MovementProduct::class)->where('egress', '>', 0)
-                     ->select(['*',DB::raw("SUM(bultos) as bultos")])
+                     ->select(['*', DB::raw('SUM(bultos) as bultos')])
                      ->groupBy('product_id');
     }
 
     public function group_movement_salida_products()
     {
-       return $this->hasMany(MovementProduct::class)->where('egress', '>', 0)
+        return $this->hasMany(MovementProduct::class)->where('egress', '>', 0)
                     ->where('circuito', '!=', 'CyO')
-                    ->where('invoice',true)
-                    ->select(['*',DB::raw("SUM(bultos) as bultos")])
+                    ->where('invoice', true)
+                    ->select(['*', DB::raw('SUM(bultos) as bultos')])
                     ->groupBy('product_id');
     }
 
@@ -122,6 +123,11 @@ class Movement extends Model
         return $this->hasMany(Invoice::class);
     }
 
+    public function invoiceCompra()
+    {
+        return $this->hasOne(InvoiceCompra::class);
+    }
+
     public function invoice_fenovo()
     {
         return $this->invoice->where('movement_id', $this->id)->first();
@@ -138,14 +144,14 @@ class Movement extends Model
                     ->where('egress', '>', 0)
                     ->where('invoice', false)
                     ->where('circuito', '!=', 'CyO')
-                    ->select(['*',DB::raw("SUM(bultos) as bultos")])
-                    ->groupBy('product_id');;
+                    ->select(['*', DB::raw('SUM(bultos) as bultos')])
+                    ->groupBy('product_id');
     }
 
     public function verifSiFactura()
     {
         return MovementProduct::where('movement_id', $this->id)
-                              ->where('entidad_id',\Auth::user()->store_active)
+                              ->where('entidad_id', \Auth::user()->store_active)
                               ->where('entidad_tipo', 'S')
                               ->where('invoice', true)
                               ->count();
@@ -154,7 +160,7 @@ class Movement extends Model
     public function verifSiCreatePanama()
     {
         return MovementProduct::where('movement_id', $this->id)
-                             ->where('entidad_id',\Auth::user()->store_active)
+                             ->where('entidad_id', \Auth::user()->store_active)
                              ->where('entidad_tipo', 'S')
                              ->where('invoice', false)
                              ->count();
