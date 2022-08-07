@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Movimientos;
 
 use App\Http\Controllers\Controller;
 use App\Models\FleteSetting;
+use App\Models\InvoiceCompra;
 use App\Models\Movement;
 use App\Models\MovementProduct;
 use App\Models\MovementProductTemp;
@@ -969,13 +970,12 @@ class IngresosController extends Controller
     }
     public function closeNoCongelados(Request $request)
     {
-
-        // try {
-        //     DB::beginTransaction();
-        //     Schema::disableForeignKeyConstraints();
+        try {
+            DB::beginTransaction();
+            Schema::disableForeignKeyConstraints();
 
             // Obtengo los datos del movimiento
-            return $movement_temp = MovementTemp::where('id', $request->id)->with('movement_ingreso_products')->first();
+            $movement_temp = MovementTemp::where('id', $request->Detalle['id'])->with('movement_ingreso_products')->first();
 
             $count = Movement::where('to', 1)->where('type', 'COMPRA')->count();
             $orden = ($count) ? $count + 1 : 1;
@@ -995,8 +995,28 @@ class IngresosController extends Controller
             $data['flete_invoice']  = 0;
             $movement_compra        = Movement::create($data);
 
+            // Guardar detalle de compra
+            $dataCompra['movement_id'] = $movement_compra->id;
+            $dataCompra['l25413']      = $request->Detalle['l25413'];
+            $dataCompra['retater']     = $request->Detalle['retater'];
+            $dataCompra['retiva']      = $request->Detalle['retiva'];
+            $dataCompra['retgan']      = $request->Detalle['retgan'];
+            $dataCompra['nograv']      = $request->Detalle['nograv'];
+            $dataCompra['percater']    = $request->Detalle['percater'];
+            $dataCompra['perciva']     = $request->Detalle['perciva'];
+            $dataCompra['exento']      = $request->Detalle['exento'];
+            $dataCompra['totalIva10']  = $request->Detalle['totalIva10'];
+            $dataCompra['totalIva21']  = $request->Detalle['totalIva21'];
+            $dataCompra['totalIva27']  = $request->Detalle['totalIva27'];
+            $dataCompra['totalNeto10'] = $request->Detalle['totalNeto10'];
+            $dataCompra['totalNeto21'] = $request->Detalle['totalNeto21'];
+            $dataCompra['totalNeto27'] = $request->Detalle['totalNeto27'];
+            $dataCompra['totalCompra'] = $request->Detalle['totalCompra'];
+            InvoiceCompra::create($dataCompra);
+            //
+
             $circuito = '';
-            if ($movement_temp->subtype == 'FACTURA') {
+            if (in_array($movement_temp->subtype, ['FA', 'FB', 'FC', 'FM'])) {
                 $circuito = 'F';
             }
             if ($movement_temp->subtype == 'REMITO') {
@@ -1005,8 +1025,6 @@ class IngresosController extends Controller
             if ($movement_temp->subtype == 'CYO') {
                 $circuito = 'CyO';
             }
-
-            $totalVta = 0;
 
             // Considerar cada uno de los movimientos
             foreach ($movement_temp->movement_ingreso_products as $movimiento) {
@@ -1029,8 +1047,6 @@ class IngresosController extends Controller
                 if (!is_null($movement_temp->deposito)) {
                     $stock_cyo  = $stock_f  = $stock_r  = 0;
                     $prod_store = ProductStore::where('product_id', $movimiento['product_id'])->where('store_id', $movement_temp->deposito)->first();
-                    //$stock_inicial_store = ($prod_store) ? $prod_store->stock_f + $prod_store->stock_r + $prod_store->stock_cyo : 0;
-                    //$balance_compra = ($stock_inicial_store) ? $stock_inicial_store + $movimiento['entry'] : $movimiento['entry'];
 
                     if ($movimiento['cyo']) {
                         ($prod_store) ? $prod_store->stock_cyo = $prod_store->stock_cyo + $movimiento['entry'] : $stock_cyo = $movimiento['entry'];
@@ -1074,19 +1090,17 @@ class IngresosController extends Controller
                     'deposito'     => $movement_temp->deposito,
                 ]);
             }
+
             // Elimino el Movimiento temporal
-            MovementTemp::find($request->id)->delete();
-            MovementProductTemp::whereMovementId($request->id)->delete();
+            MovementTemp::find($request->Detalle['id'])->delete();
+            MovementProductTemp::whereMovementId($request->Detalle['id'])->delete();
 
-            // DB::commit();
-            // Schema::enableForeignKeyConstraints();
+            DB::commit();
+            Schema::enableForeignKeyConstraints();
 
-            return redirect()->route('ingresos.index');
-        // } catch (\Exception $e) {
-        //     DB::rollback();
-        //     Schema::enableForeignKeyConstraints();
-        //     dd($e->getMessage());
-        //     return redirect()->back()->withErrors(['error' => $e->getMessage()])->withInput();
-        // }
+            return new JsonResponse(['msj' => 'Compra guardada', 'type' => 'success']);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
     }
 }

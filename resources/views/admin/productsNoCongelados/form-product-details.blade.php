@@ -227,11 +227,7 @@
                 <fieldset class="form-group mb-3" style="width: 100%">
                     <select class="js-example-basic-single js-states form-control bg-transparent" name="tasiva" id="tasiva">
                         @foreach ($alicuotas as $alicuota)
-                        <option value="{{$alicuota->value}}" @if(isset($product) && ((float)$product->product_price->tasiva == (float)$alicuota->value*100))
-                            selected
-                            @elseif($alicuota->value * 100 == 21)
-                            selected
-                            @endif>
+                        <option value="{{$alicuota->value}}" @if(isset($product) && ($product->product_price->tasiva == $alicuota->value*100))  selected @endif>
                             {{$alicuota->description}}
                         </option>
                         @endforeach

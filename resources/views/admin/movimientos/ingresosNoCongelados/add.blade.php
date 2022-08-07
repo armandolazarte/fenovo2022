@@ -28,13 +28,13 @@
                             </div>
 
                             <div class="row mb-3">
-                                <div class="col-md-4">
+                                <div class="col-6">
                                     <label class="text-body">Proveedor</label>
                                     <fieldset class="form-group mb-3">
                                         {{ Form::select('from', $proveedores, null, ['id' => 'from', 'class' => 'js-example-basic-single form-control bg-transparent proveedor', 'placeholder' => 'seleccione ...', 'required' => 'true']) }}
                                     </fieldset>
                                 </div>
-                                <div class="col-md-2">
+                                <div class="col-1">
                                     <label class="text-body">Tipo compra</label>
                                     <select class="form-control" name="subtype" id="subtype">
                                         <option value="FA" selected>FACTURA - A</option>
@@ -45,16 +45,24 @@
                                         <option value="REMITO">R</option>
                                     </select>
                                 </div>
-                                <div class="col-md-2">
+                                <div class="col-2">
                                     <label class="text-dark">Punto Vta</label>
                                     <input type="number" id="puntoVenta" name="puntoVenta" value=""
                                         onkeyup="numerico(5, this)" class="form-control text-center" required="true">
                                 </div>
-                                <div class="col-md-2">
+                                <div class="col-2">
                                     <label class="text-dark">Comprobante</label>
                                     <input type="number" id="comprobanteNro" name="comprobanteNro" value=""
                                         onkeyup="numerico(8, this)" class="form-control text-center" required="true"
                                         onblur="checkComprobante()">
+                                </div>
+                                <div class="col-md-1 text-center">
+                                    <label class="text-dark">Guardar</label>
+                                    <fieldset class="form-group">
+                                        <button type="submit" class="btn btn-dark">
+                                            <i class="fa fa-save text-black-50"></i>
+                                        </button>
+                                    </fieldset>
                                 </div>
 
                             </div>
@@ -73,19 +81,7 @@
                                                 {{ $deposito->description }}</option>
                                         @endforeach
                                     </select>
-                                </div>
-
-                                <div class="col-md-2">
-
-                                </div>
-                                <div class="col-md-2 text-center">
-                                    <label class="text-dark">Guardar</label>
-                                    <fieldset class="form-group mb-3">
-                                        <button type="submit" class="btn btn-dark">
-                                            <i class="fa fa-save text-black-50"></i>
-                                        </button>
-                                    </fieldset>
-                                </div>
+                                </div>                               
 
                             </div>
 

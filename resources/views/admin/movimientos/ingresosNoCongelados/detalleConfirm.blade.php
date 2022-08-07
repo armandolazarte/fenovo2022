@@ -26,6 +26,7 @@
                     $totalNeto10 = 0;
                     $totalNeto21 = 0;
                     $totalNeto27 = 0;
+                    $totalNetoNoGravado = 0;
                     
                     $totalIva10 = 0;
                     $totalIva21 = 0;
@@ -35,23 +36,28 @@
 
                 @foreach ($movimientos as $movimiento)
                     @php
-                        $total += $movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos;
-                        $totalIva += ($movimiento->tasiva / 100) * $movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos;
                         
                         switch ($movimiento->tasiva) {
                             case '10.5':
-                                $totalNeto10 += $movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos;
-                                $totalIva10 += ($movimiento->tasiva / 100) * $movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos;
-                                break;
+                            $totalNeto10 += $movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos;
+                            $totalIva10 += ($movimiento->tasiva / 100) * $movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos;
+                            break;
                             case '21.0':
-                                $totalNeto21 += $movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos;
-                                $totalIva21 += ($movimiento->tasiva / 100) * $movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos;
-                                break;
+                            $totalNeto21 += $movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos;
+                            $totalIva21 += ($movimiento->tasiva / 100) * $movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos;
+                            break;
                             case '27.0':
-                                $totalNeto27 += $movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos;
-                                $totalIva27 += ($movimiento->tasiva / 100) * $movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos;
-                                break;
+                            $totalNeto27 += $movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos;
+                            $totalIva27 += ($movimiento->tasiva / 100) * $movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos;
+                            break;
+                            
+                            case '0':
+                            $totalNetoNoGravado += $movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos;
+                            break;
                         }
+
+                        $total += ($movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos) + $totalNetoNoGravado;
+                        $totalIva += ($movimiento->tasiva / 100) * $movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos;
                         
                     @endphp
 
@@ -130,7 +136,7 @@
                     <th><input type="text" min="0" step="0.1" value="0" name="perciva" id="perciva" onkeyup="totalizar()"
                             class=" form-control text-center border-info calculateCompra"></th>
                     <td>Exento</td>
-                    <th><input type="text" min="0" step="0.1" value="0" name="exento" id="exento" onkeyup="totalizar()"
+                    <th><input type="text" min="0" step="0.1" value="{{ round($totalNetoNoGravado,2) }}" name="exento" id="exento" onkeyup="totalizar()"
                             class=" form-control text-center border-info calculateCompra"></th>
                 </tr>
             </table>
