@@ -20,12 +20,14 @@ class OrdenConsolidadaViewExport implements FromView
     public function view(): View
     {
         // Tipos de movimientos
+        $arrOtros = ['COMPRA', 'DEVOLUCION', 'DEVOLUCIONCLIENTE', 'AJUSTE'];
         $arrTypes = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
+        $arrTodos = ['VENTA', 'VENTACLIENTE', 'TRASLADO', 'COMPRA', 'DEVOLUCION', 'DEVOLUCIONCLIENTE', 'AJUSTE'];
 
         // Tomo los movimientos de 15 dias atras
         $fecha = Carbon::now()->subDays(15)->toDateTimeString();
 
-        $movimientos    = Movement::all()->whereIn('type', $arrTypes)->sortBy('id');
+        $movimientos    = Movement::all()->whereIn('type', $arrTodos)->where('created_at', '>', $fecha)->sortBy('id');
         $arrMovimientos = [];
 
         foreach ($movimientos as $movimiento) {
@@ -38,16 +40,17 @@ class OrdenConsolidadaViewExport implements FromView
             if ($movimiento->invoice_fenovo()) {
                 $explodes = explode('-', $movimiento->invoice_fenovo()->voucher_number);
                 $ptoVta   = str_pad((int)$explodes[0], 4, '0', STR_PAD_LEFT);
-            }
-
-            if ($movimiento->invoice_fenovo()) {
-                $importe = $movimiento->invoice_fenovo()->imp_neto;
+                $importe  = $movimiento->invoice_fenovo()->imp_neto;
             } else {
                 $importe = '0.0';
             }
 
-            $store_from = Store::where('id', $movimiento->from)->first();
-            $cip        = (is_null($store_from->cip)) ? '8889' : $store_from->cip;
+            if (in_array($movimiento->type, $arrTypes)) {
+                $store_from = Store::where('id', $movimiento->from)->first();
+                $cip        = (is_null($store_from->cip)) ? '8889' : $store_from->cip;
+            } else {
+                $cip = '0000';
+            }
 
             $panama1 = ($movimiento->hasPanama()) ? str_pad($cip, 4, '0', STR_PAD_LEFT) . '-' . str_pad($movimiento->getPanama()->orden, 7, '0', STR_PAD_LEFT) : '0.0';
             $panama2 = ($movimiento->hasFlete()) ? str_pad($cip, 4, '0', STR_PAD_LEFT) . '-' . str_pad($movimiento->getFlete()->orden, 7, '0', STR_PAD_LEFT) : '0.0';
