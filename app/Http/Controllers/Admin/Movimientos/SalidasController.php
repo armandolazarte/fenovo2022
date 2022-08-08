@@ -966,8 +966,14 @@ class SalidasController extends Controller
     private function checkStockPass($products)
     {
         foreach ($products as $product) {
-            $cantidad = ($product->unit_type == 'K') ? ($product->producto->unit_weight * $product->unit_package * $product->quantity) : ($product->unit_package * $product->quantity);
-            $balance  = $product->producto->stockReal();
+            if(is_null($product->deposito)){
+                $cantidad = ($product->unit_type == 'K') ? ($product->producto->unit_weight * $product->unit_package * $product->quantity) : ($product->unit_package * $product->quantity);
+                $balance  = $product->producto->stockReal();
+            }else{
+                $cantidad = ($product->unit_type == 'K') ? ($product->producto->unit_weight * $product->unit_package * $product->quantity) : ($product->unit_package * $product->quantity);
+                $prod_store = ProductStore::where('product_id', $product->product_id)->where('store_id', $product->deposito)->first();
+                $balance = ($prod_store) ? $prod_store->stock_f + $prod_store->stock_r + $prod_store->stock_cyo : 0;
+            }
             if ($balance < $cantidad) {
                 $alert = '<div class="alert alert-danger"><button type="button" class="close" data-dismiss="alert"><i class="ace-icon fa fa-times"></i></button>';
                 $alert .= '<i class="ace-icon fa fa-ban"></i> COD-FENOVO <strong>';
