@@ -10,7 +10,7 @@
                     <div class="card-header align-items-center  border-bottom-dark px-0">
                         <div class="card-title mb-0">
                             <h4 class="card-label mb-0 font-weight-bold text-body">
-                                Productos NO congelados
+                                Productos No congelados
                             </h4>
                         </div>
                         <div class="icons d-flex">
@@ -29,12 +29,13 @@
                         <div class="table-responsive">
                             <table id="productTable" class=" table table-hover dataTable table-condensed yajra-datatable" role="grid">
                                 <thead class="text-body">
-                                    <tr class="bg-light ">
-                                        <td>Tipo</td>
+                                    <tr class="bg-dark text-black-50 ">
                                         <td>Codigo</td>
                                         <td>Nombre</td>
+                                        <td>Tipo</td>
                                         <td>Stock</td>
                                         <td>Costo</td>
+                                        <td>Iva</td>
                                         <td>Proveedor</td>
                                         <td>Historial</td>
                                         <td>Editar</td>
@@ -63,11 +64,12 @@
         autoWidth: false,
         ajax: "{{ route('products.nc.list') }}",
         columns: [
-            {data: 'categoria', orderable: false},
             {data: 'cod_fenovo', orderable: false},
             {data: 'name', orderable: false},
+            {data: 'categoria', orderable: false},
             {data: 'stock', class:'text-center', orderable: false, searchable: false},
             {data: 'costo', orderable: false, searchable: false},
+            {data: 'iva', orderable: false, searchable: false},
             {data: 'proveedor', orderable: false},
             {data: 'historial', class:'text-center', orderable: false, searchable: false},
             {data: 'editar', class:'text-center', orderable: false, searchable: false},
