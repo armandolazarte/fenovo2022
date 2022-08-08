@@ -92,7 +92,7 @@ class MovementsViewExport implements FromView
             ->where('t2.entidad_tipo', '!=', 'C')
             ->where('t2.exported_number', '>', 0)
             ->whereDate('t1.created_at', '>', $fecha)
-            ->orderBy('t2.exported_number')
+            ->orderBy('t1.date')->orderBy('t1.id')->orderBy('t3.cod_fenovo')
             ->get();
 
         $arrMovements = [];
