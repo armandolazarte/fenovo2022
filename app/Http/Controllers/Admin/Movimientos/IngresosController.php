@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Movimientos;
 
 use App\Http\Controllers\Controller;
 use App\Models\FleteSetting;
+use App\Models\InvoiceCompra;
 use App\Models\Movement;
 use App\Models\MovementProduct;
 use App\Models\MovementProductTemp;
@@ -55,8 +56,7 @@ class IngresosController extends Controller
                     return $movement->origenData($movement->type);
                 })
                 ->editColumn('id', function ($movement) {
-                    $ruta = 'editData(' . $movement->id . ",'" . route('ingresos.editIngreso') . "')";
-                    return '<a href="javascript:void(0)" onclick="' . $ruta . '">' . $movement->id . '</a>';
+                    return $movement->id;
                 })
                 ->editColumn('date', function ($movement) {
                     return date('d-m-Y', strtotime($movement->date));
@@ -68,7 +68,7 @@ class IngresosController extends Controller
                     return  $movement->voucher_number;
                 })
                 ->addColumn('edit', function ($movement) {
-                    return '<a href="' . route('ingresos.edit', ['id' => $movement->id]) . '"> <i class="fa fa-pencil-alt"></i></a>';
+                    return '<a href="' . route('ingresos.editNocongelados', ['id' => $movement->id]) . '"> <i class="fa fa-pencil-alt"></i></a>';
                 })
                 ->addColumn('show', function ($movement) {
                     return '<a href="' . route('ingresos.show', ['id' => $movement->id, 'is_cerrada' => false]) . '"> <i class="fa fa-eye"></i> </a>';
@@ -462,15 +462,14 @@ class IngresosController extends Controller
 
             if ($tienda) {
                 // Calculo de Flete // En caso de corresponder
-                $store = Store::find($tienda);
-                $km    = $store->delivery_km;
+                $flete      = 0;
+                $porcentaje = 0;
+                $store      = Store::find($tienda);
+                $km         = $store->delivery_km;
                 if ($km) {
                     $fleteSetting = FleteSetting::where('hasta', '>=', $km)->orderBy('hasta', 'ASC')->first();
                     $porcentaje   = $fleteSetting->porcentaje;
                     $flete        = round((($porcentaje * $totalVta) / 100), 2);
-                } else {
-                    $flete      = 0;
-                    $porcentaje = 0;
                 }
 
                 // Actualizo valor del flete y guardo
@@ -969,5 +968,139 @@ class IngresosController extends Controller
             return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
         }
     }
-    
+    public function closeNoCongelados(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+            Schema::disableForeignKeyConstraints();
+
+            // Obtengo los datos del movimiento
+            $movement_temp = MovementTemp::where('id', $request->Detalle['id'])->with('movement_ingreso_products')->first();
+
+            $count = Movement::where('to', 1)->where('type', 'COMPRA')->count();
+            $orden = ($count) ? $count + 1 : 1;
+
+            // Completo los datos del movimiento de COMPRA
+            $data['type']           = 'COMPRA';
+            $data['subtype']        = $movement_temp->subtype;
+            $data['to']             = ($movement_temp->deposito) ? $movement_temp->deposito : 1;
+            $data['date']           = $movement_temp->date;
+            $data['from']           = $movement_temp->from;
+            $data['orden']          = $orden;
+            $data['status']         = 'FINISHED';
+            $data['voucher_number'] = $movement_temp->voucher_number;
+            $data['flete']          = 0;
+            $data['observacion']    = $movement_temp->observacion;
+            $data['user_id']        = \Auth::user()->id;
+            $data['flete_invoice']  = 0;
+            $movement_compra        = Movement::create($data);
+
+            // Guardar detalle de compra
+            $dataCompra['movement_id'] = $movement_compra->id;
+            $dataCompra['l25413']      = $request->Detalle['l25413'];
+            $dataCompra['retater']     = $request->Detalle['retater'];
+            $dataCompra['retiva']      = $request->Detalle['retiva'];
+            $dataCompra['retgan']      = $request->Detalle['retgan'];
+            $dataCompra['nograv']      = $request->Detalle['nograv'];
+            $dataCompra['percater']    = $request->Detalle['percater'];
+            $dataCompra['perciva']     = $request->Detalle['perciva'];
+            $dataCompra['exento']      = $request->Detalle['exento'];
+            $dataCompra['totalIva10']  = $request->Detalle['totalIva10'];
+            $dataCompra['totalIva21']  = $request->Detalle['totalIva21'];
+            $dataCompra['totalIva27']  = $request->Detalle['totalIva27'];
+            $dataCompra['totalNeto10'] = $request->Detalle['totalNeto10'];
+            $dataCompra['totalNeto21'] = $request->Detalle['totalNeto21'];
+            $dataCompra['totalNeto27'] = $request->Detalle['totalNeto27'];
+            $dataCompra['totalCompra'] = $request->Detalle['totalCompra'];
+            InvoiceCompra::create($dataCompra);
+            //
+
+            $circuito = '';
+            if (in_array($movement_temp->subtype, ['FA', 'FB', 'FC', 'FM'])) {
+                $circuito = 'F';
+            }
+            if ($movement_temp->subtype == 'REMITO') {
+                $circuito = 'R';
+            }
+            if ($movement_temp->subtype == 'CYO') {
+                $circuito = 'CyO';
+            }
+
+            // Considerar cada uno de los movimientos
+            foreach ($movement_temp->movement_ingreso_products as $movimiento) {
+
+                // Ajusto el STOCK DEL PRODUCTO luego de la compra
+                $product        = Product::find($movimiento['product_id']);
+                $latest         = $product->stockReal();
+                $balance_compra = ($latest) ? $latest + $movimiento['entry'] : $movimiento['entry'];
+                //
+                if ($movimiento['cyo']) {
+                    $product->stock_cyo = $product->stock_cyo + $movimiento['entry'];
+                } elseif ($movimiento['invoice']) {
+                    $product->stock_f = $product->stock_f + $movimiento['entry'];
+                } else {
+                    $product->stock_r = $product->stock_r + $movimiento['entry'];
+                }
+                $product->save();
+                $entidad_tipo = 'S';
+
+                if (!is_null($movement_temp->deposito)) {
+                    $stock_cyo  = $stock_f  = $stock_r  = 0;
+                    $prod_store = ProductStore::where('product_id', $movimiento['product_id'])->where('store_id', $movement_temp->deposito)->first();
+
+                    if ($movimiento['cyo']) {
+                        ($prod_store) ? $prod_store->stock_cyo = $prod_store->stock_cyo + $movimiento['entry'] : $stock_cyo = $movimiento['entry'];
+                    } elseif ($movimiento['invoice']) {
+                        ($prod_store) ? $prod_store->stock_f = $prod_store->stock_f + $movimiento['entry'] : $stock_f = $movimiento['entry'];
+                    } else {
+                        ($prod_store) ? $prod_store->stock_r = $prod_store->stock_r + $movimiento['entry'] : $stock_r = $movimiento['entry'];
+                    }
+                    if ($prod_store) {
+                        $prod_store->save();
+                    } else {
+                        ProductStore::create([
+                            'product_id' => $movimiento['product_id'],
+                            'store_id'   => $movement_temp->deposito,
+                            'stock_cyo'  => $stock_cyo,
+                            'stock_f'    => $stock_f,
+                            'stock_r'    => $stock_r,
+                        ]);
+                    }
+
+                    $entidad_tipo = 'D';
+                }
+
+                // Registro el detalle de la compra
+                MovementProduct::create([
+                    'entidad_id'   => Auth::user()->store_active,
+                    'movement_id'  => $movement_compra->id,
+                    'entidad_tipo' => $entidad_tipo,
+                    'product_id'   => $movimiento['product_id'],
+                    'unit_package' => $movimiento['unit_package'],
+                    'unit_type'    => $movimiento['unit_type'],
+                    'tasiva'       => $movimiento['tasiva'],
+                    'cost_fenovo'  => $movimiento['cost_fenovo'],
+                    'unit_price'   => $movimiento['unit_price'],
+                    'invoice'      => $movimiento['invoice'],
+                    'circuito'     => $circuito,
+                    'bultos'       => $movimiento['bultos'],
+                    'entry'        => $movimiento['entry'],
+                    'egress'       => $movimiento['egress'],
+                    'balance'      => $balance_compra,
+                    'deposito'     => $movement_temp->deposito,
+                ]);
+            }
+
+            // Elimino el Movimiento temporal
+            MovementTemp::find($request->Detalle['id'])->delete();
+            MovementProductTemp::whereMovementId($request->Detalle['id'])->delete();
+
+            DB::commit();
+            Schema::enableForeignKeyConstraints();
+
+            return new JsonResponse(['msj' => 'Compra guardada', 'type' => 'success']);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
+    }
 }
