@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Admin\Movimientos;
 
 use App\Http\Controllers\Controller;
 use App\Models\FleteSetting;
+use App\Models\InvoiceCompra;
 use App\Models\Movement;
 use App\Models\MovementProduct;
 use App\Models\MovementProductTemp;
 use App\Models\MovementTemp;
 use App\Models\OfertaStore;
 use App\Models\Product;
+use App\Models\ProductPrice;
 use App\Models\ProductStore;
 use App\Models\Proveedor;
 use App\Models\SessionOferta;
@@ -41,7 +43,12 @@ class IngresosController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $movement = MovementTemp::where('to', Auth::user()->store_active)->where('type', 'COMPRA')->whereStatus('CREATED')->with('movement_ingreso_products')->orderBy('date', 'DESC')->get();
+            $movement = MovementTemp::where('type', 'COMPRA')
+                ->where('user_id', Auth::user()->id)
+                ->whereStatus('CREATED')
+                ->with('movement_ingreso_products')
+                ->orderBy('date', 'DESC')
+                ->get();
 
             return Datatables::of($movement)
                 ->addIndexColumn()
@@ -49,8 +56,7 @@ class IngresosController extends Controller
                     return $movement->origenData($movement->type);
                 })
                 ->editColumn('id', function ($movement) {
-                    $ruta = 'editData(' . $movement->id . ",'" . route('ingresos.editIngreso') . "')";
-                    return '<a href="javascript:void(0)" onclick="' . $ruta . '">' . $movement->id . '</a>';
+                    return $movement->id;
                 })
                 ->editColumn('date', function ($movement) {
                     return date('d-m-Y', strtotime($movement->date));
@@ -62,7 +68,7 @@ class IngresosController extends Controller
                     return  $movement->voucher_number;
                 })
                 ->addColumn('edit', function ($movement) {
-                    return '<a href="' . route('ingresos.edit', ['id' => $movement->id]) . '"> <i class="fa fa-pencil-alt"></i></a>';
+                    return '<a href="' . route('ingresos.editNocongelados', ['id' => $movement->id]) . '"> <i class="fa fa-pencil-alt"></i></a>';
                 })
                 ->addColumn('show', function ($movement) {
                     return '<a href="' . route('ingresos.show', ['id' => $movement->id, 'is_cerrada' => false]) . '"> <i class="fa fa-eye"></i> </a>';
@@ -80,7 +86,13 @@ class IngresosController extends Controller
     public function indexCerradas(Request $request)
     {
         if ($request->ajax()) {
-            $movement = Movement::where('to', Auth::user()->store_active)->where('type', 'COMPRA')->whereStatus('FINISHED')->with('movement_ingreso_products')->orderBy('date', 'DESC')->orderBy('id', 'DESC')->get();
+            $movement = Movement::where('type', 'COMPRA')
+                ->where('user_id', Auth::user()->id)
+                ->whereStatus('FINISHED')
+                ->with('movement_ingreso_products')
+                ->orderBy('date', 'DESC')
+                ->orderBy('id', 'DESC')
+                ->get();
 
             return Datatables::of($movement)
                 ->addIndexColumn()
@@ -108,7 +120,7 @@ class IngresosController extends Controller
     public function indexChequeadas(Request $request)
     {
         if ($request->ajax()) {
-            $movement = Movement::where('to', Auth::user()->store_active)->where('type', 'COMPRA')->whereStatus('CHECKED')->with('movement_ingreso_products')->orderBy('date', 'DESC')->orderBy('id', 'DESC')->get();
+            $movement = Movement::where('type', 'COMPRA')->whereStatus('CHECKED')->with('movement_ingreso_products')->orderBy('date', 'DESC')->orderBy('id', 'DESC')->get();
 
             return Datatables::of($movement)
                 ->addIndexColumn()
@@ -135,28 +147,31 @@ class IngresosController extends Controller
 
     public function add()
     {
-        $proveedores = Proveedor::orderBy('name')->pluck('name', 'id');
+        $productos   = Product::where('categorie_id', '=', 1)->pluck('proveedor_id');
+        $proveedores = Proveedor::orderBy('name')->whereIn('id', $productos)->pluck('name', 'id');
         return view('admin.movimientos.ingresos.add', compact('proveedores'));
     }
 
     public function store(Request $request)
     {
-        $data     = $request->all();
-        $movement = MovementTemp::create($data);
+        $data            = $request->all();
+        $data['user_id'] = \Auth::user()->id;
+        $movement        = MovementTemp::create($data);
         return redirect()->route('ingresos.edit', ['id' => $movement->id]);
     }
 
     public function edit(Request $request)
     {
+        $depositos   = null;
         $movement    = MovementTemp::find($request->id);
         $productos   = $this->productRepository->getByProveedorIdPluck($movement->from);
         $stores      = Store::orderBy('description', 'asc')->where('active', 1)->get();
         $proveedor   = Proveedor::find($movement->from);
         $movimientos = MovementProductTemp::where('movement_id', $request->id)->orderBy('created_at', 'asc')->get();
-        return view(
-            'admin.movimientos.ingresos.edit',
-            compact('movement', 'proveedor', 'productos', 'movimientos', 'stores')
-        );
+        if (\Auth::user()->rol() == 'contable') {
+            $depositos = Store::orderBy('cod_fenovo', 'asc')->where('active', 1)->where('store_type', 'D')->get();
+        }
+        return view('admin.movimientos.ingresos.edit', compact('movement', 'proveedor', 'productos', 'movimientos', 'stores', 'depositos'));
     }
 
     public function editIngreso(Request $request)
@@ -226,7 +241,7 @@ class IngresosController extends Controller
             // Completo los datos del movimiento de COMPRA
             $data['type']           = 'COMPRA';
             $data['subtype']        = $movement_temp->subtype;
-            $data['to']             = 1;
+            $data['to']             = ($movement_temp->deposito) ? $movement_temp->deposito : 1;
             $data['date']           = $movement_temp->date;
             $data['from']           = $movement_temp->from;
             $data['orden']          = $orden;
@@ -290,12 +305,41 @@ class IngresosController extends Controller
                     $product->stock_r = $product->stock_r + $movimiento['entry'];
                 }
                 $product->save();
+                $entidad_tipo = 'S';
+
+                if (!is_null($movement_temp->deposito)) {
+                    $stock_cyo  = $stock_f  = $stock_r  = 0;
+                    $prod_store = ProductStore::where('product_id', $movimiento['product_id'])->where('store_id', $movement_temp->deposito)->first();
+                    //$stock_inicial_store = ($prod_store) ? $prod_store->stock_f + $prod_store->stock_r + $prod_store->stock_cyo : 0;
+                    //$balance_compra = ($stock_inicial_store) ? $stock_inicial_store + $movimiento['entry'] : $movimiento['entry'];
+
+                    if ($movimiento['cyo']) {
+                        ($prod_store) ? $prod_store->stock_cyo = $prod_store->stock_cyo + $movimiento['entry'] : $stock_cyo = $movimiento['entry'];
+                    } elseif ($movimiento['invoice']) {
+                        ($prod_store) ? $prod_store->stock_f = $prod_store->stock_f + $movimiento['entry'] : $stock_f = $movimiento['entry'];
+                    } else {
+                        ($prod_store) ? $prod_store->stock_r = $prod_store->stock_r + $movimiento['entry'] : $stock_r = $movimiento['entry'];
+                    }
+                    if ($prod_store) {
+                        $prod_store->save();
+                    } else {
+                        ProductStore::create([
+                            'product_id' => $movimiento['product_id'],
+                            'store_id'   => $movement_temp->deposito,
+                            'stock_cyo'  => $stock_cyo,
+                            'stock_f'    => $stock_f,
+                            'stock_r'    => $stock_r,
+                        ]);
+                    }
+
+                    $entidad_tipo = 'D';
+                }
 
                 // Registro el detalle de la compra
                 MovementProduct::create([
                     'entidad_id'   => Auth::user()->store_active,
                     'movement_id'  => $movement_compra->id,
-                    'entidad_tipo' => 'S',
+                    'entidad_tipo' => $entidad_tipo,
                     'product_id'   => $movimiento['product_id'],
                     'unit_package' => $movimiento['unit_package'],
                     'unit_type'    => $movimiento['unit_type'],
@@ -308,6 +352,7 @@ class IngresosController extends Controller
                     'entry'        => $movimiento['entry'],
                     'egress'       => $movimiento['egress'],
                     'balance'      => $balance_compra,
+                    'deposito'     => $movement_temp->deposito,
                 ]);
 
                 // Generar la venta directa si viene el Id de Store
@@ -417,19 +462,18 @@ class IngresosController extends Controller
 
             if ($tienda) {
                 // Calculo de Flete // En caso de corresponder
-                $store = Store::find($tienda);
-                $km    = $store->delivery_km;
+                $flete      = 0;
+                $porcentaje = 0;
+                $store      = Store::find($tienda);
+                $km         = $store->delivery_km;
                 if ($km) {
                     $fleteSetting = FleteSetting::where('hasta', '>=', $km)->orderBy('hasta', 'ASC')->first();
                     $porcentaje   = $fleteSetting->porcentaje;
                     $flete        = round((($porcentaje * $totalVta) / 100), 2);
-                } else {
-                    $flete      = 0;
-                    $porcentaje = 0;
                 }
 
                 // Actualizo valor del flete y guardo
-                
+
                 // $movement_venta->flete = $flete;
                 // $movement_venta->save();
             }
@@ -445,10 +489,10 @@ class IngresosController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
             Schema::enableForeignKeyConstraints();
+            dd($e->getMessage());
             return redirect()->back()->withErrors(['error' => $e->getMessage()])->withInput();
         }
     }
-
     public function checkedCerrada(Request $request)
     {
         try {
@@ -471,7 +515,6 @@ class IngresosController extends Controller
             return redirect()->back()->withErrors(['error' => $e->getMessage()])->withInput();
         }
     }
-
     public function show(Request $request)
     {
         $movement = (!$request->is_cerrada)
@@ -483,7 +526,6 @@ class IngresosController extends Controller
 
         return view('admin.movimientos.ingresos.show', compact('movement', 'movimientos', 'ajustes'));
     }
-
     public function destroy(Request $request)
     {
         Movement::find($request->id)->update(['status' => 'CANCELED']);
@@ -494,7 +536,6 @@ class IngresosController extends Controller
             ]
         );
     }
-
     public function destroyTemp(Request $request)
     {
         MovementTemp::find($request->id)->delete();
@@ -857,6 +898,208 @@ class IngresosController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
             Schema::enableForeignKeyConstraints();
+            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
+    }
+
+    // NO CONGELADOS
+
+    public function checkVoucher(Request $request)
+    {
+        $compra = Movement::whereVoucherNumber($request->voucher)->whereFrom($request->proveedorId)->whereSubtype($request->subtype)->first();
+        if ($compra) {
+            return new JsonResponse(['msj' => 'Compra registrada ...', 'type' => 'success']);
+        }
+        return new JsonResponse(['msj' => 'Compra no registrada ...', 'type' => 'error']);
+    }
+    public function addNoCongelados()
+    {   // Obtengo los proveedores a los productos no congelados
+        $productos   = Product::where('categorie_id', '!=', 1)->where('proveedor_id', '>', 0)->pluck('proveedor_id');
+        $proveedores = Proveedor::orderBy('name')->whereIn('id', $productos)->pluck('name', 'id');
+        $depositos   = Store::orderBy('cod_fenovo', 'asc')->where('active', 1)->where('store_type', 'D')->get();
+        return view('admin.movimientos.ingresosNoCongelados.add', compact('proveedores', 'depositos'));
+    }
+    public function storeNoCongelados(Request $request)
+    {
+        $data            = $request->all();
+        $data['user_id'] = \Auth::user()->id;
+        $movement        = MovementTemp::create($data);
+        return redirect()->route('ingresos.editNocongelados', ['id' => $movement->id]);
+    }
+    public function editNoCongelados(Request $request)
+    {
+        $movement    = MovementTemp::find($request->id);
+        $productos   = $this->productRepository->getByProveedorIdPluck($movement->from);
+        $proveedor   = Proveedor::find($movement->from);
+        $movimientos = MovementProductTemp::where('movement_id', $request->id)->orderBy('created_at', 'asc')->get();
+        $depositos   = Store::orderBy('cod_fenovo', 'asc')->where('active', 1)->where('store_type', 'D')->get();
+        return view('admin.movimientos.ingresosNoCongelados.edit', compact('movement', 'proveedor', 'productos', 'movimientos', 'depositos'));
+    }
+    public function editProductNoCongelados(Request $request)
+    {
+        try {
+            $product      = Product::find($request->id);
+            $unit_package = explode('|', $product->unit_package);
+            return new JsonResponse([
+                'type' => 'success',
+                'html' => view('admin.movimientos.ingresosNoCongelados.insertByAjax', compact('product', 'unit_package'))->render(),
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
+    }
+    public function updateProductNoCongelados(Request $request)
+    {
+        try {
+            $data['unit_package'] = implode('|', $request->unit_package);
+            $data['unit_weight']  = $request->unit_weight;
+            Product::find($request->product_id)->update($data);
+
+            $dataprice['plistproveedor']    = $request->plistproveedor;
+            $dataprice['descproveedor']     = $request->descproveedor;
+            $dataprice['costfenovo']        = $request->costfenovo;
+            $dataprice['mupfenovo']         = $request->mupfenovo;
+            $dataprice['contribution_fund'] = $request->contribution_fund;
+            $dataprice['plist0neto']        = $request->plist0neto;
+            ProductPrice::whereProductId($request->product_id)->update($dataprice);
+
+            return new JsonResponse(['msj' => 'Actualización correcta !', 'type' => 'success']);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
+    }
+    public function closeNoCongelados(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+            Schema::disableForeignKeyConstraints();
+
+            // Obtengo los datos del movimiento
+            $movement_temp = MovementTemp::where('id', $request->Detalle['id'])->with('movement_ingreso_products')->first();
+
+            $count = Movement::where('to', 1)->where('type', 'COMPRA')->count();
+            $orden = ($count) ? $count + 1 : 1;
+
+            // Completo los datos del movimiento de COMPRA
+            $data['type']           = 'COMPRA';
+            $data['subtype']        = $movement_temp->subtype;
+            $data['to']             = ($movement_temp->deposito) ? $movement_temp->deposito : 1;
+            $data['date']           = $movement_temp->date;
+            $data['from']           = $movement_temp->from;
+            $data['orden']          = $orden;
+            $data['status']         = 'FINISHED';
+            $data['voucher_number'] = $movement_temp->voucher_number;
+            $data['flete']          = 0;
+            $data['observacion']    = $movement_temp->observacion;
+            $data['user_id']        = \Auth::user()->id;
+            $data['flete_invoice']  = 0;
+            $movement_compra        = Movement::create($data);
+
+            // Guardar detalle de compra
+            $dataCompra['movement_id'] = $movement_compra->id;
+            $dataCompra['l25413']      = $request->Detalle['l25413'];
+            $dataCompra['retater']     = $request->Detalle['retater'];
+            $dataCompra['retiva']      = $request->Detalle['retiva'];
+            $dataCompra['retgan']      = $request->Detalle['retgan'];
+            $dataCompra['nograv']      = $request->Detalle['nograv'];
+            $dataCompra['percater']    = $request->Detalle['percater'];
+            $dataCompra['perciva']     = $request->Detalle['perciva'];
+            $dataCompra['exento']      = $request->Detalle['exento'];
+            $dataCompra['totalIva10']  = $request->Detalle['totalIva10'];
+            $dataCompra['totalIva21']  = $request->Detalle['totalIva21'];
+            $dataCompra['totalIva27']  = $request->Detalle['totalIva27'];
+            $dataCompra['totalNeto10'] = $request->Detalle['totalNeto10'];
+            $dataCompra['totalNeto21'] = $request->Detalle['totalNeto21'];
+            $dataCompra['totalNeto27'] = $request->Detalle['totalNeto27'];
+            $dataCompra['totalCompra'] = $request->Detalle['totalCompra'];
+            InvoiceCompra::create($dataCompra);
+            //
+
+            $circuito = '';
+            if (in_array($movement_temp->subtype, ['FA', 'FB', 'FC', 'FM'])) {
+                $circuito = 'F';
+            }
+            if ($movement_temp->subtype == 'REMITO') {
+                $circuito = 'R';
+            }
+            if ($movement_temp->subtype == 'CYO') {
+                $circuito = 'CyO';
+            }
+
+            // Considerar cada uno de los movimientos
+            foreach ($movement_temp->movement_ingreso_products as $movimiento) {
+
+                // Ajusto el STOCK DEL PRODUCTO luego de la compra
+                $product        = Product::find($movimiento['product_id']);
+                $latest         = $product->stockReal();
+                $balance_compra = ($latest) ? $latest + $movimiento['entry'] : $movimiento['entry'];
+                //
+                if ($movimiento['cyo']) {
+                    $product->stock_cyo = $product->stock_cyo + $movimiento['entry'];
+                } elseif ($movimiento['invoice']) {
+                    $product->stock_f = $product->stock_f + $movimiento['entry'];
+                } else {
+                    $product->stock_r = $product->stock_r + $movimiento['entry'];
+                }
+                $product->save();
+                $entidad_tipo = 'S';
+
+                if (!is_null($movement_temp->deposito)) {
+                    $stock_cyo  = $stock_f  = $stock_r  = 0;
+                    $prod_store = ProductStore::where('product_id', $movimiento['product_id'])->where('store_id', $movement_temp->deposito)->first();
+
+                    if ($movimiento['cyo']) {
+                        ($prod_store) ? $prod_store->stock_cyo = $prod_store->stock_cyo + $movimiento['entry'] : $stock_cyo = $movimiento['entry'];
+                    } elseif ($movimiento['invoice']) {
+                        ($prod_store) ? $prod_store->stock_f = $prod_store->stock_f + $movimiento['entry'] : $stock_f = $movimiento['entry'];
+                    } else {
+                        ($prod_store) ? $prod_store->stock_r = $prod_store->stock_r + $movimiento['entry'] : $stock_r = $movimiento['entry'];
+                    }
+                    if ($prod_store) {
+                        $prod_store->save();
+                    } else {
+                        ProductStore::create([
+                            'product_id' => $movimiento['product_id'],
+                            'store_id'   => $movement_temp->deposito,
+                            'stock_cyo'  => $stock_cyo,
+                            'stock_f'    => $stock_f,
+                            'stock_r'    => $stock_r,
+                        ]);
+                    }
+
+                    $entidad_tipo = 'D';
+                }
+
+                // Registro el detalle de la compra
+                MovementProduct::create([
+                    'entidad_id'   => Auth::user()->store_active,
+                    'movement_id'  => $movement_compra->id,
+                    'entidad_tipo' => $entidad_tipo,
+                    'product_id'   => $movimiento['product_id'],
+                    'unit_package' => $movimiento['unit_package'],
+                    'unit_type'    => $movimiento['unit_type'],
+                    'tasiva'       => $movimiento['tasiva'],
+                    'cost_fenovo'  => $movimiento['cost_fenovo'],
+                    'unit_price'   => $movimiento['unit_price'],
+                    'invoice'      => $movimiento['invoice'],
+                    'circuito'     => $circuito,
+                    'bultos'       => $movimiento['bultos'],
+                    'entry'        => $movimiento['entry'],
+                    'egress'       => $movimiento['egress'],
+                    'balance'      => $balance_compra,
+                    'deposito'     => $movement_temp->deposito,
+                ]);
+            }
+
+            // Elimino el Movimiento temporal
+            MovementTemp::find($request->Detalle['id'])->delete();
+            MovementProductTemp::whereMovementId($request->Detalle['id'])->delete();
+
+            DB::commit();
+            Schema::enableForeignKeyConstraints();
+
+            return new JsonResponse(['msj' => 'Compra guardada', 'type' => 'success']);
+        } catch (\Exception $e) {
             return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
         }
     }

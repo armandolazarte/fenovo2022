@@ -16,55 +16,67 @@
     <div class="d-flex flex-column-fluid">
         <div class="container-fluid">
             <div class="card gutter-b bg-white border-0">
-                <div class="card-body">
+                <div class="card-body" style="min-height: 350px">
+
                     <div class="row">
                         <input type="hidden" name="movement_id" id="movement_id" value={{ $movement->id }} />
-                        <div class="col-md-3">
+                        <input type="hidden" id="voucher_number" name="voucher_number" value="{{ $movement->voucher_number }}">
+
+                        <div class="col-6">
                             <label class="text-body">Proveedor</label>
-                            <fieldset class="form-group mb-3">
-                                <input type="text" name="from" value="{{ $proveedor->name }}"
-                                    class="form-control mb-3" readonly>
+                            <fieldset class="form-group">
+                                <input type="text" name="from" value="{{ $proveedor->name }}" class="form-control " disabled>
                             </fieldset>
                         </div>
-                        <div class="@if(isset($depositos)) col-md-2 @else col-md-3 @endif">
-                            <label class="text-body">Fecha</label>
-                            <input type="text" name="date" value="{{ date('d-m-Y', strtotime($movement->date)) }}"
-                                class="form-control datepicker mb-3" readonly>
-                        </div>
-                        <div class="@if(isset($depositos)) col-md-1 @else col-md-3 @endif">
+                        <div class="col-1">
                             <label class="text-body">Tipo compra</label>
-                            <input type="text" name="subtype" id="subtype" value="{{ $movement->subtype }}"
-                                class=" form-control" readonly>
+                            <select class="form-control" name="subtype" id="subtype" disabled>
+                                <option value="FA" @if ($movement->subtype == 'FA') selected @endif>FACTURA - A</option>
+                                <option value="FB" @if ($movement->subtype == 'FB') selected @endif>FACTURA - B</option>
+                                <option value="FC" @if ($movement->subtype == 'FC') selected @endif>FACTURA - C</option>
+                                <option value="FM" @if ($movement->subtype == 'FM') selected @endif>FACTURA - M</option>
+                                <option value="CYO" @if ($movement->subtype == 'CYO') selected @endif >CYO</option>
+                                <option value="REMITO" @if ($movement->subtype == 'REMITO') selected @endif>R</option>
+                            </select>
                         </div>
-                        <div class="col-md-2 text-center">
+                        <div class="col-2">
+                            <label class="text-dark">Punto Vta</label>
+                            <input type="number" id="puntoVenta" name="puntoVenta" value="{{ substr($movement->voucher_number, 0, -8) }}" class="form-control text-center" disabled>
+                        </div>
+                        <div class="col-2">
                             <label class="text-dark">Comprobante</label>
-                            <input type="text" id="voucher_number" name="voucher_number"
-                                value="{{ $movement->voucher_number }}" class="form-control text-center" readonly>
-                        </div>
-                        @if(isset($depositos))
-                            <div class="col-md-2">
-                                <label class="text-body">Depósito final</label>
-                                <select class="form-control bg-transparent" name="deposito" id="deposito">
-                                    @foreach ($depositos as $deposito)
-                                        <option value="{{$deposito->id}}" @if($movement->deposito == $deposito->id ) selected @endif>
-                                            {{$deposito->razon_social}} - {{$deposito->description}}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        @endif
-                        <div class="col-md-2 text-center">
+                            <input type="number" id="comprobanteNro" name="comprobanteNro" value="{{ substr($movement->voucher_number,-8) }}" class="form-control text-center" disabled>
+                        </div> 
+                        <div class="col-1 text-center">
                             <label class="text-dark font-size-bold">Cerrar</label>
                             <fieldset class="form-group">
-                                <a href="javascript:void(0)" onclick="close_compra('{{ $movement->id }}')"
-                                    class="btn btn-link btn-cerrar-ingreso">
-                                    <i class="fa fa-lock text-primary"></i>
-                                </a>
+                                <button onclick="close_compra('{{ $movement->id }}')"
+                                    class="btn btn-dark btn-cerrar-ingreso">
+                                    <i class="fa fa-lock text-black-50"></i>
+                                </button>
                             </fieldset>
                         </div>
                     </div>
 
                     <div class="row mb-3">
+                        <div class="col-2">
+                            <label class="text-body">Fecha</label>
+                            <input type="text" name="date" value="{{ date('d-m-Y', strtotime($movement->date)) }}"
+                                class="form-control datepicker mb-3" disabled>
+                        </div>
+                        <div class="col-4">
+                            <label class="text-body">Depósito final</label>
+                            <select class="form-control" name="deposito" id="deposito" disabled>
+                                @foreach ($depositos as $deposito)
+                                    <option value="{{ $deposito->id }}" @if ($movement->deposito == $deposito->id) selected @endif>
+                                        {{ $deposito->razon_social }} - {{ $deposito->description }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
                         <div class="col-4">
                             <div class="row font-weight-bold">
                                 <div class="col-12"> Producto</div>
@@ -78,32 +90,10 @@
                         </div>
                         <div class="col-8">
                             <div id="dataTemp">
-                                @include('admin.movimientos.ingresos.detalleTemp')
+                                @include('admin.movimientos.ingresosNoCongelados.detalleTemp')
                             </div>
                         </div>
                     </div>
-
-                    <div class="row">
-                        <div class="col-xs-12 col-md-1 col-lg-1">
-                            <div class="form-group form-check">
-                                <input type="checkbox" class="form-check-input" id="checkTiendas" onclick="verDiv()">
-                                Venta directa
-                            </div>
-                        </div>
-
-                        <div id="divStore" style="display:none" class="col-xs-12 col-md-3 col-lg-3">
-                            <select id="tienda_destino" name="tienda_destino" class="js-example-responsive" style="width: 100%">
-                                <option value="0">Seleccione la tienda destino ...</option>
-                                @foreach ($stores as $store)
-                                    <option value="{{ $store->id }}">
-                                        {{ str_pad($store->cod_fenovo, 3, '0', STR_PAD_LEFT) }} - {{ $store->description }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                    </div>
-
 
                 </div>
             </div>
@@ -113,7 +103,7 @@
                     <div class="row">
                         <div class="col-lg-12 col-xl-12">
                             <div id="dataConfirm">
-                                @include('admin.movimientos.ingresos.detalleConfirm')
+                                @include('admin.movimientos.ingresosNoCongelados.detalleConfirm')
                             </div>
                         </div>
                     </div>
@@ -123,7 +113,7 @@
         </div>
     </div>
 
-    @include('admin.movimientos.ingresos.modal')
+    @include('admin.movimientos.ingresosNoCongelados.modal')
 @endsection
 
 @section('js')
@@ -132,26 +122,12 @@
             jQuery("#unit_package").select2({
                 tags: true
             })
-            jQuery("#tienda_destino").select2({
-                width:'resolve'
-            })
         });
-
-        const verDiv = () => {
-
-            if (jQuery('#checkTiendas').prop('checked')) {
-                jQuery('#divStore').show()
-            } else {
-                jQuery('#tienda_destino').val(0)
-                jQuery('#divStore').hide()
-                jQuery('#tienda_destino').val();
-            }
-        }
 
         jQuery("#product_id").on('change', function() {
             const productId = jQuery("#product_id").val();
             jQuery.ajax({
-                url: '{{ route('detalle-ingresos.check') }}',
+                url: '{{ route('detalle-ingresos.check.noCongelado') }}',
                 type: 'POST',
                 data: {
                     productId
@@ -171,7 +147,7 @@
         const editarProducto = (id) => {
             var elements = document.querySelectorAll('.is-invalid');
             jQuery.ajax({
-                url: '{{ route('ingresos.editProduct') }}',
+                url: '{{ route('ingresos.editProduct.noCongelado') }}',
                 type: 'GET',
                 data: {
                     id
@@ -183,6 +159,7 @@
                             tags: true
                         })
                         jQuery('.editpopup').addClass('offcanvas-on');
+                        jQuery("#plistproveedor").select();
                     } else {
                         toastr.error(data['html'], 'Verifique');
                     }
@@ -190,10 +167,67 @@
             });
         }
 
-        const actualizarProducto = () => {
+        const calcularPrecios = () => {
+            let validate = 0;
+            let plistproveedor = jQuery("#plistproveedor").val();
+
+            if (plistproveedor == 0) {
+                jQuery("#plistproveedor").addClass('bg-danger')
+            } else {
+                jQuery("#plistproveedor").removeClass('bg-danger')
+            }
+
+            if (plistproveedor > 0) {
+                calculatePrices(validate)
+            }
+        };
+
+        function calculatePrices(validate = 1) {
+
+            var plistproveedor = jQuery("#plistproveedor").val();
+            var descproveedor = jQuery("#descproveedor").val();
+            var mupfenovo = jQuery("#mupfenovo").val();
+            var costfenovo = jQuery("#costfenovo").val();
+            var contribution_fund = jQuery("#contribution_fund").val();
+            var product_id = jQuery("#product_id").val();
+
+            jQuery.ajax({
+                url: "{{ route('calculate.product.prices') }}",
+                type: 'GET',
+                data: {
+                    validate,
+                    plistproveedor,
+                    descproveedor,
+                    mupfenovo,
+                    costfenovo,
+                    contribution_fund,
+                    product_id
+                },
+                success: function(data) {
+                    if (data['type'] == 'success') {
+                        jQuery("#costfenovo").val(data['costfenovo']);
+                        jQuery("#plist0neto").val(data['plist0neto']);
+                    } else {
+                        toastr.error(data['msj'], 'ERROR!');
+                    }
+                },
+                error: function(data) {
+                    var lista_errores = "";
+                    var data = data.responseJSON;
+                    jQuery.each(data.errors, function(index, value) {
+                        lista_errores += value + '<br />';
+                        jQuery('#' + index).addClass('is-invalid');
+                    });
+                    toastr.error(lista_errores, 'ERROR!');
+                },
+            });
+        }
+
+        const actualizarProductoNoCongelado = () => {
+            var product_id = jQuery("#product_id").val();
             var form = jQuery('#formData').serialize();
             jQuery.ajax({
-                url: '{{ route('ingresos.updateProduct') }}',
+                url: '{{ route('ingresos.updateProduct.noCongelado') }}',
                 type: 'POST',
                 data: form,
                 success: function(data) {
@@ -201,7 +235,7 @@
                         toastr.info('Actualizado', 'Registro');
                         jQuery('.editpopup').removeClass('offcanvas-on');
                         jQuery("#dataTemp").html('');
-                        jQuery("#product_id").val(null).trigger('change').select2('open');
+                        jQuery("#product_id").val(product_id).trigger('change');
                     } else {
                         toastr.error(data['html'], 'Verifique');
                     }
@@ -228,11 +262,11 @@
                     total = total + (valor * presentacion);
                 });
                 if (total > 0) {
-                    jQuery('#btn-guardar-producto').removeClass("d-none");
+                    jQuery('#btn-guardar-producto').prop('disabled', false);
                 }
                 jQuery('.total').val(total.toFixed(2))
             } else {
-                jQuery('#btn-guardar-producto').addClass("d-none");
+                jQuery('#btn-guardar-producto').prop('disabled', true);
                 jQuery('.total').val(0)
             }
         }
@@ -290,17 +324,17 @@
                     }
                 }
             });
+
             jQuery.ajax({
-                url: '{{ route('detalle-ingresos.store') }}',
+                url: '{{ route('detalle-ingresos.store.noCongelado') }}',
                 type: 'POST',
                 data: {
                     datos: arrMovimientos
                 },
                 success: function(data) {
                     if (data['type'] == 'success') {
-                        actualizarIngreso();
                         jQuery("#dataTemp").html('');
-                        jQuery("#product_id").val(null).trigger('change').select2('open');
+                        jQuery("#dataConfirm").html(data['html']);
                     }
                     if (data['type'] !== 'success') {
                         toastr.error(data['msj'], 'Verifique');
@@ -311,24 +345,8 @@
             jQuery('#loader').addClass('hidden');
         }
 
-        const actualizarIngreso = () => {
-            const id = jQuery("#movement_id").val();
-            jQuery.ajax({
-                url: '{{ route('detalle-movimiento.getMovements') }}',
-                type: 'GET',
-                data: {
-                    id
-                },
-                success: function(data) {
-                    if (data['type'] == 'success') {
-                        jQuery("#dataConfirm").html(data['html']);
-                    }
-                },
-            });
-        }
-
         const borrarDetalle = (movement_id, product_id) => {
-            const route = '{{ route('detalle-ingresos.destroy') }}';
+            const route = '{{ route('detalle-ingresos.destroy.noCongelado') }}';
 
             ymz.jq_confirm({
                 title: 'Atención',
@@ -362,49 +380,61 @@
             })
         }
 
-        const destroy_local = (id, route) => {
-            ymz.jq_confirm({
-                title: 'Eliminar',
-                text: "confirma borrar registro ?",
-                no_btn: "Cancelar",
-                yes_btn: "Confirma",
-                no_fn: function() {
-                    return false;
-                },
-                yes_fn: function() {
-                    jQuery.ajax({
-                        url: route,
-                        type: 'POST',
-                        dataType: 'json',
-                        data: {
-                            id: id
-                        },
-                        success: function(data) {
-                            if (data['type'] == 'success') {
-                                let ruta = "{{ route('ingresos.index') }}";
-                                window.location = ruta;
-                            }
-                        }
-                    });
-                }
-            });
-        };
-
         const close_compra = (id) => {
-
-            let tiendaDestino = jQuery('#tienda_destino').val();
 
             ymz.jq_confirm({
                 title: 'Compra ',
-                text: "Confirma el cierre de la  compra ?",
+                text: "Confirma el cierre de la compra ?",
                 no_btn: "Cancelar",
                 yes_btn: "Confirma",
                 no_fn: function() {
                     return false;
                 },
                 yes_fn: function() {
-                    let ruta = '{{ route('ingresos.close') }}'+'?id='+id+'&tienda='+tiendaDestino;
-                    window.location = ruta;
+
+                    // Activo el spinner
+                    jQuery('#loader').removeClass('hidden');
+
+                    const movement_id = jQuery("#movement_id").val();
+                    const product_id = jQuery("#product_id").val();
+
+                    // Guardo los datos a enviar
+                    let Detalle = new Object();
+                    Detalle.id = movement_id;
+                    Detalle.product_id = product_id;
+                    Detalle.l25413 = jQuery("#l25413").val();
+                    Detalle.retater = jQuery("#retater").val();
+                    Detalle.retiva = jQuery("#retiva").val();
+                    Detalle.retgan = jQuery("#retgan").val();
+                    Detalle.nograv = jQuery("#nograv").val();
+                    Detalle.percater = jQuery("#percater").val();
+                    Detalle.perciva = jQuery("#perciva").val();
+                    Detalle.exento = jQuery("#exento").val();
+                    Detalle.totalIva10 = jQuery("#totalIva10").val();
+                    Detalle.totalIva21 = jQuery("#totalIva21").val();
+                    Detalle.totalIva27 = jQuery("#totalIva27").val();
+                    Detalle.totalNeto10 = jQuery("#totalNeto10").val();
+                    Detalle.totalNeto21 = jQuery("#totalNeto21").val();
+                    Detalle.totalNeto27 = jQuery("#totalNeto27").val();
+                    Detalle.totalCompra = jQuery("#totalCompra").val();
+
+                    jQuery.ajax({
+                        url: '{{ route('ingresos.closeNocongelados') }}',
+                        type: 'POST',
+                        data: {
+                            Detalle
+                        },
+                        success: function(data) {
+                            if (data['type'] == 'success') {
+                                window.location = "{{ route('ingresos.indexCerradas') }}";
+                            } else {
+                                toastr.error(data['msj'], 'Verifique');
+                            }
+                        }
+                    })
+
+                    // Descativo el spinner
+                    jQuery('#loader').addClass('hidden');
                 }
             });
         };

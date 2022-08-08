@@ -170,7 +170,7 @@
     }
 
     function calculatePrices(validate = 1){
-        var text = "Aguarde por favor, se están claculando los precios..."
+        var text = "Aguarde por favor, se están canculando los precios..."
         var spanId = "#info-calculate";
         var elements = document.querySelectorAll('.is-invalid');
         var plistproveedor = jQuery("#plistproveedor").val();
