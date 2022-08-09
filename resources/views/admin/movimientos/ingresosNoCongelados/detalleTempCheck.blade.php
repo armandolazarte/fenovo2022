@@ -25,7 +25,7 @@
     <div class="col-2">
         @if($loop->last)
             <button id="btn-guardar-producto" onclick="guardarItemCheck('{{ $producto->id }}', '{{ $producto->unit_weight }}')" class="btn btn-outline-dark rounded-pill" disabled="true"> 
-                Guardar 
+                Guardar
             </button>
         @endif
     </div>

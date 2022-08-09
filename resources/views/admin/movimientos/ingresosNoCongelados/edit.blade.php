@@ -281,13 +281,16 @@
 
             let invoice = 0;
             let cyo = 0;
+            let circuito = 'R';
 
             // Definir subtype
-            if (jQuery("#subtype").val() == 'FACTURA') {
+            if (jQuery("#subtype").val() == 'FA' || jQuery("#subtype").val() == 'FB' || jQuery("#subtype").val() == 'FC' || jQuery("#subtype").val() == 'FM') {
                 invoice = 1;
+                circuito = 'F';
             } else {
                 if (jQuery("#subtype").val() == 'CYO') {
                     cyo = 1;
+                    circuito = 'F';
                 }
             }
 
@@ -315,6 +318,7 @@
                         Movi.unit_package = unit_package;
                         Movi.unit_type = unit_type;
                         Movi.invoice = invoice;
+                        Movi.circuito = circuito;
                         Movi.cyo = cyo;
                         Movi.bultos = valor;
                         Movi.entry = entry;

@@ -961,6 +961,21 @@ class IngresosController extends Controller
             return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
         }
     }
+
+    public function editProductNoCongeladosCheck(Request $request)
+    {
+        try {
+            $product      = Product::find($request->id);
+            $unit_package = explode('|', $product->unit_package);
+            return new JsonResponse([
+                'type' => 'success',
+                'html' => view('admin.movimientos.ingresosNoCongelados.insertByAjaxCheck', compact('product', 'unit_package'))->render(),
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
+    }
+
     public function updateProductNoCongelados(Request $request)
     {
         try {
@@ -981,6 +996,28 @@ class IngresosController extends Controller
             return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
         }
     }
+
+    public function updateProductNoCongeladosCheck(Request $request)
+    {
+        try {
+            $data['unit_package'] = implode('|', $request->unit_package);
+            $data['unit_weight']  = $request->unit_weight;
+            Product::find($request->product_id)->update($data);
+
+            $dataprice['plistproveedor']    = $request->plistproveedor;
+            $dataprice['descproveedor']     = $request->descproveedor;
+            $dataprice['costfenovo']        = $request->costfenovo;
+            $dataprice['mupfenovo']         = $request->mupfenovo;
+            $dataprice['contribution_fund'] = $request->contribution_fund;
+            $dataprice['plist0neto']        = $request->plist0neto;
+            ProductPrice::whereProductId($request->product_id)->update($dataprice);
+
+            return new JsonResponse(['msj' => 'Actualización correcta !', 'type' => 'success']);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
+    }
+
     public function closeNoCongelados(Request $request)
     {
         try {
@@ -1107,6 +1144,88 @@ class IngresosController extends Controller
             // Elimino el Movimiento temporal
             MovementTemp::find($request->Detalle['id'])->delete();
             MovementProductTemp::whereMovementId($request->Detalle['id'])->delete();
+
+            DB::commit();
+            Schema::enableForeignKeyConstraints();
+
+            return new JsonResponse(['msj' => 'Compra guardada', 'type' => 'success']);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
+    }
+
+    public function closeNoCongeladosCheck(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+            Schema::disableForeignKeyConstraints();
+
+            $movement_id = $request->Detalle['id'];            
+            $movement = Movement::find($movement_id);
+
+            // Considerar cada uno de los movimientos
+            foreach ($movement->movement_ingreso_products as $movimiento) {
+
+                // Ajusto el STOCK DEL PRODUCTO luego de la compra
+                $product        = Product::find($movimiento['product_id']);
+                $latest         = $product->stockReal();
+                //
+                if ($movimiento['cyo']) {
+                    $product->stock_cyo = $product->stock_cyo + $movimiento['entry'];
+                } elseif ($movimiento['invoice']) {
+                    $product->stock_f = $product->stock_f + $movimiento['entry'];
+                } else {
+                    $product->stock_r = $product->stock_r + $movimiento['entry'];
+                }
+                $product->save();
+
+                if (!is_null($movimiento->deposito)) {
+                    $stock_cyo  = $stock_f  = $stock_r  = 0;
+                    $prod_store = ProductStore::where('product_id', $movimiento['product_id'])->where('store_id', $movimiento->deposito)->first();
+
+                    if ($movimiento['cyo']) {
+                        ($prod_store) ? $prod_store->stock_cyo = $prod_store->stock_cyo + $movimiento['entry'] : $stock_cyo = $movimiento['entry'];
+                    } elseif ($movimiento['invoice']) {
+                        ($prod_store) ? $prod_store->stock_f = $prod_store->stock_f + $movimiento['entry'] : $stock_f = $movimiento['entry'];
+                    } else {
+                        ($prod_store) ? $prod_store->stock_r = $prod_store->stock_r + $movimiento['entry'] : $stock_r = $movimiento['entry'];
+                    }
+                    if ($prod_store) {
+                        $prod_store->save();
+                    } else {
+                        ProductStore::create([
+                            'product_id' => $movimiento['product_id'],
+                            'store_id'   => $movimiento->deposito,
+                            'stock_cyo'  => $stock_cyo,
+                            'stock_f'    => $stock_f,
+                            'stock_r'    => $stock_r,
+                        ]);
+                    }
+                }
+            }
+
+            // Actualizo el movimiento para cerrarlo
+            $movement->update(['status' => 'CHECKED']);
+
+            // Actualizar detalle de compra
+            $dataCompra['l25413']      = $request->Detalle['l25413'];
+            $dataCompra['retater']     = $request->Detalle['retater'];
+            $dataCompra['retiva']      = $request->Detalle['retiva'];
+            $dataCompra['retgan']      = $request->Detalle['retgan'];
+            $dataCompra['nograv']      = $request->Detalle['nograv'];
+            $dataCompra['percater']    = $request->Detalle['percater'];
+            $dataCompra['perciva']     = $request->Detalle['perciva'];
+            $dataCompra['exento']      = $request->Detalle['exento'];
+            $dataCompra['totalIva10']  = $request->Detalle['totalIva10'];
+            $dataCompra['totalIva21']  = $request->Detalle['totalIva21'];
+            $dataCompra['totalIva27']  = $request->Detalle['totalIva27'];
+            $dataCompra['totalNeto10'] = $request->Detalle['totalNeto10'];
+            $dataCompra['totalNeto21'] = $request->Detalle['totalNeto21'];
+            $dataCompra['totalNeto27'] = $request->Detalle['totalNeto27'];
+            $dataCompra['totalCompra'] = $request->Detalle['totalCompra'];
+
+            InvoiceCompra::where('movement_id', $movement_id)->update($dataCompra);
+            //
 
             DB::commit();
             Schema::enableForeignKeyConstraints();

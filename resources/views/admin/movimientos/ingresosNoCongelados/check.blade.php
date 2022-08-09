@@ -67,7 +67,7 @@
                         </div>
                         <div class="col-4"></div>
                         <div class="col-2">
-                            <button onclick="close_compra_check('{{ $movement->id }}')" class=" btn btn-danger btn-block text-white">
+                            <button onclick="close_compraCheck('{{ $movement->id }}')" class=" btn btn-danger btn-block text-white">
                                 Chequeada
                             </button>
                         </div>
@@ -110,7 +110,7 @@
         </div>
     </div>
 
-    @include('admin.movimientos.ingresosNoCongelados.modal')
+    @include('admin.movimientos.ingresosNoCongelados.modalCheck')
 @endsection
 
 @section('js')
@@ -124,7 +124,7 @@
         jQuery("#product_id").on('change', function() {
             const productId = jQuery("#product_id").val();
             jQuery.ajax({
-                url: '{{ route('detalle-ingresos.check.noCongelado') }}',
+                url: '{{ route('detalle-ingresos.check.noCongelado.check') }}',
                 type: 'POST',
                 data: {
                     productId
@@ -144,7 +144,7 @@
         const editarProducto = (id) => {
             var elements = document.querySelectorAll('.is-invalid');
             jQuery.ajax({
-                url: '{{ route('ingresos.editProduct.noCongelado') }}',
+                url: '{{ route('ingresos.editProduct.noCongelado.check') }}',
                 type: 'GET',
                 data: {
                     id
@@ -220,11 +220,11 @@
             });
         }
 
-        const actualizarProductoNoCongelado = () => {
+        const actualizarProductoNoCongeladoCheck = () => {
             var product_id = jQuery("#product_id").val();
             var form = jQuery('#formData').serialize();
             jQuery.ajax({
-                url: '{{ route('ingresos.updateProduct.noCongelado') }}',
+                url: '{{ route('ingresos.updateProduct.noCongelado.check') }}',
                 type: 'POST',
                 data: form,
                 success: function(data) {
@@ -278,15 +278,20 @@
 
             let invoice = 0;
             let cyo = 0;
+            let circuito = 'R';
 
             // Definir subtype
-            if (jQuery("#subtype").val() == 'FACTURA') {
+            if (jQuery("#subtype").val() == 'FA' || jQuery("#subtype").val() == 'FB' || jQuery("#subtype").val() == 'FC' || jQuery("#subtype").val() == 'FM') {
                 invoice = 1;
+                circuito = 'F';
             } else {
                 if (jQuery("#subtype").val() == 'CYO') {
                     cyo = 1;
+                    circuito = 'F';
                 }
-            }
+            } 
+
+            let deposito = jQuery("#deposito").val();            
 
             let arrMovimientos = [];
             jQuery('.calculate').each(function() {
@@ -297,8 +302,7 @@
                     let presentacion = presentacion_input[1];
                     let unit_package = presentacion;
                     let valor = parseFloat(jQuery(this).val());
-                    let entry = (unit_type == 'K') ? (valor * presentacion) * peso_unitario : (valor *
-                        presentacion);
+                    let entry = (unit_type == 'K') ? (valor * presentacion) * peso_unitario : (valor * presentacion);
                     let egress = 0;
                     let balance = 0;
                     let entidad_tipo = 'S';
@@ -312,6 +316,8 @@
                         Movi.unit_package = unit_package;
                         Movi.unit_type = unit_type;
                         Movi.invoice = invoice;
+                        Movi.deposito = deposito;
+                        Movi.circuito = circuito;
                         Movi.cyo = cyo;
                         Movi.bultos = valor;
                         Movi.entry = entry;
@@ -320,13 +326,13 @@
                         arrMovimientos.push(Movi);
                     }
                 }
-            });
+            });            
 
             jQuery.ajax({
                 url: '{{ route('detalle-ingresos.store.noCongelado.check') }}',
                 type: 'POST',
                 data: {
-                    datos: arrMovimientos
+                    datos: arrMovimientos[0]
                 },
                 success: function(data) {
                     if (data['type'] == 'success') {
@@ -343,7 +349,6 @@
         }
 
         const borrarDetalleCheck = (movement_id, product_id) => {
-
             const route = '{{ route('detalle-ingresos.destroy.noCongelado.check') }}';
 
             ymz.jq_confirm({
@@ -355,6 +360,9 @@
                     return false;
                 },
                 yes_fn: function() {
+
+                    jQuery('#loader').removeClass('hidden');
+
                     jQuery.ajax({
                         url: route,
                         type: 'POST',
@@ -365,20 +373,16 @@
                         success: function(data) {
                             if (data['type'] == 'success') {
                                 jQuery("#dataConfirm").html(data['html']);
-                                toastr.options = {
-                                    "progressBar": true,
-                                    "showDuration": "300",
-                                    "timeOut": "1000"
-                                };
-                                toastr.info("Eliminado ... ");
+                                jQuery('#loader').addClass('hidden');
                             }
                         }
                     })
+
                 }
             })
         }
 
-        const close_compra = (id) => {
+        const close_compraCheck = (id) => {
 
             ymz.jq_confirm({
                 title: 'Compra ',
@@ -417,11 +421,9 @@
                     Detalle.totalCompra = jQuery("#totalCompra").val();
 
                     jQuery.ajax({
-                        url: '{{ route('ingresos.closeNocongelados') }}',
+                        url: '{{ route('ingresos.closeNocongelados.check') }}',
                         type: 'POST',
-                        data: {
-                            Detalle
-                        },
+                        data: {Detalle },
                         success: function(data) {
                             if (data['type'] == 'success') {
                                 window.location = "{{ route('ingresos.indexCerradas') }}";
