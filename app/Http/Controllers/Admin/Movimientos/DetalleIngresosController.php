@@ -7,6 +7,7 @@ use App\Models\InvoiceCompra;
 use App\Models\MovementProduct;
 use App\Models\MovementProductTemp;
 use App\Models\Product;
+use App\Models\ProductStore;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -126,6 +127,22 @@ class DetalleIngresosController extends Controller
         }
     }
 
+    public function checkNoCongeladosCheck(Request $request)
+    {
+        try {
+            $productId      = $request->productId;
+            $producto       = Product::find($productId);
+            $presentaciones = explode('|', $producto->unit_package);
+            return new JsonResponse([
+                'type' => 'success',
+                'html' => view('admin.movimientos.ingresosNoCongelados.detalleTempCheck', compact('producto', 'presentaciones'))->render(),
+
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
+    }
+
     public function storeNoCongelados(Request $request)
     {
         try {
@@ -180,64 +197,93 @@ class DetalleIngresosController extends Controller
     {
         try {
             $hoy         = Carbon::parse(now())->format('Y-m-d');
-            $movement_id = $request->datos[0]['movement_id'];
+            $movement_id = $request->datos['movement_id'];
+            $movimiento  = $request->datos;
 
-            foreach ($request->datos as $movimiento) {
-                $product               = Product::find($movimiento['product_id']);
-                $latest                = $product->stockReal(null, Auth::user()->store_active);
-                $balance               = ($latest) ? $latest + $movimiento['entry'] : $movimiento['entry'];
-                $movimiento['balance'] = $balance;
+            // 
+            if (!is_null($movimiento['deposito'])) {
+                $stock_cyo  = $stock_f  = $stock_r  = 0;
+                $prod_store = ProductStore::where('product_id', $request->product_id)->where('store_id', $movimiento['deposito'])->first();
 
-                // Buscar si el producto tiene oferta del proveedor
-                $oferta = DB::table('products as t1')
-                    ->join('session_ofertas as t2', 't1.id', '=', 't2.product_id')
-                    ->select('t2.costfenovo', 't2.plist0neto')
-                    ->where('t1.id', $movimiento['product_id'])
-                    ->where('t2.fecha_desde', '<=', $hoy)
-                    ->where('t2.fecha_hasta', '>=', $hoy)
-                    ->first();
-                $costo_fenovo = (!$oferta) ? $product->product_price->costfenovo : $oferta->costfenovo;
-                $unit_price   = (!$oferta) ? $product->product_price->plist0neto : $oferta->plist0neto;
-
-                MovementProduct::firstOrCreate(
-                    [
-                        'entidad_id'   => Auth::user()->store_active,
-                        'movement_id'  => $movimiento['movement_id'],
-                        'product_id'   => $movimiento['product_id'],
-                        'tasiva'       => $product->product_price->tasiva,
-                        'cost_fenovo'  => $costo_fenovo,
-                        'unit_price'   => $unit_price,
-                        'unit_package' => $movimiento['unit_package'],
-                        'unit_type'    => $movimiento['unit_type'],
-                        'invoice'      => $movimiento['invoice'],
-                        'cyo'          => $movimiento['cyo'],
-                    ],
-                    $movimiento
-                );
+                if ($movimiento['cyo']) {
+                    ($prod_store) ? $prod_store->stock_cyo = $prod_store->stock_cyo - $movimiento['entry'] : $stock_cyo = $movimiento['entry'];
+                } elseif ($movimiento['invoice']) {
+                    ($prod_store) ? $prod_store->stock_f = $prod_store->stock_f - $movimiento['entry'] : $stock_f = $movimiento['entry'];
+                } else {
+                    ($prod_store) ? $prod_store->stock_r = $prod_store->stock_r - $movimiento['entry'] : $stock_r = $movimiento['entry'];
+                }
+                if ($prod_store) {
+                    $prod_store->save();
+                } else {
+                    ProductStore::create([
+                        'product_id' => $request->product_id,
+                        'store_id'   => $movimiento['deposito'],
+                        'stock_cyo'  => $stock_cyo,
+                        'stock_f'    => $stock_f,
+                        'stock_r'    => $stock_r,
+                    ]);
+                }
             }
 
-            $subtotalIva  = round($costo_fenovo * $movimiento->unit_package * $movimiento->bultos * ($movimiento->tasiva / 100),2);
-            $subtotalNeto = round($costo_fenovo * $movimiento->unit_package * $movimiento->bultos,2);
+            $product               = Product::find($movimiento['product_id']);
+            $latest                = $product->stockReal(null, Auth::user()->store_active);
+            $balance               = ($latest) ? $latest + $movimiento['entry'] : $movimiento['entry'];
+            $movimiento['balance'] = $balance;
+
+            // Buscar si el producto tiene oferta del proveedor
+            $oferta = DB::table('products as t1')
+                ->join('session_ofertas as t2', 't1.id', '=', 't2.product_id')
+                ->select('t2.costfenovo', 't2.plist0neto')
+                ->where('t1.id', $movimiento['product_id'])
+                ->where('t2.fecha_desde', '<=', $hoy)
+                ->where('t2.fecha_hasta', '>=', $hoy)
+                ->first();
+            $costo_fenovo = (!$oferta) ? $product->product_price->costfenovo : $oferta->costfenovo;
+            $unit_price   = (!$oferta) ? $product->product_price->plist0neto : $oferta->plist0neto;
+
+            MovementProduct::firstOrCreate(
+                [
+                    'entidad_id'   => Auth::user()->store_active,
+                    'movement_id'  => $movimiento['movement_id'],
+                    'product_id'   => $movimiento['product_id'],
+                    'circuito'     => $movimiento['circuito'],
+                    'tasiva'       => $product->product_price->tasiva,
+                    'cost_fenovo'  => $costo_fenovo,
+                    'unit_price'   => $unit_price,
+                    'unit_package' => $movimiento['unit_package'],
+                    'unit_type'    => $movimiento['unit_type'],
+                    'invoice'      => $movimiento['invoice'],
+                    'cyo'          => $movimiento['cyo'],
+                ],
+                $movimiento
+            );
+
+            $subtotalIva  = round($costo_fenovo * $movimiento['unit_package'] * $movimiento['bultos'] * ($product->product_price->tasiva / 100), 2);
+            $subtotalNeto = round($costo_fenovo * $movimiento['unit_package'] * $movimiento['bultos'], 2);
 
             // Descontar Iva y Neto del movimiento al comprobante
-            $comprobante = InvoiceCompra::where('movement_id', $request->movement_id)->first();
+            $comprobante = InvoiceCompra::where('movement_id', $movement_id)->first();
 
-            switch ($movimiento->tasiva) {
+            switch ($product->product_price->tasiva) {
+                case '0.00':
+                    $comprobante->exento += $subtotalNeto;
+                    break;
                 case '10.50':
-                    $comprobante->totalIva10  -= $subtotalIva;
-                    $comprobante->totalNeto10 -= $subtotalNeto;
+                    $comprobante->totalIva10  += $subtotalIva;
+                    $comprobante->totalNeto10 += $subtotalNeto;
                     break;
                 case '21.00':
-                    $comprobante->totalIva21  -= $subtotalIva;
-                    $comprobante->totalNeto21 -= $subtotalNeto;
+                    $comprobante->totalIva21  += $subtotalIva;
+                    $comprobante->totalNeto21 += $subtotalNeto;
                     break;
                 case '27.00':
-                    $comprobante->totalIva27  -= $subtotalIva;
-                    $comprobante->totalNeto27 -= $subtotalNeto;
+                    $comprobante->totalIva27  += $subtotalIva;
+                    $comprobante->totalNeto27 += $subtotalNeto;
                     break;
             }
 
             // Guardar
+            $comprobante->totalCompra += $subtotalIva + $subtotalNeto;
             $comprobante->save();
 
             $movimientos = MovementProduct::where('movement_id', $movement_id)->orderBy('id', 'desc')->get();
@@ -270,13 +316,41 @@ class DetalleIngresosController extends Controller
         try {
             // Obtener el subtotal
             $movimiento   = MovementProduct::where('movement_id', $request->movement_id)->where('product_id', $request->product_id)->first();
-            $subtotalIva  = round($movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos * ($movimiento->tasiva / 100),2);
-            $subtotalNeto = round($movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos,2);
+
+            if (!is_null($movimiento->deposito)) {
+                $stock_cyo  = $stock_f  = $stock_r  = 0;
+                $prod_store = ProductStore::where('product_id', $request->product_id)->where('store_id', $movimiento->deposito)->first();
+
+                if ($movimiento->cyo) {
+                    ($prod_store) ? $prod_store->stock_cyo = $prod_store->stock_cyo - $movimiento->entry : $stock_cyo = $movimiento->entry;
+                } elseif ($movimiento->invoice) {
+                    ($prod_store) ? $prod_store->stock_f = $prod_store->stock_f - $movimiento->entry : $stock_f = $movimiento->entry;
+                } else {
+                    ($prod_store) ? $prod_store->stock_r = $prod_store->stock_r - $movimiento->entry : $stock_r = $movimiento->entry;
+                }
+                if ($prod_store) {
+                    $prod_store->save();
+                } else {
+                    ProductStore::create([
+                        'product_id' => $request->product_id,
+                        'store_id'   => $movimiento->deposito,
+                        'stock_cyo'  => $stock_cyo,
+                        'stock_f'    => $stock_f,
+                        'stock_r'    => $stock_r,
+                    ]);
+                }
+            }
+
+            $subtotalIva  = round($movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos * ($movimiento->tasiva / 100), 2);
+            $subtotalNeto = round($movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos, 2);
 
             // Descontar Iva y Neto del movimiento al comprobante
             $comprobante = InvoiceCompra::where('movement_id', $request->movement_id)->first();
 
             switch ($movimiento->tasiva) {
+                case '0.00':
+                    $comprobante->exento -= $subtotalNeto;
+                    break;
                 case '10.50':
                     $comprobante->totalIva10  -= $subtotalIva;
                     $comprobante->totalNeto10 -= $subtotalNeto;
@@ -295,7 +369,7 @@ class DetalleIngresosController extends Controller
             $comprobante->save();
 
             // Eliminar el movimiento
-            MovementProduct::where('movement_id', $request->movement_id)->where('product_id', $request->product_id)->delete();
+            $movimiento->delete();
 
             $movimientos = MovementProduct::where('movement_id', $request->movement_id)->orderBy('id', 'desc')->get();
 
