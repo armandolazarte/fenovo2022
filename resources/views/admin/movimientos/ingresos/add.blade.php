@@ -31,12 +31,12 @@
                                         {{ Form::select('from', $proveedores, null, ['class' => 'js-example-basic-single form-control bg-transparent proveedor', 'placeholder' => 'seleccione ...', 'required' => 'true']) }}
                                     </fieldset>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <label class="text-body">Fecha</label>
                                     <input type="date" name="date" value="{{ date('Y-m-d', strtotime(now())) }}"
                                         class="form-control datepicker mb-3">
                                 </div>
-                                <div class="col-md-2">
+                                <div class="col-md-3">
                                     <label class="text-body">Tipo compra</label>
                                     <select class="form-control bg-transparent" name="subtype" id="subtype">
                                         <option value="FACTURA" selected>F</option>
@@ -49,6 +49,7 @@
                                     <input type="text" id="voucher_number" name="voucher_number" value=""
                                         class="form-control text-center" required="true">
                                 </div>
+                               
                                 <div class="col-md-2 text-center">
                                     <label class="text-dark">Guardar</label>
                                     <fieldset class="form-group mb-3">
