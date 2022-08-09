@@ -36,7 +36,6 @@ class MovementProduct extends Model
         'invoice',
         'cyo',
         'iibb',
-        'exported_number',
         'bultos',
         'entry',
         'egress',

@@ -28,7 +28,6 @@ class MovementProductTemp extends Model
         'entidad_id',
         'entidad_tipo',
         'product_id',
-        'exported_number',
         'unit_package',
         'unit_type',
         'invoice',

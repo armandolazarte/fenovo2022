@@ -15,6 +15,7 @@ use App\Repositories\StoreRepository;
 use App\Traits\OriginDataTrait;
 use Barryvdh\DomPDF\Facade as PDF;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use stdClass;
@@ -119,16 +120,37 @@ class PrintController extends Controller
 
     public function exportMovimientosCsv(Request $request)
     {
-        // $arrTipos   = ['VENTA', 'VENTACLIENTE', 'TRASLADO', 'DEVOLUCION', 'DEVOLUCIONCLIENTE'];
+        // $arrTipos   = ['COMPRA', 'VENTA', 'VENTACLIENTE', 'TRASLADO', 'DEVOLUCION', 'DEVOLUCIONCLIENTE', 'AJUSTE'];
+        // // Tomo los movimientos de 15 dias atras
+        // $fecha = Carbon::now()->subDays(5)->toDateTimeString();
 
-        // return $movimientos = DB::table('movements as t1')
+        // $movimientos = DB::table('movements as t1')
         // ->join('movement_products as t2', 't1.id', '=', 't2.movement_id')
         // ->join('products as t3', 't2.product_id', '=', 't3.id')
         // ->join('stores as t4', 't2.entidad_id', '=', 't4.id')
-        // ->select('t1.id', 't2.id as movement_products_id', 't2.exported_number', 't1.type', 't1.date', 't1.to', 't1.from', 't4.cod_fenovo as cod_tienda', 't3.cod_fenovo as cod_producto', 't2.bultos', 't2.entry', 't2.egress', 't3.unit_type as unidad', 't2.unit_package', 't2.circuito')
+        // ->select(
+        //     't1.id',
+        //     't1.created_at',
+        //     't1.type',
+        //     't1.date',
+        //     't1.to',
+        //     't1.from',
+        //     't2.id as movement_products_id',
+        //     't2.unit_price',
+        //     't2.cost_fenovo',
+        //     't2.bultos',
+        //     't2.entry',
+        //     't2.egress',
+        //     't2.unit_package',
+        //     't2.circuito',
+        //     't3.cod_fenovo as cod_producto',
+        //     't3.unit_type as unidad',
+        //     't4.cod_fenovo as cod_tienda'
+        // )
         // ->whereIn('t1.type', $arrTipos)
         // ->where('t2.entidad_tipo', '!=', 'C')
-        // ->where('t2.exported_number', '=', 0)
+        // ->where('t1.exported', '=', 1)
+        // ->whereDate('t1.created_at', '>', $fecha)
         // ->orderBy('t1.date')->orderBy('t1.id')->orderBy('t3.cod_fenovo')
         // ->get();
 
@@ -137,12 +159,6 @@ class PrintController extends Controller
 
     public function exportOrdenesCsv()
     {
-        // Ejemplos para controlar los importes de las ordenes
-        // $movimiento = Movement::find(831);
-        // return ($movimiento->invoice)
-        //     ? $movimiento->invoice->imp_neto
-        //     : $movimiento->getPanama()->neto105 + $movimiento->getPanama()->neto21;
-
         return Excel::download(new  OrdenConsolidadaViewExport(), 'ordenes.csv', \Maatwebsite\Excel\Excel::CSV, ['Content-Type' => 'text/csv']);
     }
 }
