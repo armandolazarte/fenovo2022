@@ -1416,9 +1416,9 @@ class SalidasController extends Controller
         }
         
         if ($code) {
-            $products = Product::where('cod_fenovo', $code)->whereCategorieId(1)->get();
+            $products = Product::where('cod_fenovo', $code)->get();
         } else {
-            $products = Product::all()->whereCategorieId(1)->get();
+            $products = Product::all();
         }
 
         foreach ($products as $p) {

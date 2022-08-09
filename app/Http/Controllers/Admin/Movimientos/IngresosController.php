@@ -109,7 +109,7 @@ class IngresosController extends Controller
                     return  $movement->voucher_number;
                 })
                 ->addColumn('show', function ($movement) {
-                    return '<a href="' . route('ingresos.show', ['id' => $movement->id, 'is_cerrada' => true]) . '"> <i class="fa fa-eye"></i> </a>';
+                    return '<a href="' . route('ingresos.checkNocongelados', ['id' => $movement->id, 'is_cerrada' => true]) . '"> <i class="fa fa-eye"></i> </a>';
                 })
                 ->rawColumns(['origen', 'date', 'items', 'voucher', 'show'])
                 ->make(true);
@@ -934,6 +934,19 @@ class IngresosController extends Controller
         $movimientos = MovementProductTemp::where('movement_id', $request->id)->orderBy('created_at', 'asc')->get();
         $depositos   = Store::orderBy('cod_fenovo', 'asc')->where('active', 1)->where('store_type', 'D')->get();
         return view('admin.movimientos.ingresosNoCongelados.edit', compact('movement', 'proveedor', 'productos', 'movimientos', 'depositos'));
+    }
+    public function checkNoCongelados(Request $request)
+    {
+        $movement    = Movement::find($request->id);
+        $productos   = $this->productRepository->getByProveedorIdPluck($movement->from);
+        $proveedor   = Proveedor::find($movement->from);
+        $movimientos = MovementProduct::where('movement_id', $request->id)->orderBy('created_at', 'asc')->get();
+        $depositos   = Store::orderBy('cod_fenovo', 'asc')->where('active', 1)->where('store_type', 'D')->get();
+        $comprobante = InvoiceCompra::where('movement_id', $request->id)->first();
+        return view(
+            'admin.movimientos.ingresosNoCongelados.check',
+            compact('movement', 'proveedor', 'productos', 'movimientos', 'depositos', 'comprobante')
+        );
     }
     public function editProductNoCongelados(Request $request)
     {
