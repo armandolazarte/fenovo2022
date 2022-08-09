@@ -1403,7 +1403,18 @@ class SalidasController extends Controller
 
     public function updateStock($code = false)
     {
-        // Categorie_id = 1 CONGELADOS
+        // Actualizar la lista de coeficientes en base a todos los productos congelados
+        $productos = Product::select('id', 'coeficiente_relacion_stock')->get();
+        foreach ($productos as $producto) {
+            $coeficiente = Coeficiente::find($producto->id);
+            if (!$coeficiente) {
+                Coeficiente::create([
+                    'id'          => $producto->id,
+                    'coeficiente' => $producto->coeficiente_relacion_stock,
+                ]);
+            }
+        }
+        
         if ($code) {
             $products = Product::where('cod_fenovo', $code)->whereCategorieId(1)->get();
         } else {
