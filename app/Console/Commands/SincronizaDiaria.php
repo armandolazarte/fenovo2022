@@ -37,8 +37,6 @@ class SincronizaDiaria extends Command
         (new OfertaViewExport())->store('ofertas.csv');
         // Exportar Ordenes
         (new OrdenConsolidadaViewExport())->store('ordenes.csv');
-        // Exportar movimientos
-        (new MovementsViewExport() )->store('movi.csv');
         // Exportar FACTURACION ELECTONICA
         (new CabeEleExport())->store('CABE_ELE.csv');
         // Exportar PANAMAS Y FLETES
