@@ -83,6 +83,7 @@ class MovementsViewExport implements FromView
                         $creado      = true;
 
                         $objMovement->origen      = 'PROVEED';
+
                         $objMovement->id          = 'O' . str_pad($movement->movement_products_id, 8, '0', STR_PAD_LEFT);
                         $objMovement->orden       = 'R' . str_pad($movement->id, 8, '0', STR_PAD_LEFT);
                         $objMovement->fecha       = date('d-m-Y', strtotime($movement->date));
@@ -141,6 +142,7 @@ class MovementsViewExport implements FromView
                         $creado      = true;
 
                         $objMovement->origen      = 'AJUSTE';
+
                         $objMovement->id          = 'O' . str_pad($movement->movement_products_id, 8, '0', STR_PAD_LEFT);
                         $objMovement->orden       = 'R' . str_pad($movement->id, 8, '0', STR_PAD_LEFT);
                         $objMovement->fecha       = date('d-m-Y', strtotime($movement->date));

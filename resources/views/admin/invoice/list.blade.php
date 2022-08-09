@@ -34,7 +34,7 @@
                                     <table id="productTable" class="display table-hover yajra-datatable">
                                         <thead class="text-body">
                                             <tr>
-                                                <th>#</th>
+                                                <th style="width: 30px">N°</th>
                                                 <th>CAE</th>
                                                 <th>Cliente</th>
                                                 <th>CUIT</th>
@@ -69,7 +69,7 @@
             {data: 'client_cuit'},
             {data: 'imp_total'},
             {data: 'fecha'},
-            {data: 'acciones'}
+            {data: 'factura_nro'}
         ]
     });
 </script>

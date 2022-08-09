@@ -63,9 +63,28 @@ class Movement extends Model
         return $this->hasMany(MovementProduct::class);
     }
 
+    public function products_egress(){
+        return $this->hasMany(MovementProduct::class)->where('egress', '>', 0);
+    }
+
     public function movement_salida_products()
     {
-        return $this->hasMany(MovementProduct::class)->where('egress', '>', 0);
+       return $this->hasMany(MovementProduct::class)->where('egress', '>', 0)->where('circuito', '!=', 'CyO');
+    }
+
+    public function group_products_egress(){
+        return $this->hasMany(MovementProduct::class)->where('egress', '>', 0)
+                     ->select(['*',DB::raw("SUM(bultos) as bultos")])
+                     ->groupBy('product_id');
+    }
+
+    public function group_movement_salida_products()
+    {
+       return $this->hasMany(MovementProduct::class)->where('egress', '>', 0)
+                    ->where('circuito', '!=', 'CyO')
+                    ->where('invoice',true)
+                    ->select(['*',DB::raw("SUM(bultos) as bultos")])
+                    ->groupBy('product_id');
     }
 
     public function salida_products_no_cyo()
@@ -82,7 +101,6 @@ class Movement extends Model
     {
         return $this->hasMany(MovementProduct::class)->where('entry', '>', 0);
     }
-
 
     public function totalKgrs()
     {
@@ -101,13 +119,12 @@ class Movement extends Model
 
     public function invoice()
     {
-        return $this->hasOne(Invoice::class);
+        return $this->hasMany(Invoice::class);
     }
 
     public function invoice_fenovo()
     {
-        $pto_vta = env('PTO_VTA_FENOVO');
-        return $invoice   = $this->invoice->where('pto_vta', $pto_vta)->first();
+        return $this->invoice->where('movement_id', $this->id)->first();
     }
 
     public function panamas()
@@ -115,9 +132,32 @@ class Movement extends Model
         return $this->hasMany(MovementProduct::class)->where('egress', '>', 0)->where('invoice', false);
     }
 
+    public function group_panamas()
+    {
+        return $this->hasMany(MovementProduct::class)
+                    ->where('egress', '>', 0)
+                    ->where('invoice', false)
+                    ->where('circuito', '!=', 'CyO')
+                    ->select(['*',DB::raw("SUM(bultos) as bultos")])
+                    ->groupBy('product_id');;
+    }
+
     public function verifSiFactura()
     {
-        return MovementProduct::where('movement_id', $this->id)->where('invoice', true)->count();
+        return MovementProduct::where('movement_id', $this->id)
+                              ->where('entidad_id',\Auth::user()->store_active)
+                              ->where('entidad_tipo', 'S')
+                              ->where('invoice', true)
+                              ->count();
+    }
+
+    public function verifSiCreatePanama()
+    {
+        return MovementProduct::where('movement_id', $this->id)
+                             ->where('entidad_id',\Auth::user()->store_active)
+                             ->where('entidad_tipo', 'S')
+                             ->where('invoice', false)
+                             ->count();
     }
 
     public function hasInvoices()

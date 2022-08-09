@@ -22,8 +22,8 @@
                         <div class="col-md-3">
                             <label class="text-body">Proveedor</label>
                             <fieldset class="form-group mb-3">
-                                <input type="text" name="from" value="{{ $proveedor->name }}" class="form-control mb-3"
-                                    readonly>
+                                <input type="text" name="from" value="{{ $proveedor->name }}"
+                                    class="form-control mb-3" readonly>
                             </fieldset>
                         </div>
                         <div class="col-md-3">
@@ -52,7 +52,7 @@
                         </div>
                     </div>
 
-                    <div class="row">
+                    <div class="row mb-3">
                         <div class="col-4">
                             <div class="row font-weight-bold">
                                 <div class="col-12"> Producto</div>
@@ -70,6 +70,29 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="row">
+                        <div class="col-xs-12 col-md-1 col-lg-1">
+                            <div class="form-group form-check">
+                                <input type="checkbox" class="form-check-input" id="checkTiendas" onclick="verDiv()">
+                                Venta directa
+                            </div>
+                        </div>
+
+                        <div id="divStore" style="display:none" class="col-xs-12 col-md-3 col-lg-3">
+                            <select id="tienda_destino" name="tienda_destino" class="js-example-responsive" style="width: 100%">
+                                <option value="0">Seleccione la tienda destino ...</option>
+                                @foreach ($stores as $store)
+                                    <option value="{{ $store->id }}">
+                                        {{ str_pad($store->cod_fenovo, 3, '0', STR_PAD_LEFT) }} - {{ $store->description }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                    </div>
+
+
                 </div>
             </div>
 
@@ -94,11 +117,24 @@
 @section('js')
     <script>
         jQuery(document).ready(function() {
-            //jQuery("#product_id").select2('open');
             jQuery("#unit_package").select2({
                 tags: true
             })
+            jQuery("#tienda_destino").select2({
+                width:'resolve'
+            })
         });
+
+        const verDiv = () => {
+
+            if (jQuery('#checkTiendas').prop('checked')) {
+                jQuery('#divStore').show()
+            } else {
+                jQuery('#tienda_destino').val(0)
+                jQuery('#divStore').hide()
+                jQuery('#tienda_destino').val();
+            }
+        }
 
         jQuery("#product_id").on('change', function() {
             const productId = jQuery("#product_id").val();
@@ -182,7 +218,7 @@
                 if (total > 0) {
                     jQuery('#btn-guardar-producto').removeClass("d-none");
                 }
-                jQuery('.total').val(total)
+                jQuery('.total').val(total.toFixed(2))
             } else {
                 jQuery('#btn-guardar-producto').addClass("d-none");
                 jQuery('.total').val(0)
@@ -218,7 +254,8 @@
                     let presentacion = presentacion_input[1];
                     let unit_package = presentacion;
                     let valor = parseFloat(jQuery(this).val());
-                    let entry = (unit_type == 'K') ? (valor * presentacion) * peso_unitario : (valor * presentacion);
+                    let entry = (unit_type == 'K') ? (valor * presentacion) * peso_unitario : (valor *
+                        presentacion);
                     let egress = 0;
                     let balance = 0;
                     let entidad_tipo = 'S';
@@ -343,6 +380,8 @@
 
         const close_compra = (id) => {
 
+            let tiendaDestino = jQuery('#tienda_destino').val();
+
             ymz.jq_confirm({
                 title: 'Compra ',
                 text: "Confirma el cierre de la  compra ?",
@@ -352,7 +391,7 @@
                     return false;
                 },
                 yes_fn: function() {
-                    let ruta = '{{ route('ingresos.close', ['id' => $movement->id]) }}';
+                    let ruta = '{{ route('ingresos.close') }}'+'?id='+id+'&tienda='+tiendaDestino;
                     window.location = ruta;
                 }
             });

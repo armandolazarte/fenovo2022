@@ -40,22 +40,27 @@ class StoreRepository extends BaseRepository
         return Store::orderBy('description', 'ASC')->get();
     }
 
-    public function search($term)
+    public function search($term, $type)
     {
         $ids = null;
         if (Auth::user()->rol() == 'base') {
             $ids = Auth::user()->stores->pluck('id');
         }
 
+        $traslado = ($type == 'TRASLADO')?TRUE:FALSE;
+
         return Store::where('active', true)
-                    ->when($ids, function ($q, $ids) {
-                        $q->whereIn('id', $ids);
-                    })
-                    ->where(function ($query) use ($term) {
-                        $query->orWhere('description', 'LIKE', '%' . $term . '%')
-                              ->orWhere('cod_fenovo', 'LIKE', '%' . $term . '%')
-                              ->orWhere('cuit', 'LIKE', '%' . $term . '%');
-                    })
-                    ->get();
+            ->when($ids, function ($q, $ids) {
+                $q->whereIn('id', $ids);
+            })
+            ->when($traslado, function ($q) {
+                $q->where('recibe_traslado', 1);
+            })
+            ->where(function ($query) use ($term) {
+                $query->orWhere('description', 'LIKE', '%' . $term . '%')
+                    ->orWhere('cod_fenovo', 'LIKE', '%' . $term . '%')
+                    ->orWhere('cuit', 'LIKE', '%' . $term . '%');
+            })
+            ->get();
     }
 }

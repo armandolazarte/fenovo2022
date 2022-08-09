@@ -55,9 +55,10 @@
                                         <td>Codigo</td>
                                         <td>Producto</td>
                                         <td>Unidad</td>
-                                        <td>CyO</td>
-                                        <td>Remito</td>
+                                        <td>Proveedor</td>
                                         <td>Factura</td>
+                                        <td>Remito</td>
+                                        <td>CyO</td>
                                         <td>Total</td>
                                         <td>Ajustar Stock</td>
                                     </tr>
@@ -87,9 +88,10 @@
             {data: 'cod_fenovo', orderable: false},
             {data: 'name', orderable: false},
             {data: 'unit_type',class:'text-center', orderable: false, searchable: false},
-            {data: 'stock_cyo', class:'text-center', orderable: true, searchable: false},
-            {data: 'stock_r', class:'text-center', orderable: true, searchable: false},
+            {data: 'proveedor', orderable: false, searchable: true},
             {data: 'stock_f', orderable: false, searchable: true},
+            {data: 'stock_r', class:'text-center', orderable: true, searchable: false},
+            {data: 'stock_cyo', class:'text-center', orderable: true, searchable: false},
             {data: 'stock', orderable: true},
             {data: 'ajuste', class:'text-center', orderable: false, searchable: false}
         ]

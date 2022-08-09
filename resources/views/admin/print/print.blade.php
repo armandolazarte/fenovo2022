@@ -26,7 +26,7 @@
                                 Exportación Diaria Fenovo
                             </div>
                         </div>
-                        <div class="row mb-5 ml-2 border-bottom-dark">
+                        <div class="row mb-2 ml-2 border-bottom-dark">
 
                             <div class="col-2">
                                 <a href="{{ route('movement.exportCSV') }}" title="Exportar movimientos " target="_blank"
@@ -36,8 +36,8 @@
                             </div>
 
                             <div class="col-2">
-                                <a href="{{ route('movement.exportOrdenesCSV') }}" title="Exportar ordenes "
-                                    target="_blank" class="mt-1 mr-3">
+                                <a href="{{ route('movement.exportOrdenesCSV') }}" title="Exportar ordenes " target="_blank"
+                                    class="mt-1 mr-3">
                                     <i class=" fa fa-file-csv"></i> Ordenes
                                 </a>
                             </div>
@@ -71,7 +71,7 @@
 
                         </div>
 
-                        <div class="row mb-5 ml-2 border-bottom-dark">
+                        <div class="row mb-2 ml-2 border-bottom-dark">
                             <div class="col-2">
                                 <a href="{{ route('actualizacion.exportCSVM1') }}" class="mt-1 mr-3">
                                     <i class=" fa fa-file-csv"></i> Actualiz. precio lista 1
@@ -86,21 +86,19 @@
                     </div>
 
                     <div class="card card-body gutter-b bg-white border-0">
-                        <div class="row mt-3 mb-4 font-weight-bolder">
+                        <div class="row mb-2 font-weight-bolder">
                             <div class="col-12">
                                 Exportación CABE
                             </div>
                         </div>
-                        <div class="row mb-5 ml-2 border-bottom-dark">
+                        <div class="row mb-2 ml-2 border-bottom-dark">
                             <div class="col-2">
-                                <a href="{{ route('export.cabePed') }}" title="Exportar archivo CABE_PED"
-                                    class="mt-1 mr-3">
+                                <a href="{{ route('export.cabePed') }}" title="Exportar archivo CABE_PED" class="mt-1 mr-3">
                                     <i class=" fa fa-file-csv"></i> PED
                                 </a>
                             </div>
                             <div class="col-2">
-                                <a href="{{ route('export.cabeEle') }}" title="Exportar archivo CABE-ELE"
-                                    class="mt-1 mr-3">
+                                <a href="{{ route('export.cabeEle') }}" title="Exportar archivo CABE-ELE" class="mt-1 mr-3">
                                     <i class=" fa fa-file-csv"></i> ELE
                                 </a>
                             </div>
@@ -108,21 +106,58 @@
                     </div>
 
                     <div class="card card-body gutter-b bg-white border-0">
-                        <div class="row mt-3 mb-4 font-weight-bolder">
+                        <div class="row mb-2 font-weight-bolder">
                             <div class="col-3">
                                 Retenciones y Percepciones ER
                             </div>
                         </div>
-                        <div class="row mb-5 ml-2 border-bottom-dark">
-                            <div class="col-2">
-                                <a onclick="javascript:printIIBB()" title="Exportar Ingresos Brutos"
-                                    class="mt-1 mr-3">
-                                    <i class=" fa fa-file-csv"></i> IIBB
-                                </a>
+                        <div class="row mb-2 ml-2 border-bottom-dark text-center">
+                            <div class="col-3">
+                                <div class="input-group mb-3">
+                                    <input type="month" id="iibbFecha" name="iibbFecha" value="{{ date('Y-m') }}"
+                                        class="form-control">
+                                    <div class="input-group-append">
+                                        <span class="input-group-text" id="basic-addon2">
+                                            <a href="#" onclick="javascript:printIIBB()" title="Exportar Ingresos Brutos">
+                                                Exportar <i class=" fa fa-file-csv"></i> 
+                                            </a>
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="col-2">
-                                <input type="month" id="iibbFecha" name="iibbFecha" value="{{ date('Y-m') }}" class="form-control">
+                        </div>
+
+                        <div class="row mt-3 mb-4 font-weight-bolder">
+                            <div class="col-3">
+                                Ventas detalladas
                             </div>
+                        </div>
+                        <div class="row mb-5 ml-2 border-bottom-dark text-center">
+
+                            <div class="col-3">
+                                <div class="input-group mb-3">
+                                    <input type="month" id="ventasFecha" name="ventasFecha" value="{{ date('Y-m') }}"
+                                        class="form-control">
+                                    <div class="input-group-append">
+                                        <span class="input-group-text" id="basic-addon2">
+                                            <a href="#" onclick="javascript:printVENTAS()" title="Exportar Ventas">
+                                                Exportar <i class="fa fa-file-csv"></i>
+                                            </a>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3 mb-4 font-weight-bolder">
+                            <div class="col-3">
+                                Productos
+                            </div>
+                        </div>
+                        <div class="col-2">
+                            <a href="{{ route('download.lista.mayorista.fenovo') }}" target="_blank"
+                                title="Descargar lista mayorista fenovo" class=" mt-1 mr-3">
+                                <i class=" fa fa-file-csv"></i> Lista Mayorista Fenovo
+                            </a>
                         </div>
                     </div>
 
@@ -146,21 +181,29 @@
             const exportarMovimientosCSV = () => {
                 leerDatos();
                 let url = "{{ route('movement.exportCSV', '') }}" + "?desde=" + desde + "&hasta=" + hasta;
-                window.location = url;
+                window.open(url, '_blank');
             }
 
             const printMovimientos = () => {
                 leerDatos();
                 let url = "{{ route('movement.printPDF', '') }}" + "?desde=" + desde + "&hasta=" + hasta;
-                window.location = url;
+                window.open(url, '_blank');
             }
 
-            const printIIBB = ()=>{
+            const printIIBB = () => {
                 let iibbFecha = jQuery("#iibbFecha").val().split('-');
                 iibbAnio = iibbFecha[0];
                 iibbMes = iibbFecha[1];
                 let url = "{{ route('export.iibb', '') }}" + "?mes=" + iibbMes + "&anio=" + iibbAnio;
-                window.location = url;
+                window.open(url, '_blank');
+            }
+
+            const printVENTAS = () => {
+                let ventasFecha = jQuery("#ventasFecha").val().split('-');
+                ventasAnio = ventasFecha[0];
+                ventasMes = ventasFecha[1];
+                let url = "{{ route('export.ventas', '') }}" + "?mes=" + ventasMes + "&anio=" + ventasAnio;
+                window.open(url, '_blank');
             }
         </script>
     @endsection

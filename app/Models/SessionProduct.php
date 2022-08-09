@@ -69,7 +69,8 @@ class SessionProduct extends Model
         'neto',
         'nro_pedido',
         'pausado',
-        'circuito'
+        'circuito',
+        'palet',
     ];
 
     public function producto()

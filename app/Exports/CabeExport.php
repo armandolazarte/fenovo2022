@@ -23,7 +23,7 @@ class CabeExport implements FromView {
 
     public function view(): View{
         $arr_elementos = [];
-        $panamas = Panamas::orderBy('orden','ASC')->get();
+        $panamas = Panamas::orderBy('id','ASC')->get();
         $i = 0;
         foreach ($panamas as $panama) {
             $element         = new stdClass();
@@ -36,15 +36,17 @@ class CabeExport implements FromView {
                 $id_caja = $panama->tipo;
             }
 
+            $cip             = (is_null($panama->cip))?'8889':$panama->cip;
+
             $element->ID_CLI = $panama->pto_vta;
-            $element->NOMCLI = $panama->client_name;
+            $element->NOMCLI = str_replace ( ',', '', $panama->client_name);
             $element->CUICLI = $panama->client_cuit;
             $element->IVACLI = $panama->client_iva_type;
             $element->IDCAJA = $id_caja;
             $element->NROCOM = $panama->orden;
             $element->FECHA  = Carbon::parse($panama->created_at)->format('d/m/Y');
             $element->HORA   = Carbon::parse($panama->created_at)->format('H:i');
-            $element->FISCAL = '8889-' . str_pad($panama->orden, 8, '0', STR_PAD_LEFT);;
+            $element->FISCAL = $cip . '-' . str_pad($panama->orden, 8, '0', STR_PAD_LEFT);;
             $element->NETO_1 = $panama->neto105;
             $element->IVAA_1 = '0.0';//$panama->iva_neto105;
             $element->NETO_2 = $panama->neto21;

@@ -73,8 +73,9 @@ class MovementTemp extends Model
                 if ($returnObject) {
                     return $Proveedor;
                 }
-                return $Proveedor->name;
+            return $Proveedor->name;
             case 'VENTA':
+            case 'AJUSTE':
             case 'TRASLADO':
             case 'DEVOLUCION':
             case 'VENTACLIENTE':
@@ -82,7 +83,12 @@ class MovementTemp extends Model
                 if ($returnObject) {
                     return $Store;
                 }
-                return $Store->description;
+                if ($Store) {
+                    return $Store->description;
+                }
+
+                return null;
+                    
             case 'DEVOLUCIONCLIENTE':
                 $customer = Customer::find($this->to);
                 return $customer->razon_social;
@@ -95,24 +101,29 @@ class MovementTemp extends Model
             case 'COMPRA':
             case 'VENTA':
             case 'TRASLADO':
+            case 'AJUSTE':
             case 'DEVOLUCION':
                 $Store = Store::find($this->to);
                 if ($returnObject) {
                     return $Store;
                 }
-                return $Store->description;
+                if ($Store) {
+                    return $Store->description;
+                }
+
+                return null;
             case 'DEVOLUCIONCLIENTE':
                 $Store = Store::find($this->from);
                 if ($returnObject) {
                     return $Store;
                 }
-                return $Store->description;
+            return $Store->description;
             case 'VENTACLIENTE':
                 $Customer = Customer::find($this->to);
                 if ($returnObject) {
                     return $Customer;
                 }
-                return $Customer->razon_social;
+            return $Customer->razon_social;
         }
     }
 

@@ -12,8 +12,10 @@ use App\Repositories\SenasaRepository;
 use App\Repositories\VehiculoRepository;
 
 use Barryvdh\DomPDF\Facade as PDF;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
 
 class SenasaController extends Controller
@@ -33,7 +35,7 @@ class SenasaController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $senasa = Senasa::all()->sortByDesc('id');
+            $senasa = Senasa::all()->where('store_id', 1)->sortByDesc('id');
             return Datatables::of($senasa)
                 ->addIndexColumn()
                 ->editColumn('updated_at', function ($senasa) {
@@ -66,7 +68,7 @@ class SenasaController extends Controller
     {
         try {
             $senasa    = null;
-            $vehiculos = $this->vehiculoRepository->getAll();
+            $vehiculos = Vehiculo::where('store_id', 1)->get();
             return new JsonResponse([
                 'type' => 'success',
                 'html' => view('admin.movimientos.senasa.insertByAjax', compact('senasa', 'vehiculos'))->render(),
@@ -94,7 +96,7 @@ class SenasaController extends Controller
     {
         try {
             $senasa = Senasa::find($request->id);
-            $vehiculos = $this->vehiculoRepository->getAll();
+            $vehiculos = Vehiculo::where('store_id', 1)->get();
             return new JsonResponse([
                 'type' => 'success',
                 'html' => view('admin.movimientos.senasa.insertByAjax', compact('senasa', 'vehiculos'))->render(),
@@ -126,9 +128,14 @@ class SenasaController extends Controller
 
     public function vincular(Request $request)
     {
+        $fecha      = Carbon::now()->subDays(10)->toDateTimeString();
         $senasa     = Senasa::find($request->id);
         $arrayTypes = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
-        $movements  = Movement::doesntHave('senasa')->whereIn('type', $arrayTypes)->orderBy('id', 'desc')->limit(100)->get();
+        $movements  = Movement::doesntHave('senasa')
+            ->where('from', Auth::user()->store_active)
+            ->whereIn('type', $arrayTypes)->orderBy('id', 'desc')
+            ->whereDate('created_at', '>', $fecha)
+            ->get();
 
         return view('admin.movimientos.senasa.vincular', compact('senasa', 'movements'));
     }
@@ -154,10 +161,10 @@ class SenasaController extends Controller
 
         $movements = $request->get('movements');
         $senasa->movements()->sync($movements);
-        if($movements){
+        if ($movements) {
             foreach ($movements as $m) {
-                $panama = Panamas::where('movement_id',$m)->where('tipo','!=','PAN')->first();
-                if(isset($panama)){
+                $panama = Panamas::where('movement_id', $m)->where('tipo', '!=', 'PAN')->first();
+                if (isset($panama)) {
                     $panama->tipo = $tipo_flete;
                     $panama->save();
                 }

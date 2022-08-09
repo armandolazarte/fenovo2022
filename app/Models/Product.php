@@ -52,6 +52,7 @@ class Product extends Model
         'stock_f',
         'stock_r',
         'stock_cyo',
+        'coeficiente_relacion_stock',
         'stock_min',
         'stock_sem_min',
         'stock_sem_max',
@@ -74,7 +75,7 @@ class Product extends Model
         'senasa_id',
         'iibb',
         'active',
-        'coeficiente_relacion_stock',
+        'palet',
     ];
 
     public function product_category()
@@ -189,25 +190,9 @@ class Product extends Model
         return $stock;
     }
 
-    public function stockReal($unit_package = null, $entidad_id = 1, $entidad_tipo = 'S')
+    public function stockReal()
     {
-        $stock = 0.0;
-        // Buscar el ultimo movimiento
-        $movement_product = MovementProduct::where('product_id', $this->id)
-            ->where('entidad_id', $entidad_id)
-            ->where('entidad_tipo', $entidad_tipo)
-            ->select('balance')
-            ->when($unit_package, function ($q, $unit_package) {
-                $q->where('unit_package', $unit_package);
-            })
-            ->orderBy('id', 'DESC')
-            ->first();
-
-        if ($movement_product) {
-            $stock = ($this->unit_type == 'K') ? (float)$movement_product->balance : (int)$movement_product->balance;
-        }
-
-        return $stock;
+        return $this->stock_f + $this->stock_r+ $this->stock_cyo;
     }
 
     public function stockEnSession($unit_package = null, $entidad_id = 1, $entidad_tipo = 'S')
@@ -228,31 +213,38 @@ class Product extends Model
 
     public function stockInicioSemana()
     {
-        $movimientos = MovementProduct::whereEntidadId(1)
-            ->where('created_at', '>', Carbon::now()->subDays(7))
+        $dias       = 7;
+        $movimiento = MovementProduct::whereEntidadId(1)
+            ->where('created_at', '>', Carbon::now()->subDays($dias))
             ->whereProductId($this->id)
             ->orderBy('created_at')
-            ->get();
-
-        if ($movimientos) {
-            foreach ($movimientos as $movimiento) {
-                if ($movimiento->balance != 0) {
-                    return $movimiento;
+            ->first();
+        if (!$movimiento) {
+            $dias++;
+            $tope = 31;
+            for ($i = $dias; $i < $tope; $i++) {
+                $movimiento = MovementProduct::whereEntidadId(1)
+                    ->where('created_at', '>', Carbon::now()->subDays($i))
+                    ->whereProductId($this->id)
+                    ->orderBy('created_at')
+                    ->first();
+                if ($movimiento) {
+                    break;
                 }
             }
-        }
-
-        return null;
+            if ($i == $tope) {
+                return null;
+            }
+        } 
+        return $movimiento;
     }
 
     public function ingresoSemana()
     {
         if ($this->stockInicioSemana()) {
             $id = $this->stockInicioSemana()->id;
-            return MovementProduct::whereEntidadId(1)
-            ->whereProductId($this->id)
-            ->where('id', '>', $id)
-            ->get()->sum('entry');
+            $ingreso =  MovementProduct::whereEntidadId(1)->whereProductId($this->id)->where('id', '>', $id)->sum('entry');
+            return round($ingreso, 2);
         }
         return null;
     }
@@ -261,17 +253,15 @@ class Product extends Model
     {
         if ($this->stockInicioSemana()) {
             $id = $this->stockInicioSemana()->id;
-            return MovementProduct::whereEntidadId(1)
-            ->whereProductId($this->id)
-            ->where('id', '>', $id)
-            ->get()->sum('egress');
+            $salida = MovementProduct::whereEntidadId(1)->whereProductId($this->id)->where('id', '>', $id)->sum('egress');
+            return round($salida, 2);
         }
         return null;
     }
 
     public function stockFinSemana()
     {
-        return ($this->stockInicioSemana())?$this->stockInicioSemana()->balance + $this->ingresoSemana() - $this->salidaSemana():null;
+        return ($this->stockInicioSemana())? round($this->stockInicioSemana()->balance + $this->ingresoSemana() - $this->salidaSemana(),2):null;
     }
 
     public function scopeName($query, $name)

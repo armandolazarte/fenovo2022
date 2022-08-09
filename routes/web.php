@@ -10,10 +10,14 @@ Route::get('/', function () {
 });
 
 Route::group(['middleware' => 'preventBackHistory'], function () {
+    
     Auth::routes();
     Route::get('/inicio', [App\Http\Controllers\HomeController::class, 'index'])->name('inicio');
 
+    require __DIR__ . '/admin/mis-facturas.php';
+
     Route::group(['namespace' => 'Admin', 'middleware' => ['auth']], function () {
+
         require __DIR__ . '/admin/productos.php';
         require __DIR__ . '/api/productos.php';
 
@@ -49,6 +53,8 @@ Route::group(['middleware' => 'preventBackHistory'], function () {
         require __DIR__ . '/admin/fletes.php';
         //
         require __DIR__ . '/admin/localidades.php';
+
+        require __DIR__ . '/admin/auxiliar.php';
     });
 });
 

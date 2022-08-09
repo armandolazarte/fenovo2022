@@ -41,7 +41,8 @@ class MovementProduct extends Model
         'egress',
         'balance',
         'circuito',
-        'punto_venta'
+        'punto_venta',
+        'palet',
     ];
 
     public function movement()
@@ -58,4 +59,5 @@ class MovementProduct extends Model
     {
         return $this->belongsTo(Store::class, 'entidad_id');
     }
+
 }
