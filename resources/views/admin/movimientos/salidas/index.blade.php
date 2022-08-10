@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-        
+
     <div class="row">
         <div class="col-lg-12 col-xl-12">
             <div class="card card-custom gutter-b bg-transparent shadow-none border-0">
@@ -43,10 +43,10 @@
                     <tbody>
                     </tbody>
                 </table>
-            </div>       
+            </div>
         </div>
     </div>
-         
+
     @include('admin.movimientos.salidas.partials.modal-open-remito')
 @endsection
 
@@ -108,11 +108,11 @@
                     orderable: false,
                     searchable: false
                 },
-                {
+                /* {
                     data: 'ordenpanama',
                     orderable: false,
                     searchable: false
-                },
+                }, */
             ]
         });
 
