@@ -200,35 +200,39 @@ class DetalleIngresosController extends Controller
             $movement_id = $request->datos['movement_id'];
             $movimiento  = $request->datos;
 
-            // 
+            // Actualizo el Stock del producto
+            $product     = Product::find($movimiento['product_id']);
+            $latest      = $product->stockReal(null, Auth::user()->store_active);
+            $balance     = ($latest) ? $latest + $movimiento['entry'] : $movimiento['entry'];
+
+            if ($movimiento['circuito'] == 'F') {
+                $product->stock_f += $balance;
+            } elseif ($movimiento['circuito'] == 'R') {
+                $product->stock_r += $balance;
+            }            
+            $product->save();
+
+            // Actualizo el Stock del producto en Product_store
             if (!is_null($movimiento['deposito'])) {
                 $stock_cyo  = $stock_f  = $stock_r  = 0;
-                $prod_store = ProductStore::where('product_id', $request->product_id)->where('store_id', $movimiento['deposito'])->first();
-
-                if ($movimiento['cyo']) {
-                    ($prod_store) ? $prod_store->stock_cyo = $prod_store->stock_cyo - $movimiento['entry'] : $stock_cyo = $movimiento['entry'];
-                } elseif ($movimiento['invoice']) {
-                    ($prod_store) ? $prod_store->stock_f = $prod_store->stock_f - $movimiento['entry'] : $stock_f = $movimiento['entry'];
-                } else {
-                    ($prod_store) ? $prod_store->stock_r = $prod_store->stock_r - $movimiento['entry'] : $stock_r = $movimiento['entry'];
-                }
-                if ($prod_store) {
+                $prod_store = ProductStore::where('product_id', $movimiento['product_id'])->where('store_id', $movimiento['deposito'])->first();
+                if($prod_store){
+                    if ($movimiento['circuito'] == 'F') {
+                        $prod_store->stock_f = $prod_store->stock_f + $movimiento['entry'];
+                    } else {
+                        $prod_store->stock_r = $prod_store->stock_r + $movimiento['entry'];
+                    }
                     $prod_store->save();
-                } else {
+                }else{
                     ProductStore::create([
-                        'product_id' => $request->product_id,
+                        'product_id' => $movimiento['product_id'],
                         'store_id'   => $movimiento['deposito'],
+                        'stock_f'    => ($movimiento['circuito'] == 'F')?$movimiento['entry']:0,
+                        'stock_r'    => ($movimiento['circuito'] == 'R')?$movimiento['entry']:0,
                         'stock_cyo'  => $stock_cyo,
-                        'stock_f'    => $stock_f,
-                        'stock_r'    => $stock_r,
                     ]);
                 }
             }
-
-            $product               = Product::find($movimiento['product_id']);
-            $latest                = $product->stockReal(null, Auth::user()->store_active);
-            $balance               = ($latest) ? $latest + $movimiento['entry'] : $movimiento['entry'];
-            $movimiento['balance'] = $balance;
 
             // Buscar si el producto tiene oferta del proveedor
             $oferta = DB::table('products as t1')
@@ -240,6 +244,8 @@ class DetalleIngresosController extends Controller
                 ->first();
             $costo_fenovo = (!$oferta) ? $product->product_price->costfenovo : $oferta->costfenovo;
             $unit_price   = (!$oferta) ? $product->product_price->plist0neto : $oferta->plist0neto;
+
+            $movimiento['balance'] = $product->stockReal(null, Auth::user()->store_active);
 
             MovementProduct::firstOrCreate(
                 [
@@ -254,6 +260,7 @@ class DetalleIngresosController extends Controller
                     'unit_type'    => $movimiento['unit_type'],
                     'invoice'      => $movimiento['invoice'],
                     'cyo'          => $movimiento['cyo'],
+                    'balance'      => $movimiento['balance']
                 ],
                 $movimiento
             );
@@ -317,29 +324,26 @@ class DetalleIngresosController extends Controller
             // Obtener el subtotal
             $movimiento   = MovementProduct::where('movement_id', $request->movement_id)->where('product_id', $request->product_id)->first();
 
+            // Actualizo el Stock del producto
+            $producto    =  Product::where('id', $request->product_id)->first();
+            if ($movimiento->circuito == 'F') {
+                $producto->stock_f -= $movimiento->entry;
+            } elseif ($movimiento->circuito == 'R') {
+                $producto->stock_r -= $movimiento->entry;
+            }
+            $producto->save();
+
+            // Actualizo el Stock del producto en Product_store
             if (!is_null($movimiento->deposito)) {
                 $stock_cyo  = $stock_f  = $stock_r  = 0;
                 $prod_store = ProductStore::where('product_id', $request->product_id)->where('store_id', $movimiento->deposito)->first();
-
-                if ($movimiento->cyo) {
-                    ($prod_store) ? $prod_store->stock_cyo = $prod_store->stock_cyo - $movimiento->entry : $stock_cyo = $movimiento->entry;
-                } elseif ($movimiento->invoice) {
-                    ($prod_store) ? $prod_store->stock_f = $prod_store->stock_f - $movimiento->entry : $stock_f = $movimiento->entry;
+                if ($movimiento->circuito == 'F') {
+                    $prod_store->stock_f = $prod_store->stock_f - $movimiento->entry;
                 } else {
-                    ($prod_store) ? $prod_store->stock_r = $prod_store->stock_r - $movimiento->entry : $stock_r = $movimiento->entry;
-                }
-                if ($prod_store) {
-                    $prod_store->save();
-                } else {
-                    ProductStore::create([
-                        'product_id' => $request->product_id,
-                        'store_id'   => $movimiento->deposito,
-                        'stock_cyo'  => $stock_cyo,
-                        'stock_f'    => $stock_f,
-                        'stock_r'    => $stock_r,
-                    ]);
+                    $prod_store->stock_r = $prod_store->stock_r - $movimiento->entry;
                 }
             }
+            $prod_store->save();
 
             $subtotalIva  = round($movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos * ($movimiento->tasiva / 100), 2);
             $subtotalNeto = round($movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos, 2);

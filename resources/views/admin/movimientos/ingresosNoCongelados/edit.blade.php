@@ -28,7 +28,7 @@
                                 <input type="text" name="from" value="{{ $proveedor->name }}" class="form-control " disabled>
                             </fieldset>
                         </div>
-                        <div class="col-1">
+                        <div class="col-2">
                             <label class="text-body">Tipo compra</label>
                             <select class="form-control" name="subtype" id="subtype" disabled>
                                 <option value="FA" @if ($movement->subtype == 'FA') selected @endif>FACTURA - A</option>
@@ -39,7 +39,7 @@
                                 <option value="REMITO" @if ($movement->subtype == 'REMITO') selected @endif>R</option>
                             </select>
                         </div>
-                        <div class="col-2">
+                        <div class="col-1">
                             <label class="text-dark">Punto Vta</label>
                             <input type="number" id="puntoVenta" name="puntoVenta" value="{{ substr($movement->voucher_number, 0, -8) }}" class="form-control text-center" disabled>
                         </div>
