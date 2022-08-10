@@ -1157,52 +1157,10 @@ class IngresosController extends Controller
             DB::beginTransaction();
             Schema::disableForeignKeyConstraints();
 
-            $movement_id = $request->Detalle['id'];            
-            $movement = Movement::find($movement_id);
-
-            // Considerar cada uno de los movimientos
-            foreach ($movement->movement_ingreso_products as $movimiento) {
-
-                // Ajusto el STOCK DEL PRODUCTO luego de la compra
-                $product        = Product::find($movimiento['product_id']);
-                $latest         = $product->stockReal();
-                //
-                if ($movimiento['cyo']) {
-                    $product->stock_cyo = $product->stock_cyo + $movimiento['entry'];
-                } elseif ($movimiento['invoice']) {
-                    $product->stock_f = $product->stock_f + $movimiento['entry'];
-                } else {
-                    $product->stock_r = $product->stock_r + $movimiento['entry'];
-                }
-                $product->save();
-
-                if (!is_null($movimiento->deposito)) {
-                    $stock_cyo  = $stock_f  = $stock_r  = 0;
-                    $prod_store = ProductStore::where('product_id', $movimiento['product_id'])->where('store_id', $movimiento->deposito)->first();
-
-                    if ($movimiento['cyo']) {
-                        ($prod_store) ? $prod_store->stock_cyo = $prod_store->stock_cyo + $movimiento['entry'] : $stock_cyo = $movimiento['entry'];
-                    } elseif ($movimiento['invoice']) {
-                        ($prod_store) ? $prod_store->stock_f = $prod_store->stock_f + $movimiento['entry'] : $stock_f = $movimiento['entry'];
-                    } else {
-                        ($prod_store) ? $prod_store->stock_r = $prod_store->stock_r + $movimiento['entry'] : $stock_r = $movimiento['entry'];
-                    }
-                    if ($prod_store) {
-                        $prod_store->save();
-                    } else {
-                        ProductStore::create([
-                            'product_id' => $movimiento['product_id'],
-                            'store_id'   => $movimiento->deposito,
-                            'stock_cyo'  => $stock_cyo,
-                            'stock_f'    => $stock_f,
-                            'stock_r'    => $stock_r,
-                        ]);
-                    }
-                }
-            }
+            $movement_id = $request->Detalle['id'];  
 
             // Actualizo el movimiento para cerrarlo
-            $movement->update(['status' => 'CHECKED']);
+            $movement = Movement::find($movement_id)->update(['status' => 'CHECKED']);
 
             // Actualizar detalle de compra
             $dataCompra['l25413']      = $request->Detalle['l25413'];

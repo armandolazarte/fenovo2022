@@ -34,7 +34,7 @@
                                         {{ Form::select('from', $proveedores, null, ['id' => 'from', 'class' => 'js-example-basic-single form-control bg-transparent proveedor', 'placeholder' => 'seleccione ...', 'required' => 'true']) }}
                                     </fieldset>
                                 </div>
-                                <div class="col-1">
+                                <div class="col-2">
                                     <label class="text-body">Tipo compra</label>
                                     <select class="form-control" name="subtype" id="subtype">
                                         <option value="FA" selected>FACTURA - A</option>
@@ -45,7 +45,7 @@
                                         <option value="REMITO">R</option>
                                     </select>
                                 </div>
-                                <div class="col-2">
+                                <div class="col-1">
                                     <label class="text-dark">Punto Vta</label>
                                     <input type="number" id="puntoVenta" name="puntoVenta" value=""
                                         onkeyup="numerico(5, this)" class="form-control text-center" required="true">
