@@ -20,34 +20,37 @@ class OrdenConsolidadaViewExport implements FromView
     public function view(): View
     {
         // Tipos de movimientos
+        $arrOtros = ['COMPRA', 'DEVOLUCION', 'DEVOLUCIONCLIENTE', 'AJUSTE'];
         $arrTypes = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
+        $arrTodos = ['VENTA', 'VENTACLIENTE', 'TRASLADO', 'COMPRA', 'DEVOLUCION', 'DEVOLUCIONCLIENTE', 'AJUSTE'];
 
         // Tomo los movimientos de 15 dias atras
         $fecha = Carbon::now()->subDays(15)->toDateTimeString();
 
-        $movimientos    = Movement::all()->whereIn('type', $arrTypes)->sortBy('id');
+        $movimientos    = Movement::all()->whereIn('type', $arrTodos)->sortBy('id');
         $arrMovimientos = [];
 
         foreach ($movimientos as $movimiento) {
             $objMovimiento = new stdClass();
 
             // El destino puede venir una Tienda o un Cliente
-            $destino    = Movement::find($movimiento->id)->To($movimiento->type, true);
+            $destino    = $movimiento->To($movimiento->type, true);
             $destino_id = ($destino->cod_fenovo) ? $destino->cod_fenovo : 'CLI_' . $destino->id;
 
             if ($movimiento->invoice_fenovo()) {
                 $explodes = explode('-', $movimiento->invoice_fenovo()->voucher_number);
                 $ptoVta   = str_pad((int)$explodes[0], 4, '0', STR_PAD_LEFT);
-            }
-
-            if ($movimiento->invoice_fenovo()) {
-                $importe = $movimiento->invoice_fenovo()->imp_neto;
+                $importe  = $movimiento->invoice_fenovo()->imp_neto;
             } else {
                 $importe = '0.0';
             }
 
-            $store_from = Store::where('id', $movimiento->from)->first();
-            $cip        = (is_null($store_from->cip)) ? '8889' : $store_from->cip;
+            if (in_array($movimiento->type, $arrTypes)) {
+                $store_from = Store::where('id', $movimiento->from)->first();
+                $cip        = (is_null($store_from->cip)) ? '8889' : $store_from->cip;
+            } else {
+                $cip = '0000';
+            }
 
             $panama1 = ($movimiento->hasPanama()) ? str_pad($cip, 4, '0', STR_PAD_LEFT) . '-' . str_pad($movimiento->getPanama()->orden, 7, '0', STR_PAD_LEFT) : '0.0';
             $panama2 = ($movimiento->hasFlete()) ? str_pad($cip, 4, '0', STR_PAD_LEFT) . '-' . str_pad($movimiento->getFlete()->orden, 7, '0', STR_PAD_LEFT) : '0.0';
@@ -56,10 +59,10 @@ class OrdenConsolidadaViewExport implements FromView
             /* 2  */ $objMovimiento->fecha      = date('d/m/Y', strtotime($movimiento->date));
             /* 3  */ $objMovimiento->destino_id = str_pad($destino_id, 3, '0', STR_PAD_LEFT);
             /* 4  */ $objMovimiento->destino    = $movimiento->To($movimiento->type);
-            /* 5  */ $objMovimiento->items      = count(MovementProduct::whereMovementId($movimiento->id)->where('egress', '>', 0)->get());
+            /* 5  */ $objMovimiento->items      = $movimiento->products_egress()->count('id');
             /* 6  */ $objMovimiento->tipo       = ($movimiento->type == 'VENTACLIENTE') ? 'VENTA' : $movimiento->type;
             /* 7  */ $objMovimiento->kgrs       = $movimiento->totalKgrs();
-            /* 8  */ $objMovimiento->bultos     = MovementProduct::whereMovementId($movimiento->id)->where('egress', '>', 0)->sum('bultos');
+            /* 8  */ $objMovimiento->bultos     = $movimiento->products_egress()->sum('bultos');
             /* 9  */ $objMovimiento->flete      = ($movimiento->hasFlete()) ? $movimiento->getFlete()->neto105 + $movimiento->getFlete()->neto21 : '0.0';
             /* 10 */ $objMovimiento->neto       = $importe;
             /* 11 */ $objMovimiento->factura    = ($movimiento->invoice_fenovo()) ? $ptoVta . '-' . $explodes[1] : '0.0';

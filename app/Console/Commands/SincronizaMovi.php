@@ -1,13 +1,12 @@
 <?php
 
 namespace App\Console\Commands;
-
 use App\Exports\MovementsViewExport;
 use Illuminate\Console\Command;
 
-class SincronizaOtra extends Command
+class SincronizaMovi extends Command
 {
-    protected $signature   = 'sincroniza:movimientos';
+    protected $signature   = 'sincroniza:movi';
     protected $description = 'Sincroniza los movimientos de Fenovo';
 
     public function __construct()
@@ -17,6 +16,7 @@ class SincronizaOtra extends Command
 
     public function handle()
     {
-        
+        // Exportar movimientos
+        (new MovementsViewExport() )->store('movi.csv');
     }
 }
