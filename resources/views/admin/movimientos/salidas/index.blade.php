@@ -34,9 +34,9 @@
                             <td>Item</td>
                             <td>Factura</td>
                             <td>Rto</td>
+                            <td>Orden</td>
                             <td>Paper</td>
                             <td>Flete</td>
-                            <td>Orden</td>
                         </tr>
                     </thead>
                     <tbody>
@@ -93,17 +93,17 @@
                     searchable: false
                 },
                 {
+                    data: 'orden',
+                    orderable: false,
+                    searchable: false
+                },
+                {
                     data: 'paper',
                     orderable: false,
                     searchable: false
                 },
                 {
                     data: 'flete',
-                    orderable: false,
-                    searchable: false
-                },
-                {
-                    data: 'orden',
                     orderable: false,
                     searchable: false
                 },
