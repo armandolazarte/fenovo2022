@@ -120,43 +120,8 @@ class PrintController extends Controller
         $pdf = PDF::loadView('admin.print.movimientos.entreFechas', compact('arrMovements', 'desde', 'hasta'));
         return $pdf->stream('salidas_fechas.pdf');
     }
-
     public function exportMovimientosCsv(Request $request)
     {
-        // $arrTipos   = ['COMPRA', 'VENTA', 'VENTACLIENTE', 'TRASLADO', 'DEVOLUCION', 'DEVOLUCIONCLIENTE', 'AJUSTE'];
-        // // Tomo los movimientos de 15 dias atras
-        // $fecha = Carbon::now()->subDays(5)->toDateTimeString();
-
-        // $movimientos = DB::table('movements as t1')
-        // ->join('movement_products as t2', 't1.id', '=', 't2.movement_id')
-        // ->join('products as t3', 't2.product_id', '=', 't3.id')
-        // ->join('stores as t4', 't2.entidad_id', '=', 't4.id')
-        // ->select(
-        //     't1.id',
-        //     't1.created_at',
-        //     't1.type',
-        //     't1.date',
-        //     't1.to',
-        //     't1.from',
-        //     't2.id as movement_products_id',
-        //     't2.unit_price',
-        //     't2.cost_fenovo',
-        //     't2.bultos',
-        //     't2.entry',
-        //     't2.egress',
-        //     't2.unit_package',
-        //     't2.circuito',
-        //     't3.cod_fenovo as cod_producto',
-        //     't3.unit_type as unidad',
-        //     't4.cod_fenovo as cod_tienda'
-        // )
-        // ->whereIn('t1.type', $arrTipos)
-        // ->where('t2.entidad_tipo', '!=', 'C')
-        // ->where('t1.exported', '=', 1)
-        // ->whereDate('t1.created_at', '>', $fecha)
-        // ->orderBy('t1.date')->orderBy('t1.id')->orderBy('t3.cod_fenovo')
-        // ->get();
-
         return Excel::download(new MovementsViewExport(), 'movi.csv', \Maatwebsite\Excel\Excel::CSV, ['Content-Type' => 'text/csv']);
     }
 

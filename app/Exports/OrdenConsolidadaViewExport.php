@@ -34,7 +34,7 @@ class OrdenConsolidadaViewExport implements FromView
             $objMovimiento = new stdClass();
 
             // El destino puede venir una Tienda o un Cliente
-            $destino    = Movement::find($movimiento->id)->To($movimiento->type, true);
+            $destino    = $movimiento->To($movimiento->type, true);
             $destino_id = ($destino->cod_fenovo) ? $destino->cod_fenovo : 'CLI_' . $destino->id;
 
             if ($movimiento->invoice_fenovo()) {
@@ -59,10 +59,10 @@ class OrdenConsolidadaViewExport implements FromView
             /* 2  */ $objMovimiento->fecha      = date('d/m/Y', strtotime($movimiento->date));
             /* 3  */ $objMovimiento->destino_id = str_pad($destino_id, 3, '0', STR_PAD_LEFT);
             /* 4  */ $objMovimiento->destino    = $movimiento->To($movimiento->type);
-            /* 5  */ $objMovimiento->items      = count(MovementProduct::whereMovementId($movimiento->id)->where('egress', '>', 0)->get());
+            /* 5  */ $objMovimiento->items      = $movimiento->products_egress()->count('id');
             /* 6  */ $objMovimiento->tipo       = ($movimiento->type == 'VENTACLIENTE') ? 'VENTA' : $movimiento->type;
             /* 7  */ $objMovimiento->kgrs       = $movimiento->totalKgrs();
-            /* 8  */ $objMovimiento->bultos     = MovementProduct::whereMovementId($movimiento->id)->where('egress', '>', 0)->sum('bultos');
+            /* 8  */ $objMovimiento->bultos     = $movimiento->products_egress()->sum('bultos');
             /* 9  */ $objMovimiento->flete      = ($movimiento->hasFlete()) ? $movimiento->getFlete()->neto105 + $movimiento->getFlete()->neto21 : '0.0';
             /* 10 */ $objMovimiento->neto       = $importe;
             /* 11 */ $objMovimiento->factura    = ($movimiento->invoice_fenovo()) ? $ptoVta . '-' . $explodes[1] : '0.0';
