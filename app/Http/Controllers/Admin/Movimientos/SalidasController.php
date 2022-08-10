@@ -151,9 +151,11 @@ class SalidasController extends Controller
                     }
                 })
                 ->addColumn('orden', function ($movement) {
-                    return ($movement->hasInvoices())
+                    // se comentan estas lineas el 08/08/22 porque ahora la orden imprime todos los productos tanto panamas como factirados
+                    /* return ($movement->hasInvoices())
                         ? '<a class="text-primary" title="Imprimir Orden"  href="' . route('print.orden', ['id' => $movement->id]) . '" target="_blank"> <i class="fas fa-list"></i> </a>'
-                        : null;
+                        : null; */
+                    return '<a class="text-primary" title="Imprimir Orden"  href="' . route('print.orden', ['id' => $movement->id]) . '" target="_blank"> <i class="fas fa-list"></i> </a>'
                 })/*
                 ->addColumn('ordenpanama', function ($movement) {
                     return ($movement->hasPanama() || count($movement->panamas))
@@ -1415,7 +1417,7 @@ class SalidasController extends Controller
                 ]);
             }
         }
-        
+
         if ($code) {
             $products = Product::where('cod_fenovo', $code)->get();
         } else {
