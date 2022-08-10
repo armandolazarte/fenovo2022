@@ -37,7 +37,6 @@
                             <td>Paper</td>
                             <td>Flete</td>
                             <td>Orden</td>
-                            <td>O.Pan</td>
                         </tr>
                     </thead>
                     <tbody>
