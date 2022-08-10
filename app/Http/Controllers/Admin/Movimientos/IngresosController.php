@@ -961,21 +961,6 @@ class IngresosController extends Controller
             return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
         }
     }
-
-    public function editProductNoCongeladosCheck(Request $request)
-    {
-        try {
-            $product      = Product::find($request->id);
-            $unit_package = explode('|', $product->unit_package);
-            return new JsonResponse([
-                'type' => 'success',
-                'html' => view('admin.movimientos.ingresosNoCongelados.insertByAjaxCheck', compact('product', 'unit_package'))->render(),
-            ]);
-        } catch (\Exception $e) {
-            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
-        }
-    }
-
     public function updateProductNoCongelados(Request $request)
     {
         try {
@@ -996,28 +981,6 @@ class IngresosController extends Controller
             return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
         }
     }
-
-    public function updateProductNoCongeladosCheck(Request $request)
-    {
-        try {
-            $data['unit_package'] = implode('|', $request->unit_package);
-            $data['unit_weight']  = $request->unit_weight;
-            Product::find($request->product_id)->update($data);
-
-            $dataprice['plistproveedor']    = $request->plistproveedor;
-            $dataprice['descproveedor']     = $request->descproveedor;
-            $dataprice['costfenovo']        = $request->costfenovo;
-            $dataprice['mupfenovo']         = $request->mupfenovo;
-            $dataprice['contribution_fund'] = $request->contribution_fund;
-            $dataprice['plist0neto']        = $request->plist0neto;
-            ProductPrice::whereProductId($request->product_id)->update($dataprice);
-
-            return new JsonResponse(['msj' => 'Actualización correcta !', 'type' => 'success']);
-        } catch (\Exception $e) {
-            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
-        }
-    }
-
     public function closeNoCongelados(Request $request)
     {
         try {
@@ -1154,6 +1117,40 @@ class IngresosController extends Controller
         }
     }
 
+    // No congelados Chequeo de Compra
+    public function editProductNoCongeladosCheck(Request $request)
+    {
+        try {
+            $product      = Product::find($request->id);
+            $unit_package = explode('|', $product->unit_package);
+            return new JsonResponse([
+                'type' => 'success',
+                'html' => view('admin.movimientos.ingresosNoCongelados.insertByAjaxCheck', compact('product', 'unit_package'))->render(),
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
+    }
+    public function updateProductNoCongeladosCheck(Request $request)
+    {
+        try {
+            $data['unit_package'] = implode('|', $request->unit_package);
+            $data['unit_weight']  = $request->unit_weight;
+            Product::find($request->product_id)->update($data);
+
+            $dataprice['plistproveedor']    = $request->plistproveedor;
+            $dataprice['descproveedor']     = $request->descproveedor;
+            $dataprice['costfenovo']        = $request->costfenovo;
+            $dataprice['mupfenovo']         = $request->mupfenovo;
+            $dataprice['contribution_fund'] = $request->contribution_fund;
+            $dataprice['plist0neto']        = $request->plist0neto;
+            ProductPrice::whereProductId($request->product_id)->update($dataprice);
+
+            return new JsonResponse(['msj' => 'Actualización correcta !', 'type' => 'success']);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
+    }
     public function closeNoCongeladosCheck(Request $request)
     {
         try {
