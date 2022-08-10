@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Admin\Movimientos;
 
 use App\Http\Controllers\Controller;
+use App\Models\InvoiceCompra;
+use App\Models\MovementProduct;
 use App\Models\MovementProductTemp;
 use App\Models\Product;
+use App\Models\ProductStore;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -124,6 +127,22 @@ class DetalleIngresosController extends Controller
         }
     }
 
+    public function checkNoCongeladosCheck(Request $request)
+    {
+        try {
+            $productId      = $request->productId;
+            $producto       = Product::find($productId);
+            $presentaciones = explode('|', $producto->unit_package);
+            return new JsonResponse([
+                'type' => 'success',
+                'html' => view('admin.movimientos.ingresosNoCongelados.detalleTempCheck', compact('producto', 'presentaciones'))->render(),
+
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
+    }
+
     public function storeNoCongelados(Request $request)
     {
         try {
@@ -174,6 +193,117 @@ class DetalleIngresosController extends Controller
         }
     }
 
+    public function storeNoCongeladosCheck(Request $request)
+    {
+        try {
+            $hoy         = Carbon::parse(now())->format('Y-m-d');
+            $movement_id = $request->datos['movement_id'];
+            $movimiento  = $request->datos;
+
+            // Actualizo el Stock del producto
+            $product     = Product::find($movimiento['product_id']);
+            $latest      = $product->stockReal(null, Auth::user()->store_active);
+            $balance     = ($latest) ? $latest + $movimiento['entry'] : $movimiento['entry'];
+
+            if ($movimiento['circuito'] == 'F') {
+                $product->stock_f += $balance;
+            } elseif ($movimiento['circuito'] == 'R') {
+                $product->stock_r += $balance;
+            }            
+            $product->save();
+
+            // Actualizo el Stock del producto en Product_store
+            if (!is_null($movimiento['deposito'])) {
+                $stock_cyo  = $stock_f  = $stock_r  = 0;
+                $prod_store = ProductStore::where('product_id', $movimiento['product_id'])->where('store_id', $movimiento['deposito'])->first();
+                if($prod_store){
+                    if ($movimiento['circuito'] == 'F') {
+                        $prod_store->stock_f = $prod_store->stock_f + $movimiento['entry'];
+                    } else {
+                        $prod_store->stock_r = $prod_store->stock_r + $movimiento['entry'];
+                    }
+                    $prod_store->save();
+                }else{
+                    ProductStore::create([
+                        'product_id' => $movimiento['product_id'],
+                        'store_id'   => $movimiento['deposito'],
+                        'stock_f'    => ($movimiento['circuito'] == 'F')?$movimiento['entry']:0,
+                        'stock_r'    => ($movimiento['circuito'] == 'R')?$movimiento['entry']:0,
+                        'stock_cyo'  => $stock_cyo,
+                    ]);
+                }
+            }
+
+            // Buscar si el producto tiene oferta del proveedor
+            $oferta = DB::table('products as t1')
+                ->join('session_ofertas as t2', 't1.id', '=', 't2.product_id')
+                ->select('t2.costfenovo', 't2.plist0neto')
+                ->where('t1.id', $movimiento['product_id'])
+                ->where('t2.fecha_desde', '<=', $hoy)
+                ->where('t2.fecha_hasta', '>=', $hoy)
+                ->first();
+            $costo_fenovo = (!$oferta) ? $product->product_price->costfenovo : $oferta->costfenovo;
+            $unit_price   = (!$oferta) ? $product->product_price->plist0neto : $oferta->plist0neto;
+
+            $movimiento['balance'] = $product->stockReal(null, Auth::user()->store_active);
+
+            MovementProduct::firstOrCreate(
+                [
+                    'entidad_id'   => Auth::user()->store_active,
+                    'movement_id'  => $movimiento['movement_id'],
+                    'product_id'   => $movimiento['product_id'],
+                    'circuito'     => $movimiento['circuito'],
+                    'tasiva'       => $product->product_price->tasiva,
+                    'cost_fenovo'  => $costo_fenovo,
+                    'unit_price'   => $unit_price,
+                    'unit_package' => $movimiento['unit_package'],
+                    'unit_type'    => $movimiento['unit_type'],
+                    'invoice'      => $movimiento['invoice'],
+                    'cyo'          => $movimiento['cyo'],
+                    'balance'      => $movimiento['balance']
+                ],
+                $movimiento
+            );
+
+            $subtotalIva  = round($costo_fenovo * $movimiento['unit_package'] * $movimiento['bultos'] * ($product->product_price->tasiva / 100), 2);
+            $subtotalNeto = round($costo_fenovo * $movimiento['unit_package'] * $movimiento['bultos'], 2);
+
+            // Descontar Iva y Neto del movimiento al comprobante
+            $comprobante = InvoiceCompra::where('movement_id', $movement_id)->first();
+
+            switch ($product->product_price->tasiva) {
+                case '0.00':
+                    $comprobante->exento += $subtotalNeto;
+                    break;
+                case '10.50':
+                    $comprobante->totalIva10  += $subtotalIva;
+                    $comprobante->totalNeto10 += $subtotalNeto;
+                    break;
+                case '21.00':
+                    $comprobante->totalIva21  += $subtotalIva;
+                    $comprobante->totalNeto21 += $subtotalNeto;
+                    break;
+                case '27.00':
+                    $comprobante->totalIva27  += $subtotalIva;
+                    $comprobante->totalNeto27 += $subtotalNeto;
+                    break;
+            }
+
+            // Guardar
+            $comprobante->totalCompra += $subtotalIva + $subtotalNeto;
+            $comprobante->save();
+
+            $movimientos = MovementProduct::where('movement_id', $movement_id)->orderBy('id', 'desc')->get();
+
+            return new JsonResponse([
+                'type' => 'success',
+                'html' => view('admin.movimientos.ingresosNoCongelados.detalleConfirmCheck', compact('movimientos', 'comprobante'))->render(),
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
+    }
+
     public function destroyNoCongelados(Request $request)
     {
         try {
@@ -182,6 +312,74 @@ class DetalleIngresosController extends Controller
             return new JsonResponse([
                 'type' => 'success',
                 'html' => view('admin.movimientos.ingresosNoCongelados.detalleConfirm', compact('movimientos'))->render(),
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
+    }
+
+    public function destroyNoCongeladosCheck(Request $request)
+    {
+        try {
+            // Obtener el subtotal
+            $movimiento   = MovementProduct::where('movement_id', $request->movement_id)->where('product_id', $request->product_id)->first();
+
+            // Actualizo el Stock del producto
+            $producto    =  Product::where('id', $request->product_id)->first();
+            if ($movimiento->circuito == 'F') {
+                $producto->stock_f -= $movimiento->entry;
+            } elseif ($movimiento->circuito == 'R') {
+                $producto->stock_r -= $movimiento->entry;
+            }
+            $producto->save();
+
+            // Actualizo el Stock del producto en Product_store
+            if (!is_null($movimiento->deposito)) {
+                $stock_cyo  = $stock_f  = $stock_r  = 0;
+                $prod_store = ProductStore::where('product_id', $request->product_id)->where('store_id', $movimiento->deposito)->first();
+                if ($movimiento->circuito == 'F') {
+                    $prod_store->stock_f = $prod_store->stock_f - $movimiento->entry;
+                } else {
+                    $prod_store->stock_r = $prod_store->stock_r - $movimiento->entry;
+                }
+            }
+            $prod_store->save();
+
+            $subtotalIva  = round($movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos * ($movimiento->tasiva / 100), 2);
+            $subtotalNeto = round($movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos, 2);
+
+            // Descontar Iva y Neto del movimiento al comprobante
+            $comprobante = InvoiceCompra::where('movement_id', $request->movement_id)->first();
+
+            switch ($movimiento->tasiva) {
+                case '0.00':
+                    $comprobante->exento -= $subtotalNeto;
+                    break;
+                case '10.50':
+                    $comprobante->totalIva10  -= $subtotalIva;
+                    $comprobante->totalNeto10 -= $subtotalNeto;
+                    break;
+                case '21.00':
+                    $comprobante->totalIva21  -= $subtotalIva;
+                    $comprobante->totalNeto21 -= $subtotalNeto;
+                    break;
+                case '27.00':
+                    $comprobante->totalIva27  -= $subtotalIva;
+                    $comprobante->totalNeto27 -= $subtotalNeto;
+                    break;
+            }
+
+            // Guardar
+            $comprobante->save();
+
+            // Eliminar el movimiento
+            $movimiento->delete();
+
+            $movimientos = MovementProduct::where('movement_id', $request->movement_id)->orderBy('id', 'desc')->get();
+
+            return new JsonResponse([
+                'type' => 'success',
+                'html' => view('admin.movimientos.ingresosNoCongelados.detalleConfirmCheck', compact('movimientos', 'comprobante'))->render(),
             ]);
         } catch (\Exception $e) {
             return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);

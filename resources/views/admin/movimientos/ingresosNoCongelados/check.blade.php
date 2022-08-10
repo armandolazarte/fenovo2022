@@ -39,7 +39,7 @@
                                 <option value="REMITO" @if ($movement->subtype == 'REMITO') selected @endif>R</option>
                             </select>
                         </div>
-                        <div class="col-1">
+                        <div class="col-2">
                             <label class="text-dark">Punto Vta</label>
                             <input type="number" id="puntoVenta" name="puntoVenta" value="{{ substr($movement->voucher_number, 0, -8) }}" class="form-control text-center" disabled>
                         </div>
@@ -47,15 +47,6 @@
                             <label class="text-dark">Comprobante</label>
                             <input type="number" id="comprobanteNro" name="comprobanteNro" value="{{ substr($movement->voucher_number,-8) }}" class="form-control text-center" disabled>
                         </div> 
-                        <div class="col-1 text-center">
-                            <label class="text-dark font-size-bold">Cerrar</label>
-                            <fieldset class="form-group">
-                                <button onclick="close_compra('{{ $movement->id }}')"
-                                    class="btn btn-dark btn-cerrar-ingreso">
-                                    <i class="fa fa-lock text-black-50"></i>
-                                </button>
-                            </fieldset>
-                        </div>
                     </div>
 
                     <div class="row mb-3">
@@ -74,6 +65,12 @@
                                 @endforeach
                             </select>
                         </div>
+                        <div class="col-4"></div>
+                        <div class="col-2">
+                            <button onclick="close_compraCheck('{{ $movement->id }}')" class=" btn btn-danger btn-block text-white">
+                                Chequeada
+                            </button>
+                        </div>
                     </div>
 
                     <div class="row">
@@ -90,7 +87,7 @@
                         </div>
                         <div class="col-8">
                             <div id="dataTemp">
-                                @include('admin.movimientos.ingresosNoCongelados.detalleTemp')
+                                @include('admin.movimientos.ingresosNoCongelados.detalleTempCheck')
                             </div>
                         </div>
                     </div>
@@ -103,7 +100,7 @@
                     <div class="row">
                         <div class="col-lg-12 col-xl-12">
                             <div id="dataConfirm">
-                                @include('admin.movimientos.ingresosNoCongelados.detalleConfirm')
+                                @include('admin.movimientos.ingresosNoCongelados.detalleConfirmCheck')
                             </div>
                         </div>
                     </div>
@@ -113,7 +110,7 @@
         </div>
     </div>
 
-    @include('admin.movimientos.ingresosNoCongelados.modal')
+    @include('admin.movimientos.ingresosNoCongelados.modalCheck')
 @endsection
 
 @section('js')
@@ -127,7 +124,7 @@
         jQuery("#product_id").on('change', function() {
             const productId = jQuery("#product_id").val();
             jQuery.ajax({
-                url: '{{ route('detalle-ingresos.check.noCongelado') }}',
+                url: '{{ route('detalle-ingresos.check.noCongelado.check') }}',
                 type: 'POST',
                 data: {
                     productId
@@ -147,7 +144,7 @@
         const editarProducto = (id) => {
             var elements = document.querySelectorAll('.is-invalid');
             jQuery.ajax({
-                url: '{{ route('ingresos.editProduct.noCongelado') }}',
+                url: '{{ route('ingresos.editProduct.noCongelado.check') }}',
                 type: 'GET',
                 data: {
                     id
@@ -223,11 +220,11 @@
             });
         }
 
-        const actualizarProductoNoCongelado = () => {
+        const actualizarProductoNoCongeladoCheck = () => {
             var product_id = jQuery("#product_id").val();
             var form = jQuery('#formData').serialize();
             jQuery.ajax({
-                url: '{{ route('ingresos.updateProduct.noCongelado') }}',
+                url: '{{ route('ingresos.updateProduct.noCongelado.check') }}',
                 type: 'POST',
                 data: form,
                 success: function(data) {
@@ -271,7 +268,7 @@
             }
         }
 
-        const guardarItem = (product_id, peso_unitario) => {
+        const guardarItemCheck = (product_id, peso_unitario) => {
 
             jQuery('#loader').removeClass('hidden');
 
@@ -292,7 +289,9 @@
                     cyo = 1;
                     circuito = 'F';
                 }
-            }
+            } 
+
+            let deposito = jQuery("#deposito").val();            
 
             let arrMovimientos = [];
             jQuery('.calculate').each(function() {
@@ -303,8 +302,7 @@
                     let presentacion = presentacion_input[1];
                     let unit_package = presentacion;
                     let valor = parseFloat(jQuery(this).val());
-                    let entry = (unit_type == 'K') ? (valor * presentacion) * peso_unitario : (valor *
-                        presentacion);
+                    let entry = (unit_type == 'K') ? (valor * presentacion) * peso_unitario : (valor * presentacion);
                     let egress = 0;
                     let balance = 0;
                     let entidad_tipo = 'S';
@@ -318,6 +316,7 @@
                         Movi.unit_package = unit_package;
                         Movi.unit_type = unit_type;
                         Movi.invoice = invoice;
+                        Movi.deposito = deposito;
                         Movi.circuito = circuito;
                         Movi.cyo = cyo;
                         Movi.bultos = valor;
@@ -327,13 +326,13 @@
                         arrMovimientos.push(Movi);
                     }
                 }
-            });
+            });            
 
             jQuery.ajax({
-                url: '{{ route('detalle-ingresos.store.noCongelado') }}',
+                url: '{{ route('detalle-ingresos.store.noCongelado.check') }}',
                 type: 'POST',
                 data: {
-                    datos: arrMovimientos
+                    datos: arrMovimientos[0]
                 },
                 success: function(data) {
                     if (data['type'] == 'success') {
@@ -349,18 +348,21 @@
             jQuery('#loader').addClass('hidden');
         }
 
-        const borrarDetalle = (movement_id, product_id) => {
-            const route = '{{ route('detalle-ingresos.destroy.noCongelado') }}';
+        const borrarDetalleCheck = (movement_id, product_id) => {
+            const route = '{{ route('detalle-ingresos.destroy.noCongelado.check') }}';
 
             ymz.jq_confirm({
                 title: 'Atención',
-                text: "Ud eliminará el producto y todas sus presentaciones ?",
+                text: "Se eliminará el producto ",
                 no_btn: "Cancelar",
                 yes_btn: "Confirma",
                 no_fn: function() {
                     return false;
                 },
                 yes_fn: function() {
+
+                    jQuery('#loader').removeClass('hidden');
+
                     jQuery.ajax({
                         url: route,
                         type: 'POST',
@@ -371,20 +373,16 @@
                         success: function(data) {
                             if (data['type'] == 'success') {
                                 jQuery("#dataConfirm").html(data['html']);
-                                toastr.options = {
-                                    "progressBar": true,
-                                    "showDuration": "300",
-                                    "timeOut": "1000"
-                                };
-                                toastr.info("Eliminado ... ");
+                                jQuery('#loader').addClass('hidden');
                             }
                         }
                     })
+
                 }
             })
         }
 
-        const close_compra = (id) => {
+        const close_compraCheck = (id) => {
 
             ymz.jq_confirm({
                 title: 'Compra ',
@@ -423,11 +421,9 @@
                     Detalle.totalCompra = jQuery("#totalCompra").val();
 
                     jQuery.ajax({
-                        url: '{{ route('ingresos.closeNocongelados') }}',
+                        url: '{{ route('ingresos.closeNocongelados.check') }}',
                         type: 'POST',
-                        data: {
-                            Detalle
-                        },
+                        data: {Detalle },
                         success: function(data) {
                             if (data['type'] == 'success') {
                                 window.location = "{{ route('ingresos.indexCerradas') }}";

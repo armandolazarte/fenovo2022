@@ -109,7 +109,7 @@ class IngresosController extends Controller
                     return  $movement->voucher_number;
                 })
                 ->addColumn('show', function ($movement) {
-                    return '<a href="' . route('ingresos.show', ['id' => $movement->id, 'is_cerrada' => true]) . '"> <i class="fa fa-eye"></i> </a>';
+                    return '<a href="' . route('ingresos.checkNocongelados', ['id' => $movement->id, 'is_cerrada' => true]) . '"> <i class="fa fa-eye"></i> </a>';
                 })
                 ->rawColumns(['origen', 'date', 'items', 'voucher', 'show'])
                 ->make(true);
@@ -935,6 +935,19 @@ class IngresosController extends Controller
         $depositos   = Store::orderBy('cod_fenovo', 'asc')->where('active', 1)->where('store_type', 'D')->get();
         return view('admin.movimientos.ingresosNoCongelados.edit', compact('movement', 'proveedor', 'productos', 'movimientos', 'depositos'));
     }
+    public function checkNoCongelados(Request $request)
+    {
+        $movement    = Movement::find($request->id);
+        $productos   = $this->productRepository->getByProveedorIdPluck($movement->from);
+        $proveedor   = Proveedor::find($movement->from);
+        $movimientos = MovementProduct::where('movement_id', $request->id)->orderBy('created_at', 'asc')->get();
+        $depositos   = Store::orderBy('cod_fenovo', 'asc')->where('active', 1)->where('store_type', 'D')->get();
+        $comprobante = InvoiceCompra::where('movement_id', $request->id)->first();
+        return view(
+            'admin.movimientos.ingresosNoCongelados.check',
+            compact('movement', 'proveedor', 'productos', 'movimientos', 'depositos', 'comprobante')
+        );
+    }
     public function editProductNoCongelados(Request $request)
     {
         try {
@@ -1094,6 +1107,80 @@ class IngresosController extends Controller
             // Elimino el Movimiento temporal
             MovementTemp::find($request->Detalle['id'])->delete();
             MovementProductTemp::whereMovementId($request->Detalle['id'])->delete();
+
+            DB::commit();
+            Schema::enableForeignKeyConstraints();
+
+            return new JsonResponse(['msj' => 'Compra guardada', 'type' => 'success']);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
+    }
+
+    // No congelados Chequeo de Compra
+    public function editProductNoCongeladosCheck(Request $request)
+    {
+        try {
+            $product      = Product::find($request->id);
+            $unit_package = explode('|', $product->unit_package);
+            return new JsonResponse([
+                'type' => 'success',
+                'html' => view('admin.movimientos.ingresosNoCongelados.insertByAjaxCheck', compact('product', 'unit_package'))->render(),
+            ]);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
+    }
+    public function updateProductNoCongeladosCheck(Request $request)
+    {
+        try {
+            $data['unit_package'] = implode('|', $request->unit_package);
+            $data['unit_weight']  = $request->unit_weight;
+            Product::find($request->product_id)->update($data);
+
+            $dataprice['plistproveedor']    = $request->plistproveedor;
+            $dataprice['descproveedor']     = $request->descproveedor;
+            $dataprice['costfenovo']        = $request->costfenovo;
+            $dataprice['mupfenovo']         = $request->mupfenovo;
+            $dataprice['contribution_fund'] = $request->contribution_fund;
+            $dataprice['plist0neto']        = $request->plist0neto;
+            ProductPrice::whereProductId($request->product_id)->update($dataprice);
+
+            return new JsonResponse(['msj' => 'Actualización correcta !', 'type' => 'success']);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
+    }
+    public function closeNoCongeladosCheck(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+            Schema::disableForeignKeyConstraints();
+
+            $movement_id = $request->Detalle['id'];  
+
+            // Actualizo el movimiento para cerrarlo
+            $movement = Movement::find($movement_id)->update(['status' => 'CHECKED']);
+
+            // Actualizar detalle de compra
+            $dataCompra['l25413']      = $request->Detalle['l25413'];
+            $dataCompra['retater']     = $request->Detalle['retater'];
+            $dataCompra['retiva']      = $request->Detalle['retiva'];
+            $dataCompra['retgan']      = $request->Detalle['retgan'];
+            $dataCompra['nograv']      = $request->Detalle['nograv'];
+            $dataCompra['percater']    = $request->Detalle['percater'];
+            $dataCompra['perciva']     = $request->Detalle['perciva'];
+            $dataCompra['exento']      = $request->Detalle['exento'];
+            $dataCompra['totalIva10']  = $request->Detalle['totalIva10'];
+            $dataCompra['totalIva21']  = $request->Detalle['totalIva21'];
+            $dataCompra['totalIva27']  = $request->Detalle['totalIva27'];
+            $dataCompra['totalNeto10'] = $request->Detalle['totalNeto10'];
+            $dataCompra['totalNeto21'] = $request->Detalle['totalNeto21'];
+            $dataCompra['totalNeto27'] = $request->Detalle['totalNeto27'];
+            $dataCompra['totalCompra'] = $request->Detalle['totalCompra'];
+
+            InvoiceCompra::where('movement_id', $movement_id)->update($dataCompra);
+            //
 
             DB::commit();
             Schema::enableForeignKeyConstraints();

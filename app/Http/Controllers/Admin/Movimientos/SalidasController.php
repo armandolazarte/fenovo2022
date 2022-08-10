@@ -151,17 +151,19 @@ class SalidasController extends Controller
                     }
                 })
                 ->addColumn('orden', function ($movement) {
-                    return ($movement->hasInvoices())
+                    // se comentan estas lineas el 08/08/22 porque ahora la orden imprime todos los productos tanto panamas como factirados
+                    /* return ($movement->hasInvoices())
                         ? '<a class="text-primary" title="Imprimir Orden"  href="' . route('print.orden', ['id' => $movement->id]) . '" target="_blank"> <i class="fas fa-list"></i> </a>'
-                        : null;
-                })
+                        : null; */
+                    return '<a class="text-primary" title="Imprimir Orden"  href="' . route('print.orden', ['id' => $movement->id]) . '" target="_blank"> <i class="fas fa-list"></i> </a>';
+                })/*
                 ->addColumn('ordenpanama', function ($movement) {
                     return ($movement->hasPanama() || count($movement->panamas))
                         ? '<a title="Imprimir Orden panama"  href="' . route('print.ordenPanama', ['id' => $movement->id]) . '" target="_blank"> <i class="fas fa-list"></i> </a>'
                         : null;
-                })
+                }) */
 
-                ->rawColumns(['id', 'origen', 'items', 'date', 'type', 'observacion', 'factura_nro', 'remito', 'paper', 'flete', 'orden', 'ordenpanama'])
+                ->rawColumns(['id', 'origen', 'items', 'date', 'type', 'observacion', 'factura_nro', 'remito', 'paper', 'flete', 'orden'])
                 ->make(true);
         }
         return view('admin.movimientos.salidas.index');
@@ -308,9 +310,11 @@ class SalidasController extends Controller
             }
             $destino         = $this->origenData($movement->type, $movement->to, true);
             $array_productos = [];
-            $movimientos     = ($movement->type == 'TRASLADO') ? $movement->group_products_egress : $movement->group_movement_salida_products;
+            // Se comenta esto el 08/08/2022 porque en Orden ahora van todos los productos tantos facturados como panama
+            $movimientos     = $movement->group_products_egress;// ($movement->type == 'TRASLADO') ? $movement->group_products_egress : $movement->group_all_movement_salida_products;
             foreach ($movimientos as $movimiento) {
-                if ($movimiento->invoice) {
+                // Se comenta esto el 08/08/2022 porque en Orden ahora van todos los productos tantos facturados como panama
+               // if ($movimiento->invoice) {
                     $objProduct               = new stdClass();
                     $objProduct->cod_fenovo   = $movimiento->product->cod_fenovo;
                     $objProduct->name         = $movimiento->product->name;
@@ -323,7 +327,7 @@ class SalidasController extends Controller
                     $objProduct->total_unit   = number_format($movimiento->bultos * $movimiento->unit_package, 2, ',', '.');
                     $objProduct->class        = '';
                     array_push($array_productos, $objProduct);
-                }
+              //  }
             }
 
             $pdf = PDF::loadView('print.orden', compact('orden', 'destino', 'array_productos'));
@@ -1414,11 +1418,11 @@ class SalidasController extends Controller
                 ]);
             }
         }
-        
+
         if ($code) {
-            $products = Product::where('cod_fenovo', $code)->whereCategorieId(1)->get();
+            $products = Product::where('cod_fenovo', $code)->get();
         } else {
-            $products = Product::all()->whereCategorieId(1)->get();
+            $products = Product::all();
         }
 
         foreach ($products as $p) {
