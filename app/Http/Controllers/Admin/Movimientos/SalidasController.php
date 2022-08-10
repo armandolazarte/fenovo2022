@@ -310,7 +310,8 @@ class SalidasController extends Controller
             }
             $destino         = $this->origenData($movement->type, $movement->to, true);
             $array_productos = [];
-            $movimientos     = ($movement->type == 'TRASLADO') ? $movement->group_products_egress : $movement->group_movement_salida_products;
+            // Se comenta esto el 08/08/2022 porque en Orden ahora van todos los productos tantos facturados como panama
+            $movimientos     = $movement->group_products_egress;// ($movement->type == 'TRASLADO') ? $movement->group_products_egress : $movement->group_all_movement_salida_products;
             foreach ($movimientos as $movimiento) {
                 // Se comenta esto el 08/08/2022 porque en Orden ahora van todos los productos tantos facturados como panama
                // if ($movimiento->invoice) {
