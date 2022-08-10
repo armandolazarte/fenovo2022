@@ -155,7 +155,7 @@ class SalidasController extends Controller
                     /* return ($movement->hasInvoices())
                         ? '<a class="text-primary" title="Imprimir Orden"  href="' . route('print.orden', ['id' => $movement->id]) . '" target="_blank"> <i class="fas fa-list"></i> </a>'
                         : null; */
-                    return '<a class="text-primary" title="Imprimir Orden"  href="' . route('print.orden', ['id' => $movement->id]) . '" target="_blank"> <i class="fas fa-list"></i> </a>'
+                    return '<a class="text-primary" title="Imprimir Orden"  href="' . route('print.orden', ['id' => $movement->id]) . '" target="_blank"> <i class="fas fa-list"></i> </a>';
                 })/*
                 ->addColumn('ordenpanama', function ($movement) {
                     return ($movement->hasPanama() || count($movement->panamas))
