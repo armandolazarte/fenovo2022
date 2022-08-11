@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-        
+
     <div class="row">
         <div class="col-lg-12 col-xl-12">
             <div class="card card-custom gutter-b bg-transparent shadow-none border-0">
@@ -34,19 +34,18 @@
                             <td>Item</td>
                             <td>Factura</td>
                             <td>Rto</td>
+                            <td>Orden</td>
                             <td>Paper</td>
                             <td>Flete</td>
-                            <td>Orden</td>
-                            <td>O.Pan</td>
                         </tr>
                     </thead>
                     <tbody>
                     </tbody>
                 </table>
-            </div>       
+            </div>
         </div>
     </div>
-         
+
     @include('admin.movimientos.salidas.partials.modal-open-remito')
 @endsection
 
@@ -94,6 +93,11 @@
                     searchable: false
                 },
                 {
+                    data: 'orden',
+                    orderable: false,
+                    searchable: false
+                },
+                {
                     data: 'paper',
                     orderable: false,
                     searchable: false
@@ -103,16 +107,12 @@
                     orderable: false,
                     searchable: false
                 },
-                {
-                    data: 'orden',
-                    orderable: false,
-                    searchable: false
-                },
-                {
+
+               /*  {
                     data: 'ordenpanama',
                     orderable: false,
                     searchable: false
-                },
+                }, */
             ]
         });
 
