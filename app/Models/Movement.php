@@ -153,6 +153,7 @@ class Movement extends Model
 
     public function verifSiCreatePanama()
     {
+        if(Panamas::where('movement_id', $this->id)->where('tipo','PAN')->exists()) return 0;
         return MovementProduct::where('movement_id', $this->id)
                              ->where('entidad_id',\Auth::user()->store_active)
                              ->where('entidad_tipo', 'S')

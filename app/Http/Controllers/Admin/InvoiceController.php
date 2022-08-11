@@ -256,17 +256,19 @@ class InvoiceController extends Controller
                 }
 
                 if (!isset($movement->factura_flete) && $movement->flete > 0) {
-                    $data_panama['tipo']               = 'FLE';
-                    $data_panama['orden']              = $orden + 1;
-                    $data_panama['neto105']            = 0.0;
-                    $data_panama['iva_neto105']        = 0.0;
-                    $data_panama['neto21']             = $movement->flete;
-                    $data_panama['iva_neto21']         = $movement->flete * 0.21;
-                    $data_panama['totalIibb']          = 0.0;
-                    $data_panama['totalConIva']        = $movement->flete;
-                    $data_panama['costo_fenovo_total'] = 0.0;
+                    if(!Panamas::where('movement_id', $movement->id)->where('tipo','FLE')->exists()){
+                        $data_panama['tipo']               = 'FLE';
+                        $data_panama['orden']              = $orden + 1;
+                        $data_panama['neto105']            = 0.0;
+                        $data_panama['iva_neto105']        = 0.0;
+                        $data_panama['neto21']             = $movement->flete;
+                        $data_panama['iva_neto21']         = $movement->flete * 0.21;
+                        $data_panama['totalIibb']          = 0.0;
+                        $data_panama['totalConIva']        = $movement->flete;
+                        $data_panama['costo_fenovo_total'] = 0.0;
 
-                    Panamas::create($data_panama);
+                        Panamas::create($data_panama);
+                    }
                 }
 
                 if($movement->verifSiFactura() && $movement->type != 'TRASLADO'){
