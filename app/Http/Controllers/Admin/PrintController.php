@@ -120,7 +120,6 @@ class PrintController extends Controller
         $pdf = PDF::loadView('admin.print.movimientos.entreFechas', compact('arrMovements', 'desde', 'hasta'));
         return $pdf->stream('salidas_fechas.pdf');
     }
-
     public function exportMovimientosCsv(Request $request)
     {
         return Excel::download(new MovementsViewExport(), 'movi.csv', \Maatwebsite\Excel\Excel::CSV, ['Content-Type' => 'text/csv']);

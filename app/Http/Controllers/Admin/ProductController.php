@@ -1400,10 +1400,10 @@ class ProductController extends Controller
             $movement = Movement::create([
                 'date'           => now(),
                 'type'           => 'AJUSTE',
-                'from'           => $request->storeId,
+                'from'           => 1,
                 'to'             => $request->storeId,
                 'status'         => 'CREATED',
-                'voucher_number' => '00001',
+                'voucher_number' => '00000',
             ]);
 
             // Crear el detalle
@@ -1413,7 +1413,8 @@ class ProductController extends Controller
                 'movement_id'  => $movement->id,
                 'product_id'   => $product->id,
                 'unit_package' => $product->unit_package,
-                'unit_price'   => $product->product_price->costfenovo,
+                'cost_fenovo'  => $product->product_price->costfenovo,
+                'unit_price'   => $product->product_price->unit_price,
                 'tasiva'       => $product->product_price->tasiva,
                 'invoice'      => 1,
                 'entry'        => $stock,
