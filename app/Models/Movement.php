@@ -106,7 +106,6 @@ class Movement extends Model
     public function totalKgrs()
     {
         $kgrs = 0;
-
         $arrIngreso = ['COMPRA', 'DEVOLUCION', 'DEVOLUCIONCLIENTE'];
         $arrEgreso  = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
         $mp         = (in_array($this->type, $arrIngreso)) ? $this->movement_ingreso_products : $this->movement_salida_products;

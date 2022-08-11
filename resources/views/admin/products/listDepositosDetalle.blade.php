@@ -15,6 +15,9 @@
                 <td class=" w-25">Proveedor</td>
                 <td>Historial</td>
             </tr>
+            <tr class="bg-dark text-white">
+                <td colspan="5">Total de Kgrs @if(isset($kgrs)) {{ $kgrs }} @else 0 @endif</td>
+            </tr>
         </thead>
         <tbody>
             @if (isset($productos))

@@ -213,7 +213,7 @@ class Product extends Model
 
     public function stockInicioSemana()
     {
-        $dias       = 7;
+        $dias       = 8;
         $movimiento = MovementProduct::whereEntidadId(1)
             ->where('created_at', '>', Carbon::now()->subDays($dias))
             ->whereProductId($this->id)
