@@ -151,7 +151,7 @@ class SalidasController extends Controller
                     }
                 })
                 ->addColumn('orden', function ($movement) {
-                    // se comentan estas lineas el 08/08/22 porque ahora la orden imprime todos los productos tanto panamas como factirados
+                    // se comentan estas lineas el 10/10/22 porque ahora la orden imprime todos los productos tanto panamas como factirados
                     /* return ($movement->hasInvoices())
                         ? '<a class="text-primary" title="Imprimir Orden"  href="' . route('print.orden', ['id' => $movement->id]) . '" target="_blank"> <i class="fas fa-list"></i> </a>'
                         : null; */
@@ -310,10 +310,10 @@ class SalidasController extends Controller
             }
             $destino         = $this->origenData($movement->type, $movement->to, true);
             $array_productos = [];
-            // Se comenta esto el 08/08/2022 porque en Orden ahora van todos los productos tantos facturados como panama
+            // Se comenta esto el 10/10/2022 porque en Orden ahora van todos los productos tantos facturados como panama
             $movimientos     = $movement->group_products_egress;// ($movement->type == 'TRASLADO') ? $movement->group_products_egress : $movement->group_all_movement_salida_products;
             foreach ($movimientos as $movimiento) {
-                // Se comenta esto el 08/08/2022 porque en Orden ahora van todos los productos tantos facturados como panama
+                // Se comenta esto el 10/10/2022 porque en Orden ahora van todos los productos tantos facturados como panama
                // if ($movimiento->invoice) {
                     $objProduct               = new stdClass();
                     $objProduct->cod_fenovo   = $movimiento->product->cod_fenovo;
