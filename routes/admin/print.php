@@ -6,6 +6,7 @@ Route::get('menu/print', [PrintController::class, 'menuPrint'])->name('menu.prin
 Route::get('movement-print/printPDF', [PrintController::class, 'printMovimientosPDF'])->name('movement.printPDF');
 Route::get('movement-export/exportCSV', [PrintController::class, 'exportMovimientosCsv'])->name('movement.exportCSV');
 Route::get('ordenes-export/exportCSV', [PrintController::class, 'exportOrdenesCsv'])->name('movement.exportOrdenesCSV');
+Route::get('store-export/stocks/exportCSV/{id}', [PrintController::class, 'exportStoreStocks'])->name('store.exportStockCSV');
 
 
 
