@@ -236,6 +236,7 @@ class SalidasController extends Controller
         $tipo        = $explode[0];
 
         $sp = SessionProduct::where('list_id',$list_id)->first();
+
         if(\Auth::user()->rol() == 'contable'){
             if(isset($sp) && !is_null($sp->desde_deposito)){
                 $desde_deposito = $this->origenData($tipo, $sp->desde_deposito, true);
@@ -615,12 +616,13 @@ class SalidasController extends Controller
 
     public function add()
     {
-        $depositos = null;
+
+        $depositos = $es_traslado_depositos =null;
         if(\Auth::user()->rol() == 'contable'){
             $depositos = Store::orderBy('cod_fenovo', 'asc')->where('active', 1)->where('store_type','D')->get();
         }
         $this->sessionProductRepository->deleteDevoluciones();
-        return view('admin.movimientos.salidas.add',compact('depositos'));
+        return view('admin.movimientos.salidas.add',compact('depositos','es_traslado_depositos'));
     }
 
     public function show(Request $request)
