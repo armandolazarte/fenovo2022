@@ -12,29 +12,24 @@ use App\Models\Product;
 use App\Models\ProductStore;
 use App\Models\Store;
 
-use App\Repositories\ProductRepository;
 use App\Repositories\InvoicesRepository;
 use App\Repositories\SessionProductRepository;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Yajra\DataTables\Facades\DataTables;
 
 class NotasCreditoController extends Controller
 {
-    private $productRepository;
     private $invoiceRepository;
     private $sessionProductRepository;
 
     public function __construct(
-        ProductRepository $productRepository,
         InvoicesRepository $invoiceRepository,
         SessionProductRepository $sessionProductRepository
     ) {
-        $this->productRepository        = $productRepository;
         $this->invoiceRepository        = $invoiceRepository;
         $this->sessionProductRepository = $sessionProductRepository;
     }
@@ -86,76 +81,10 @@ class NotasCreditoController extends Controller
 
     public function add()
     {
-        $storeTypes = ['N', 'B'];
+        $storeTypes  = ['N', 'B'];
         $storesNaves = Store::whereIn('store_type', $storeTypes)->get(); //Los depositos los tenemos como N = Nave, B = Base
         $this->sessionProductRepository->deleteDevoluciones();
         return view('admin.movimientos.notas-credito.add', compact('storesNaves'));
-    }
-
-    public function getPresentacionesNotaCredito(Request $request)
-    {
-        try {
-            if ($request->has('id') && $request->input('id') != '') {
-
-                // SI TIENDA ID es igual a cero, entonces es una Nota de Credito desde NAVE, sino desde otro lugar
-                if ($request->tienda_id == 0) {
-                    $product    = $this->productRepository->getById($request->input('id'));
-                } else {
-                    $product    = ProductStore::where('product_id', $request->input('id'))->first();
-                }
-                
-                if ($product) {
-
-                    $product    = $this->productRepository->getById($request->input('id'));
-                    
-                    $list_id    = ($request->tienda_id == 0)
-                        ? $request->input('list_id') . '_' . \Auth::user()->store_active 
-                        : $request->input('list_id') . '_' . $request->tienda_id;
-
-                    $stock_presentaciones = [];
-                    $presentaciones       = explode('|', $product->unit_package);
-                    
-
-                    $stock_total          = $product->stockReal(null, Auth::user()->store_active);
-
-                    $stock_session        = $product->stockEnSession(null, Auth::user()->store_active);
-
-
-
-                    for ($i = 0; $i < count($presentaciones); $i++) {
-                        $bultos                                   = 0;
-                        $bultos_en_session                        = 0;
-                        $presentacion                             = ($presentaciones[$i] == 0) ? 1 : $presentaciones[$i];
-                        $stock_en_session                         = $this->sessionProductRepository->getCantidadTotalDeBultos($product->id, $presentacion);
-                        $stock                                    = $product->stock($presentacion);
-                        $stock_presentaciones[$i]['presentacion'] = $presentacion;
-                        $stock_presentaciones[$i]['unit_weight']  = $product->unit_weight;
-                        // los bultos que hay disponibles se calcula dividiendo el balance por el peso del bulto
-                        $peso_por_bulto = $product->unit_weight * $presentacion;
-
-                        if ($stock) {
-                            $bultos = $stock / $peso_por_bulto;
-                        }
-                        if ($stock_en_session) {
-                            $bultos -= $stock_en_session;
-                        }
-                        $stock_presentaciones[$i]['bultos'] = (int)$bultos;
-                    }
-                    
-                    $view = 'admin.movimientos.notas-credito.partials.inserByAjax';
-                    
-
-                    return new JsonResponse([
-                        'type' => 'success',
-                        'html' => view($view, compact('stock_presentaciones', 'product', 'presentaciones', 'stock_total', 'stock_session'))->render(),
-                    ]);
-                }
-                return  new JsonResponse(['msj' => 'El producto no existe', 'type' => 'error']);
-            }
-            return new JsonResponse(['msj' => 'Limpiando...', 'type' => 'clear']);
-        } catch (\Exception $e) {
-            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
-        }
     }
 
     public function show(Request $request)
@@ -208,14 +137,18 @@ class NotasCreditoController extends Controller
             DB::beginTransaction();
             Schema::disableForeignKeyConstraints();
             if ($request->input('voucher_number') != '' || !is_null($request->input('voucher_number'))) {
-                $list_id  = $request->input('session_list_id');
-                $explode  = explode('_', $list_id);
+                $list_id = $request->input('session_list_id');
+                $explode = explode('_', $list_id);
                 if (count(explode('_', $list_id)) == 2) {
-                    $list_id .='_'.\Auth::user()->store_active;
+                    $list_id .= '_' . \Auth::user()->store_active;
                 }
                 $deposito = (int)$request->input('deposito');
+                $tienda   = Store::find($deposito);
 
-                $from  = \Auth::user()->store_active;
+                // Si el destino es NAVE
+                $from       = ($tienda->store_type == 'N') ? \Auth::user()->store_active : $tienda->id;
+                $puntoVenta = ($tienda->store_type == 'N') ? env('PTO_VTA_FENOVO', 18) : $tienda->punto_venta;
+
                 $count = Movement::where('from', $from)->whereIn('type', ['DEVOLUCION', 'DEVOLUCIONCLIENTE'])->count();
                 $orden = ($count) ? $count + 1 : 1;
 
@@ -224,6 +157,7 @@ class NotasCreditoController extends Controller
                 if ($store) {
                     $label .= $store->razon_social . ' ' . $store->description;
                 }
+
                 $insert_data['observacion']    = 'NC a ' . $label;
                 $insert_data['type']           = $explode[0];
                 $insert_data['to']             = $explode[1];
@@ -241,82 +175,82 @@ class NotasCreditoController extends Controller
                     $unit_type    = $product->unit_type;
                     $unit_weight  = $product->producto->unit_weight;
                     $unit_package = $product->unit_package;
-                    $cantidad = ($unit_type == 'K') ? ($unit_weight * $unit_package * $product->quantity) : ($unit_package * $product->quantity);
+                    $cantidad     = ($unit_type == 'K') ? ($unit_weight * $unit_package * $product->quantity) : ($unit_package * $product->quantity);
 
-                    $prod_store = ProductStore::where('product_id', $product->product_id)->where('store_id', $movement->to)->first();
-                    $stock_inicial_store = ($prod_store) ? $prod_store->stock_f + $prod_store->stock_r + $prod_store->stock_cyo:0;
+                    $prod_store          = ProductStore::where('product_id', $product->product_id)->where('store_id', $movement->to)->first();
+                    $stock_inicial_store = ($prod_store) ? $prod_store->stock_f + $prod_store->stock_r + $prod_store->stock_cyo : 0;
 
                     if ($prod_store) {
                         $prod_store->stock_f += $cantidad;
                         $prod_store->save();
                     } else {
                         $data_prod_store['product_id'] = $product->product_id;
-                        $data_prod_store['store_id'] = $movement->to;
-                        $data_prod_store['stock_f']= $cantidad;
-                        $data_prod_store['stock_r']= 0;
-                        $data_prod_store['stock_cyo']= 0;
+                        $data_prod_store['store_id']   = $movement->to;
+                        $data_prod_store['stock_f']    = $cantidad;
+                        $data_prod_store['stock_r']    = 0;
+                        $data_prod_store['stock_cyo']  = 0;
                         ProductStore::create($data_prod_store);
                     }
-                    $balance = (($stock_inicial_store - $cantidad)<0)?0:$stock_inicial_store - $cantidad;
+                    $balance = (($stock_inicial_store - $cantidad) < 0) ? 0 : $stock_inicial_store - $cantidad;
 
                     MovementProduct::create([
-                        'entidad_id'     => $movement->to,
-                        'entidad_tipo'   => $entidad_tipo,
-                        'movement_id'    => $movement->id,
-                        'product_id'     => $product->product_id,
-                        'unit_package'   => $unit_package,
-                        'invoice'    => 1,
-                        'unit_price' => $product->unit_price,
-                        'cost_fenovo'=> $product->costo_fenovo,
-                        'tasiva'     => $product->tasiva,
-                        'entry'      => 0,
-                        'bultos'     => $product->quantity,
-                        'egress'     => $cantidad,
-                        'balance'    => $balance,
-                        'punto_venta' => env('PTO_VTA_FENOVO', 18),
-                        'circuito'    => 'F'
+                        'entidad_id'   => $movement->to,
+                        'entidad_tipo' => $entidad_tipo,
+                        'movement_id'  => $movement->id,
+                        'product_id'   => $product->product_id,
+                        'unit_package' => $unit_package,
+                        'invoice'      => 1,
+                        'unit_price'   => $product->unit_price,
+                        'cost_fenovo'  => $product->costo_fenovo,
+                        'tasiva'       => $product->tasiva,
+                        'entry'        => 0,
+                        'bultos'       => $product->quantity,
+                        'egress'       => $cantidad,
+                        'balance'      => $balance,
+                        'punto_venta'  => $puntoVenta,
+                        'circuito'     => 'F',
                     ]);
 
                     // Revisar si la DEVOLUCION se dirige DEPOSITO NAVE
                     if ($deposito == 1) {
-                        $prod = Product::where('id', $product->product_id)->first();
+                        $prod        = Product::where('id', $product->product_id)->first();
                         $balance_dep = $prod->stockReal() + $cantidad;
                         $prod->stock_f += $cantidad;
                         $prod->save();
                     } else {
-                        // A otros :: Depósito Reclamos
-                        $prod_dep = ProductStore::where('product_id', $product->product_id)->where('store_id', $deposito)->first();
-                        $stock_inicial_deposito = ($prod_dep) ? $prod_dep->stock_f + $prod_dep->stock_r + $prod_dep->stock_cyo:0;
+                        // A otros :: Depósito Reclamos u BASES (Blas Parera, Resistencia, Reconquista, etc )
+                        $prod_dep               = ProductStore::where('product_id', $product->product_id)->where('store_id', $deposito)->first();
+                        $stock_inicial_deposito = ($prod_dep) ? $prod_dep->stock_f + $prod_dep->stock_r + $prod_dep->stock_cyo : 0;
                         if ($prod_dep) {
                             $prod_dep->stock_f += $cantidad;
                             $prod_dep->save();
                         } else {
                             $data_prod_store['product_id'] = $product->product_id;
-                            $data_prod_store['store_id'] = $deposito;
-                            $data_prod_store['stock_f']= $cantidad;
-                            $data_prod_store['stock_r']= 0;
-                            $data_prod_store['stock_cyo']= 0;
+                            $data_prod_store['store_id']   = $deposito;
+                            $data_prod_store['stock_f']    = $cantidad;
+                            $data_prod_store['stock_r']    = 0;
+                            $data_prod_store['stock_cyo']  = 0;
                             ProductStore::create($data_prod_store);
                         }
                         $balance_dep = $stock_inicial_deposito + $cantidad;
                     }
 
                     MovementProduct::create([
-                        'entidad_id'     => $deposito,
-                        'entidad_tipo'   => 'S',
-                        'movement_id'    => $movement->id,
-                        'product_id'     => $product->product_id,
-                        'unit_package'   => $product->unit_package,
-                        'invoice'    => 1,
-                        'unit_price' => $product->unit_price,
-                        'cost_fenovo'=> $product->costo_fenovo,
-                        'tasiva'     => $product->tasiva,
-                        'entry'      => $cantidad,
-                        'bultos'     => $product->quantity,
-                        'egress'     => 0,
-                        'balance'    => $balance_dep,
-                        'punto_venta' => env('PTO_VTA_FENOVO', 18),
-                        'circuito'    => 'F'
+                        'entidad_id'   => $deposito,
+                        'entidad_tipo' => 'S',
+                        'movement_id'  => $movement->id,
+                        'product_id'   => $product->product_id,
+                        'unit_package' => $product->unit_package,
+                        'invoice'      => 1,
+                        'unit_price'   => $product->unit_price,
+                        'cost_fenovo'  => $product->costo_fenovo,
+                        'tasiva'       => $product->tasiva,
+                        'entry'        => $cantidad,
+                        'bultos'       => $product->quantity,
+                        'egress'       => 0,
+                        'balance'      => $balance_dep,
+                        'punto_venta'  => $puntoVenta,
+                        'circuito'     => 'F',
                     ]);
                 }
 

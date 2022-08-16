@@ -192,16 +192,14 @@
             var to_type = jQuery("#to_type").val();
             var to = jQuery("#to").val();
             var list_id = to_type + '_' + to;
-            let tienda_id = jQuery('#tienda_destino').val();
 
             if (id != '') {
                 jQuery.ajax({
-                    url: "{{ route('nc.get.presentaciones') }}",
-                    type: 'POST',
+                    url: "{{ route('get.presentaciones') }}",
+                    type: 'GET',
                     data: {
                         id,
                         list_id, 
-                        tienda_id
                     },
                     beforeSend: function() {
                         jQuery('#loader').removeClass('hidden');

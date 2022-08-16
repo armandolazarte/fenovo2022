@@ -40,27 +40,6 @@
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-xs-12 col-md-2 col-lg-2">
-                    <div class="form-group form-check">
-                        <input type="checkbox" class="form-check-input" id="checkTiendas" onclick="verDiv()">Desde otro lugar
-                    </div>
-                </div>
-            
-                <div class="col-xs-12 col-md-2 col-lg-2">
-                    <div id="divStore" style="display:none">
-                        <select id="tienda_destino" name="tienda_destino" class="js-example-responsive" style="width: 100%">
-                            <option value="0">Dónde ingresa la mercadería ...</option>
-                            @foreach ($storesNaves as $store)
-                                <option value="{{ $store->id }}">
-                                    {{ str_pad($store->cod_fenovo, 3, '0', STR_PAD_LEFT) }} - {{ $store->description }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </div>
 </div>
