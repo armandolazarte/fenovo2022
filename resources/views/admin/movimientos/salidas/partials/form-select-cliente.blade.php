@@ -44,7 +44,7 @@
                         <select class="form-control bg-transparent" name="a_deposito" id="a_deposito">
                             <option value="">Seleccione Dep. Destino</option>
                             @foreach ($depositos as $deposito)
-                                <option value="{{$deposito->id}}" @if(isset($es_traslado_depositos) && $deposito->id == $a_deposito->id) selected @endif >
+                                <option value="{{$deposito->id}}" @if(isset($es_traslado_depositos) && $es_traslado_depositos && $deposito->id == $a_deposito->id) selected @endif >
                                     {{$deposito->razon_social}} - {{$deposito->description}}
                                 </option>
                             @endforeach
