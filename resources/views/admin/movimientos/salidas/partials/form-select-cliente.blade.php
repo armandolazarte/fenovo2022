@@ -27,24 +27,24 @@
                 </div>
 
                 @if(isset($depositos))
-                    <div class="col-md-2 @if(!isset($es_traslado_depositos)) not-display @endif" id="desde-deposito">
+                    <div class="col-md-2 @if(!$es_traslado_depositos) not-display @endif" id="desde-deposito">
                         <label class="text-body">Desde depósito</label>
                         <select class="form-control bg-transparent" name="desde_deposito" id="desde_deposito">
                             <option value="">Seleccione Dep. Origen</option>
                             @foreach ($depositos as $deposito)
-                                <option value="{{$deposito->id}}" @if(isset($es_traslado_depositos) && $deposito->id == $desde_deposito->id) selected @endif >
+                                <option value="{{$deposito->id}}" @if($es_traslado_depositos && $deposito->id == $desde_deposito->id) selected @endif >
                                     {{$deposito->razon_social}} - {{$deposito->description}}
                                 </option>
                             @endforeach
                         </select>
                     </div>
 
-                    <div class="col-md-2 @if(!isset($es_traslado_depositos)) not-display @endif" id="a-deposito">
+                    <div class="col-md-2 @if(!$es_traslado_depositos) not-display @endif" id="a-deposito">
                         <label class="text-body">A depósito</label>
                         <select class="form-control bg-transparent" name="a_deposito" id="a_deposito">
                             <option value="">Seleccione Dep. Destino</option>
                             @foreach ($depositos as $deposito)
-                                <option value="{{$deposito->id}}" @if(isset($es_traslado_depositos) && $deposito->id == $a_deposito->id) selected @endif >
+                                <option value="{{$deposito->id}}" @if($es_traslado_depositos && $deposito->id == $a_deposito->id) selected @endif >
                                     {{$deposito->razon_social}} - {{$deposito->description}}
                                 </option>
                             @endforeach
