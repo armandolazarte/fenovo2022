@@ -934,6 +934,8 @@ class SalidasController extends Controller
             $insert_data['a_deposito']    = $a_deposito;
             $insert_data['nro_pedido']    = $nro_pedido;
 
+            dd($insert_data);
+
             for ($i = 0; $i < count($unidades); $i++) {
                 $unidad   = $unidades[$i];
                 $quantity = (float)$unidad['value'];
