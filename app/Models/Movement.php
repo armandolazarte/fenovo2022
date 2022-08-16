@@ -106,7 +106,6 @@ class Movement extends Model
     public function totalKgrs()
     {
         $kgrs = 0;
-
         $arrIngreso = ['COMPRA', 'DEVOLUCION', 'DEVOLUCIONCLIENTE'];
         $arrEgreso  = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
         $mp         = (in_array($this->type, $arrIngreso)) ? $this->movement_ingreso_products : $this->movement_salida_products;
@@ -159,6 +158,7 @@ class Movement extends Model
 
     public function verifSiCreatePanama()
     {
+        if(Panamas::where('movement_id', $this->id)->where('tipo','PAN')->exists()) return 0;
         return MovementProduct::where('movement_id', $this->id)
                              ->where('entidad_id', \Auth::user()->store_active)
                              ->where('entidad_tipo', 'S')

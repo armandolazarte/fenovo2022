@@ -282,7 +282,7 @@
             </td>
             <td style="text-align: left; width: 240px; padding: 0px 10px;border-right:0px">
               <span style="font-size:12px;font-weight:bold;line-height: 18px;">
-                Fec. Vto. de CAE: {{\Carbon\Carbon::parse($invoice->date_expiration)->format('d/m/Y')}}
+                Fec. Vto. de CAE: {{\Carbon\Carbon::parse($invoice->expiration)->format('d/m/Y')}}
               </span><br>
               <span style="font-size:12px;font-weight:bold;line-height: 18px;">CAE: {{$invoice->cae}}</span><br><br>
               <img src="{{public_path('afip.png')}}" width="40%"><br>
