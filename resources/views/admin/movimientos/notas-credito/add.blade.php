@@ -31,6 +31,7 @@
                     @include('admin.movimientos.notas-credito.partials.form-select-cliente')
                 </div>
             </div>
+
             <div class="row">
                 <div class="col-xs-12 col-lg-12">
                     <div id="session_products_table"></div>
@@ -55,6 +56,17 @@
                 cargarTablaProductos();
             @endif
         });
+
+        const verDiv = () => {
+
+            if (jQuery('#checkTiendas').prop('checked')) {
+                jQuery('#divStore').show()
+            } else {
+                jQuery('#tienda_destino').val(0)
+                jQuery('#divStore').hide()
+                jQuery('#tienda_destino').val();
+            }
+        }
 
         const editarMovimiento = (id, quantity, cod_fenovo) => {
 
@@ -180,14 +192,16 @@
             var to_type = jQuery("#to_type").val();
             var to = jQuery("#to").val();
             var list_id = to_type + '_' + to;
+            let tienda_id = jQuery('#tienda_destino').val();
 
             if (id != '') {
                 jQuery.ajax({
-                    url: "{{ route('get.presentaciones') }}",
-                    type: 'GET',
+                    url: "{{ route('nc.get.presentaciones') }}",
+                    type: 'POST',
                     data: {
                         id,
-                        list_id
+                        list_id, 
+                        tienda_id
                     },
                     beforeSend: function() {
                         jQuery('#loader').removeClass('hidden');
@@ -378,7 +392,8 @@
                 let presentacion_input = jQuery(this).attr("id").split('_');
                 let unit_type = jQuery("#unit_type").val();
                 let presentacion = presentacion_input[1];
-                total = (unit_type == 'K') ? total + (valor * presentacion * unit_weight) : total + (valor * presentacion);
+                total = (unit_type == 'K') ? total + (valor * presentacion * unit_weight) : total + (valor *
+                    presentacion);
             });
             total = total.toFixed(2);
         }

@@ -709,6 +709,7 @@ class SalidasController extends Controller
     {
         try {
             if ($request->has('id') && $request->input('id') != '') {
+                
                 $product    = $this->productRepository->getById($request->input('id'));
                 $list_id    = $request->input('list_id') . '_' . \Auth::user()->store_active;
                 $devolucion = str_contains($list_id, 'DEVOLUCION_');

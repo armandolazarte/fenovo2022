@@ -11,24 +11,30 @@ use App\Models\MovementProduct;
 use App\Models\Product;
 use App\Models\ProductStore;
 use App\Models\Store;
+
+use App\Repositories\ProductRepository;
 use App\Repositories\InvoicesRepository;
 use App\Repositories\SessionProductRepository;
+
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Yajra\DataTables\Facades\DataTables;
 
 class NotasCreditoController extends Controller
 {
+    private $productRepository;
     private $invoiceRepository;
     private $sessionProductRepository;
 
     public function __construct(
+        ProductRepository $productRepository,
         InvoicesRepository $invoiceRepository,
         SessionProductRepository $sessionProductRepository
     ) {
+        $this->productRepository        = $productRepository;
         $this->invoiceRepository        = $invoiceRepository;
         $this->sessionProductRepository = $sessionProductRepository;
     }
@@ -36,7 +42,7 @@ class NotasCreditoController extends Controller
     public function index(Request $request)
     {
         $arrTypes = ['DEVOLUCION', 'DEVOLUCIONCLIENTE'];
-        $movement = Movement::where('from', \Auth::user()->store_active)->whereIn('type', $arrTypes)->orderBy('created_at','DESC')->get();
+        $movement = Movement::where('from', \Auth::user()->store_active)->whereIn('type', $arrTypes)->orderBy('created_at', 'DESC')->get();
         if ($request->ajax()) {
             return DataTables::of($movement)
                 ->addIndexColumn()
@@ -80,9 +86,76 @@ class NotasCreditoController extends Controller
 
     public function add()
     {
-        $storesNaves = Store::where('store_type', 'N')->get(); //Los depositos los tenemos como N = Nave
+        $storeTypes = ['N', 'B'];
+        $storesNaves = Store::whereIn('store_type', $storeTypes)->get(); //Los depositos los tenemos como N = Nave, B = Base
         $this->sessionProductRepository->deleteDevoluciones();
         return view('admin.movimientos.notas-credito.add', compact('storesNaves'));
+    }
+
+    public function getPresentacionesNotaCredito(Request $request)
+    {
+        try {
+            if ($request->has('id') && $request->input('id') != '') {
+
+                // SI TIENDA ID es igual a cero, entonces es una Nota de Credito desde NAVE, sino desde otro lugar
+                if ($request->tienda_id == 0) {
+                    $product    = $this->productRepository->getById($request->input('id'));
+                } else {
+                    $product    = ProductStore::where('product_id', $request->input('id'))->first();
+                }
+                
+                if ($product) {
+
+                    $product    = $this->productRepository->getById($request->input('id'));
+                    
+                    $list_id    = ($request->tienda_id == 0)
+                        ? $request->input('list_id') . '_' . \Auth::user()->store_active 
+                        : $request->input('list_id') . '_' . $request->tienda_id;
+
+                    $stock_presentaciones = [];
+                    $presentaciones       = explode('|', $product->unit_package);
+                    
+
+                    $stock_total          = $product->stockReal(null, Auth::user()->store_active);
+
+                    $stock_session        = $product->stockEnSession(null, Auth::user()->store_active);
+
+
+
+                    for ($i = 0; $i < count($presentaciones); $i++) {
+                        $bultos                                   = 0;
+                        $bultos_en_session                        = 0;
+                        $presentacion                             = ($presentaciones[$i] == 0) ? 1 : $presentaciones[$i];
+                        $stock_en_session                         = $this->sessionProductRepository->getCantidadTotalDeBultos($product->id, $presentacion);
+                        $stock                                    = $product->stock($presentacion);
+                        $stock_presentaciones[$i]['presentacion'] = $presentacion;
+                        $stock_presentaciones[$i]['unit_weight']  = $product->unit_weight;
+                        // los bultos que hay disponibles se calcula dividiendo el balance por el peso del bulto
+                        $peso_por_bulto = $product->unit_weight * $presentacion;
+
+                        if ($stock) {
+                            $bultos = $stock / $peso_por_bulto;
+                        }
+                        if ($stock_en_session) {
+                            $bultos -= $stock_en_session;
+                        }
+                        $stock_presentaciones[$i]['bultos'] = (int)$bultos;
+                    }
+                    
+                    $view = 'admin.movimientos.notas-credito.partials.inserByAjax';
+                    
+
+                    return new JsonResponse([
+                        'type' => 'success',
+                        'html' => view($view, compact('stock_presentaciones', 'product', 'presentaciones', 'stock_total', 'stock_session'))->render(),
+                    ]);
+                }
+                return  new JsonResponse(['msj' => 'El producto no existe', 'type' => 'error']);
+            }
+            return new JsonResponse(['msj' => 'Limpiando...', 'type' => 'clear']);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
     }
 
     public function show(Request $request)
@@ -137,7 +210,9 @@ class NotasCreditoController extends Controller
             if ($request->input('voucher_number') != '' || !is_null($request->input('voucher_number'))) {
                 $list_id  = $request->input('session_list_id');
                 $explode  = explode('_', $list_id);
-                if(count(explode('_',$list_id)) == 2) $list_id .='_'.\Auth::user()->store_active;
+                if (count(explode('_', $list_id)) == 2) {
+                    $list_id .='_'.\Auth::user()->store_active;
+                }
                 $deposito = (int)$request->input('deposito');
 
                 $from  = \Auth::user()->store_active;
@@ -168,13 +243,13 @@ class NotasCreditoController extends Controller
                     $unit_package = $product->unit_package;
                     $cantidad = ($unit_type == 'K') ? ($unit_weight * $unit_package * $product->quantity) : ($unit_package * $product->quantity);
 
-                    $prod_store = ProductStore::where('product_id',$product->product_id)->where('store_id',$movement->to)->first();
+                    $prod_store = ProductStore::where('product_id', $product->product_id)->where('store_id', $movement->to)->first();
                     $stock_inicial_store = ($prod_store) ? $prod_store->stock_f + $prod_store->stock_r + $prod_store->stock_cyo:0;
 
-                    if($prod_store){
+                    if ($prod_store) {
                         $prod_store->stock_f += $cantidad;
                         $prod_store->save();
-                    }else{
+                    } else {
                         $data_prod_store['product_id'] = $product->product_id;
                         $data_prod_store['store_id'] = $movement->to;
                         $data_prod_store['stock_f']= $cantidad;
@@ -198,24 +273,24 @@ class NotasCreditoController extends Controller
                         'bultos'     => $product->quantity,
                         'egress'     => $cantidad,
                         'balance'    => $balance,
-                        'punto_venta' => env('PTO_VTA_FENOVO',18),
+                        'punto_venta' => env('PTO_VTA_FENOVO', 18),
                         'circuito'    => 'F'
                     ]);
 
                     // Revisar si la DEVOLUCION se dirige DEPOSITO NAVE
                     if ($deposito == 1) {
-                        $prod = Product::where('id',$product->product_id)->first();
+                        $prod = Product::where('id', $product->product_id)->first();
                         $balance_dep = $prod->stockReal() + $cantidad;
                         $prod->stock_f += $cantidad;
                         $prod->save();
                     } else {
                         // A otros :: Depósito Reclamos
-                        $prod_dep = ProductStore::where('product_id',$product->product_id)->where('store_id',$deposito)->first();
+                        $prod_dep = ProductStore::where('product_id', $product->product_id)->where('store_id', $deposito)->first();
                         $stock_inicial_deposito = ($prod_dep) ? $prod_dep->stock_f + $prod_dep->stock_r + $prod_dep->stock_cyo:0;
-                        if($prod_dep){
+                        if ($prod_dep) {
                             $prod_dep->stock_f += $cantidad;
                             $prod_dep->save();
-                        }else{
+                        } else {
                             $data_prod_store['product_id'] = $product->product_id;
                             $data_prod_store['store_id'] = $deposito;
                             $data_prod_store['stock_f']= $cantidad;
@@ -240,7 +315,7 @@ class NotasCreditoController extends Controller
                         'bultos'     => $product->quantity,
                         'egress'     => 0,
                         'balance'    => $balance_dep,
-                        'punto_venta' => env('PTO_VTA_FENOVO',18),
+                        'punto_venta' => env('PTO_VTA_FENOVO', 18),
                         'circuito'    => 'F'
                     ]);
                 }
