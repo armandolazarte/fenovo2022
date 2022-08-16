@@ -6,7 +6,7 @@
             <div class="card card-custom gutter-b bg-transparent shadow-none border-0">
                 <div class="row mt-5 mb-3">
                     <div class="col-6">
-                        <h4 class="card-label mb-0 font-weight-bold text-body">
+                        <h4>
                             Stock de productos en Friotekas y Depósitos
                         </h4>
                     </div>
