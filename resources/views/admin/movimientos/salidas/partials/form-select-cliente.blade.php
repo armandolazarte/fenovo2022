@@ -27,7 +27,7 @@
                 </div>
 
                 @if(isset($depositos))
-                    <div class="col-md-2 @if(!isset($es_traslado_depositos)) not-display @endif" id="desde-deposito">
+                    <div class="col-md-2 @if(!isset($es_traslado_depositos) && !$es_traslado_depositos) not-display @endif" id="desde-deposito">
                         <label class="text-body">Desde depósito</label>
                         <select class="form-control bg-transparent" name="desde_deposito" id="desde_deposito">
                             <option value="">Seleccione Dep. Origen</option>
