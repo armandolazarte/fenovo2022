@@ -32,7 +32,7 @@
                         <select class="form-control bg-transparent" name="desde_deposito" id="desde_deposito">
                             <option value="">Seleccione Dep. Origen</option>
                             @foreach ($depositos as $deposito)
-                                <option value="{{$deposito->id}}" @if(isset($es_traslado_depositos) && $deposito->id == $desde_deposito->id) selected @endif >
+                                <option value="{{$deposito->id}}" @if(isset($es_traslado_depositos) && $es_traslado_depositos && $deposito->id == $desde_deposito->id) selected @endif >
                                     {{$deposito->razon_social}} - {{$deposito->description}}
                                 </option>
                             @endforeach
