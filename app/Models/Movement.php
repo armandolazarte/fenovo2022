@@ -268,8 +268,8 @@ class Movement extends Model
             case 'TRASLADO':
             case 'DEVOLUCION':
             case 'DEBITO':
-                $store = Store::find($typeTo);
-                return $store->description;
+                $Store = Store::find($typeTo);
+                return str_pad($Store->cod_fenovo, 3, '0', STR_PAD_LEFT).' - '.$Store->description ;
             case 'VENTACLIENTE':
             case 'DEBITOCLIENTE':
             case 'DEVOLUCIONCLIENTE':
