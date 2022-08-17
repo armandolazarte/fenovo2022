@@ -416,6 +416,7 @@ namespace App\Models{
 
 namespace App\Models{
 /**
+<<<<<<< HEAD
  * App\Models\InvoiceCompra
  *
  * @property int $id
@@ -466,6 +467,8 @@ namespace App\Models{
 
 namespace App\Models{
 /**
+=======
+>>>>>>> master
  * Class IvaCondition
  *
  * @property int $id
@@ -562,7 +565,10 @@ namespace App\Models{
  * @property-read int|null $group_products_egress_count
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Invoice[] $invoice
  * @property-read int|null $invoice_count
+<<<<<<< HEAD
  * @property-read \App\Models\InvoiceCompra|null $invoiceCompra
+=======
+>>>>>>> master
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\MovementProduct[] $movement_ingreso_products
  * @property-read int|null $movement_ingreso_products_count
  * @property-read int|null $movement_products_count
@@ -623,7 +629,10 @@ namespace App\Models{
  * @property int|null $punto_venta
  * @property int|null $iibb
  * @property int|null $palet
+<<<<<<< HEAD
  * @property int|null $deposito
+=======
+>>>>>>> master
  * @property float|null $entry
  * @property float|null $egress
  * @property float|null $balance
@@ -641,7 +650,10 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder|MovementProduct whereCostFenovo($value)
  * @method static \Illuminate\Database\Eloquent\Builder|MovementProduct whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|MovementProduct whereCyo($value)
+<<<<<<< HEAD
  * @method static \Illuminate\Database\Eloquent\Builder|MovementProduct whereDeposito($value)
+=======
+>>>>>>> master
  * @method static \Illuminate\Database\Eloquent\Builder|MovementProduct whereEgress($value)
  * @method static \Illuminate\Database\Eloquent\Builder|MovementProduct whereEntidadId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|MovementProduct whereEntidadTipo($value)
@@ -1013,8 +1025,11 @@ namespace App\Models{
  * @property-read int|null $product_images_count
  * @property-read \App\Models\ProductNutricional|null $product_nutricional
  * @property-read \App\Models\ProductPrice|null $product_price
+<<<<<<< HEAD
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\ProductStore[] $productos_store
  * @property-read int|null $productos_store_count
+=======
+>>>>>>> master
  * @property-read \App\Models\Proveedor|null $proveedor
  * @property-read \App\Models\SenasaDefinition|null $senasa_definition
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\SessionOferta[] $session_ofertas
@@ -1293,7 +1308,10 @@ namespace App\Models{
  * @property string|null $stock_cyo
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \Illuminate\Support\Carbon|null $created_at
+<<<<<<< HEAD
  * @property-read \App\Models\Store|null $deposito
+=======
+>>>>>>> master
  * @method static \Illuminate\Database\Eloquent\Builder|ProductStore newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductStore newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|ProductStore query()

@@ -30,7 +30,8 @@ class MovementsViewExport implements FromView
         Movement::whereExported(0)->whereIn('type', $arrTipos)->update(['exported' => 1]);
 
         // Tomo los movimientos de 15 dias atras
-       $fecha = Carbon::now()->subDays(15)->toDateTimeString();
+       //$fecha = Carbon::now()->subDays(15)->toDateTimeString();
+       $fecha = '2022-06-30';
 
         // Obtener los Movimientos exportables
         $movimientos = DB::table('movements as t1')
@@ -48,7 +49,8 @@ class MovementsViewExport implements FromView
             ->whereIn('t1.type', $arrTipos)
             ->where('t2.entidad_tipo', '!=', 'C')
             ->where('t1.exported', '=', 1)
-            ->whereDate('t1.created_at', '>', $fecha)
+            ->whereDate('t1.date', '>', $fecha)
+            //->whereDate('t1.created_at', '>', $fecha)
             //->where('t1.id', '=', 3372) // Consulta puntualmente este movimiento
             ->orderBy('t1.date')->orderBy('t1.id')->orderBy('t3.cod_fenovo')
             ->get();

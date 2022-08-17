@@ -1,8 +1,9 @@
 <div class="col-lg-12 col-xl-12">
     <div class="card card-custom gutter-b bg-white border-0">
-        <div class="card-body">
-            <div class="form-group row">
-                <div class="col-md-3">
+        <div class="card-body mb-5">
+
+            <div class="row">
+                <div class="col-md-4">
                     <label class="text-body">Movimiento</label>
                     <fieldset class="form-group mb-3">
                         <select class="js-example-basic-single js-states form-control bg-transparent" name="to_type"
@@ -25,7 +26,7 @@
                         </select>
                     </fieldset>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="text-body">Seleccionar producto</label>
                     <fieldset class="form-group mb-3 d-flex">
                         <select class="js-example-basic-single js-states form-control bg-transparent"
@@ -38,6 +39,7 @@
                         <i class="fa fa-times"></i> Cerrar Nota de crédito</button>
                 </div>
             </div>
+
         </div>
     </div>
 </div>
