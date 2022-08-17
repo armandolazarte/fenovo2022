@@ -760,11 +760,7 @@ class SalidasController extends Controller
     {
         try {
             if ($request->has('id') && $request->input('id') != '') {
-<<<<<<< HEAD
                 $producto_en_depositos = '';
-=======
-
->>>>>>> master
                 $product    = $this->productRepository->getById($request->input('id'));
                 $list_id    = $request->input('list_id') . '_' . \Auth::user()->store_active;
                 $devolucion = str_contains($list_id, 'DEVOLUCION_');
@@ -1056,7 +1052,6 @@ class SalidasController extends Controller
             $from = 1;
             DB::beginTransaction();
             Schema::disableForeignKeyConstraints();
-<<<<<<< HEAD
                 $list_id = $request->input('session_list_id');
                 if (count(explode('_', $list_id)) == 2) {
                     $list_id .= '_' . Auth::user()->store_active;
@@ -1067,101 +1062,6 @@ class SalidasController extends Controller
                 $check = $this->checkStockPass($session_products);
                 if ($check['type'] == 'error') {
                     return new JsonResponse(['msj' => 'Stock Insuficiente', 'type' => 'error', 'alert' => $check['alert']]);
-=======
-            $list_id = $request->input('session_list_id');
-            if (count(explode('_', $list_id)) == 2) {
-                $list_id .= '_' . Auth::user()->store_active;
-            }
-            $explode          = explode('_', $list_id);
-            $session_products = $this->sessionProductRepository->getByListId($list_id);
-
-            $check = $this->checkStockPass($session_products);
-            if ($check['type'] == 'error') {
-                return new JsonResponse(['msj' => 'Stock Insuficiente', 'type' => 'error', 'alert' => $check['alert']]);
-            }
-
-            if ($explode[0] != 'TRASLADO') {
-                $count = Movement::where('from', $from)->whereIn('type', ['VENTA', 'VENTACLIENTE'])->count();
-            } else {
-                $count = Movement::where('from', $from)->where('type', 'TRASLADO')->count();
-            }
-
-            $orden = ($count) ? $count + 1 : 1;
-
-            $insert_data['type']           = $explode[0];
-            $insert_data['to']             = $explode[1];
-            $insert_data['date']           = now();
-            $insert_data['from']           = $from;
-            $insert_data['orden']          = $orden;
-            $insert_data['status']         = 'FINISHED';
-            $insert_data['voucher_number'] = $request->input('voucher_number');
-            $insert_data['flete']          = $request->flete;
-            $insert_data['observacion']    = $request->observacion;
-            $insert_data['user_id']        = \Auth::user()->id;
-            $insert_data['flete_invoice']  = (isset($request->factura_flete)) ? 1 : 0;
-
-            $movement = Movement::create($insert_data);
-
-            if (count($explode) == 3 && strlen($explode[2]) > 9) {
-                $voucher_number      = $explode[2];
-                $pedido              = Pedido::where('voucher_number', $voucher_number)->first();
-                $pedido->movement_id = $movement->id;
-                $pedido->status      = 'FINISHED';
-                $pedido->save();
-
-                PedidoEstados::create([
-                    'user_id'   => \Auth::user()->id,
-                    'pedido_id' => $pedido->id,
-                    'fecha'     => now(),
-                    'estado'    => 'CERRADO',
-                ]);
-            }
-
-            $entidad_tipo = parent::getEntidadTipo($insert_data['type']);
-
-            foreach ($session_products as $product) {
-                $stock_inicial_store = 0;
-                $quantities          = $this->getStockDividido($product);
-                $stock_inicial       = $product->producto->stockReal();
-                $cantidad            = $product->quantity;
-                $punto_venta         = env('PTO_VTA_FENOVO', 18);
-                $unit_type           = $product->unit_type;
-                $unit_weight         = $product->producto->unit_weight;
-                $unit_package        = $product->unit_package;
-                $palet               = $product->palet;
-
-                $cant_total_cyo = $cant_total_f = $cant_total_r = $diff_sf = $diff_sfr = 0;
-
-                if (isset($quantities[0])) {
-                    $cant_total_f = ($unit_type == 'K') ? ($unit_weight * $unit_package * $quantities[0]['cant']) : ($unit_package * $quantities[0]['cant']);
-                    //$product->producto->stock_f -= $cant_total_f;
-                    if(($product->producto->stock_f - $cant_total_f) > 0 || ($product->producto->stock_f - $cant_total_f) == 0){
-                        $product->producto->stock_f -= $cant_total_f;
-                    }else{
-                        $diff_sf = $cant_total_f - $product->producto->stock_f;
-                        $product->producto->stock_f = 0;
-                    }
-                }
-                if (isset($quantities[1])) {
-                    $cant_total_r = ($unit_type == 'K') ? ($unit_weight * $unit_package * $quantities[1]['cant']) : ($unit_package * $quantities[1]['cant']);
-                    //$product->producto->stock_r -= $cant_total_r;
-                    if(($product->producto->stock_r - $cant_total_r - $diff_sf) > 0 || ($product->producto->stock_r - $cant_total_r - $diff_sf) == 0){
-                        $product->producto->stock_r -= ($cant_total_r + $diff_sf);
-                    }else{
-                        $diff_sfr = ($cant_total_r + $diff_sf) - $product->producto->stock_r;
-                        $product->producto->stock_r = 0;
-                    }
-                }
-                if (isset($quantities[2])) {
-                    $cant_total_cyo = ($unit_type == 'K') ? ($unit_weight * $unit_package * $quantities[2]['cant']) : ($unit_package * $quantities[2]['cant']);
-                    //$product->producto->stock_cyo -= $cant_total_cyo;
-                    $punto_venta = $product->producto->proveedor->punto_venta;
-                    if(($product->producto->stock_cyo - $cant_total_cyo - $diff_sfr) > 0 || ($product->producto->stock_cyo - $cant_total_cyo - $diff_sfr) == 0){
-                        $product->producto->stock_cyo -= ($cant_total_cyo + $diff_sfr);
-                    }else{
-                        $product->producto->stock_cyo = 0;
-                    }
->>>>>>> master
                 }
 
                 if ($explode[0] != 'TRASLADO') {
@@ -1222,18 +1122,37 @@ class SalidasController extends Controller
                     $desde_deposito = $product->desde_deposito;
                     $a_deposito     = $product->a_deposito;
 
+                    $cant_total_cyo = $cant_total_f = $cant_total_r = $diff_sf = $diff_sfr = 0;
+
                     if (isset($quantities[0])) {
                         $cant_total_f = ($unit_type == 'K') ? ($unit_weight * $unit_package * $quantities[0]['cant']) : ($unit_package * $quantities[0]['cant']);
-                        $product->producto->stock_f -= $cant_total_f;
+                        //$product->producto->stock_f -= $cant_total_f;
+                        if(($product->producto->stock_f - $cant_total_f) > 0 || ($product->producto->stock_f - $cant_total_f) == 0){
+                            $product->producto->stock_f -= $cant_total_f;
+                        }else{
+                            $diff_sf = $cant_total_f - $product->producto->stock_f;
+                            $product->producto->stock_f = 0;
+                        }
                     }
                     if (isset($quantities[1])) {
                         $cant_total_r = ($unit_type == 'K') ? ($unit_weight * $unit_package * $quantities[1]['cant']) : ($unit_package * $quantities[1]['cant']);
-                        $product->producto->stock_r -= $cant_total_r;
+                        //$product->producto->stock_r -= $cant_total_r;
+                        if(($product->producto->stock_r - $cant_total_r - $diff_sf) > 0 || ($product->producto->stock_r - $cant_total_r - $diff_sf) == 0){
+                            $product->producto->stock_r -= ($cant_total_r + $diff_sf);
+                        }else{
+                            $diff_sfr = ($cant_total_r + $diff_sf) - $product->producto->stock_r;
+                            $product->producto->stock_r = 0;
+                        }
                     }
                     if (isset($quantities[2])) {
                         $cant_total_cyo = ($unit_type == 'K') ? ($unit_weight * $unit_package * $quantities[2]['cant']) : ($unit_package * $quantities[2]['cant']);
-                        $product->producto->stock_cyo -= $cant_total_cyo;
+                        //$product->producto->stock_cyo -= $cant_total_cyo;
                         $punto_venta = $product->producto->proveedor->punto_venta;
+                        if(($product->producto->stock_cyo - $cant_total_cyo - $diff_sfr) > 0 || ($product->producto->stock_cyo - $cant_total_cyo - $diff_sfr) == 0){
+                            $product->producto->stock_cyo -= ($cant_total_cyo + $diff_sfr);
+                        }else{
+                            $product->producto->stock_cyo = 0;
+                        }
                     }
 
                     $cant_total = $cant_total_f + $cant_total_r + $cant_total_cyo;
