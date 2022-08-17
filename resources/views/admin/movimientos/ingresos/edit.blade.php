@@ -31,7 +31,7 @@
                             <input type="text" name="date" value="{{ date('d-m-Y', strtotime($movement->date)) }}"
                                 class="form-control datepicker mb-3" readonly>
                         </div>
-                        <div class="@if(isset($depositos)) col-md-1 @else col-md-3 @endif">
+                        <div class="@if(isset($depositos)) col-md-1 @else col-md-2 @endif">
                             <label class="text-body">Tipo compra</label>
                             <input type="text" name="subtype" id="subtype" value="{{ $movement->subtype }}"
                                 class=" form-control" readonly>

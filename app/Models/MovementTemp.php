@@ -33,7 +33,8 @@ class MovementTemp extends Model
         'exported',
         'user_id',
         'observacion',
-        'deposito'
+        'deposito',
+        'categoria'
     ];
 
     public function movement_products()

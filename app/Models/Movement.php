@@ -55,6 +55,7 @@ class Movement extends Model
         'exported',
         'user_id',
         'observacion',
+        'categoria'
     ];
 
     public function movement_products()
