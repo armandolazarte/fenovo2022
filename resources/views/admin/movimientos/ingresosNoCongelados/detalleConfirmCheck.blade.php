@@ -12,8 +12,8 @@
                     <th>Unidades</th>
                     <th>Iva</th>
                     <th>Costo</th>
-                    <th>Iva</th>
                     <th>Neto</th>
+                    <th>Iva</th>
                     <th>Total</th>
                     <th></th>
                 </tr>
@@ -70,9 +70,11 @@
                         <td> {{ $movimiento->entry }} </td>
                         <td> {{ $movimiento->tasiva }}% </td>
                         <td> {{ $movimiento->cost_fenovo }}</td>
-                        <td> {{ number_format(($movimiento->tasiva / 100) * $movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos, 2, ',', '.') }}
+                        <td>
+                            {{ number_format($movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos, 2, ',', '.') }}
                         </td>
-                        <td>{{ number_format($movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos, 2, ',', '.') }}
+                        <td> 
+                            {{ number_format(($movimiento->tasiva / 100) * $movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos, 2, ',', '.') }}
                         </td>
                         <td>
                             {{ number_format($movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos * (1 + $movimiento->tasiva / 100), 2, ',', '.') }}
@@ -100,8 +102,8 @@
                 <th>{{ number_format($movimientos->sum('entry'), 2, ',', '.') }}</th>
                 <th></th>
                 <th></th>
-                <th>{{ number_format($totalIva, 2, ',', '.') }}</th>
                 <th>{{ number_format($total, 2, ',', '.') }}</th>
+                <th>{{ number_format($totalIva, 2, ',', '.') }}</th>
                 <th>{{ number_format($totalIva + $total, 2, ',', '.') }}</th>
                 <th></th>
             </tr>
@@ -145,39 +147,39 @@
         <div class="col-5">
             <table class="table table-bordered text-center">
                 <tr>
-                    <td>Iva 10,5%</td>
-                    <th>
-                        <input type="number" readonly id="totalIva10" name="totalIva10"
-                            value="{{ round(($comprobante)?$comprobante->totalIva10:0, 2) }}" class=" form-control text-center border-info calculateCompra">
-                    </th>
                     <td>Neto 10,5%</td>
                     <th>
                         <input type="number" readonly id="totalNeto10" name="totalNeto10"
                             value="{{ round(($comprobante)?$comprobante->totalNeto10:0, 2) }}" class=" form-control text-center border-info calculateCompra">
                     </th>
+                    <td>Iva 10,5%</td>
+                    <th>
+                        <input type="number" readonly id="totalIva10" name="totalIva10"
+                            value="{{ round(($comprobante)?$comprobante->totalIva10:0, 2) }}" class=" form-control text-center border-info calculateCompra">
+                    </th>
                 </tr>
                 <tr>
-                    <td>Iva 21,0%</td>
-                    <th>
-                        <input type="number" readonly id="totalIva21" name="totalIva21"
-                            value="{{ round(($comprobante)?$comprobante->totalIva21:0, 2) }}" class=" form-control text-center border-info calculateCompra">
-                    </th>
                     <td>Neto 21,0%</td>
                     <th>
                         <input type="number" readonly id="totalNeto21" name="totalNeto21"
                             value="{{ round(($comprobante)?$comprobante->totalNeto21:0, 2) }}" class=" form-control text-center border-info calculateCompra">
                     </th>
+                    <td>Iva 21,0%</td>
+                    <th>
+                        <input type="number" readonly id="totalIva21" name="totalIva21"
+                            value="{{ round(($comprobante)?$comprobante->totalIva21:0, 2) }}" class=" form-control text-center border-info calculateCompra">
+                    </th>
                 </tr>
                 <tr>
-                    <td>Iva 27,0%</td>
-                    <th>
-                        <input type="number" readonly id="totalIva27" name="totalIva27"
-                            value="{{ round(($comprobante)?$comprobante->totalIva27:0, 2) }}" class=" form-control text-center border-info calculateCompra">
-                    </th>
                     <td>Neto 27,0%</td>
                     <th>
                         <input type="number" readonly id="totalNeto27" name="totalNeto27"
                             value="{{ round(($comprobante)?$comprobante->totalNeto27:0, 2) }}" class=" form-control text-center border-info calculateCompra">
+                    </th>
+                    <td>Iva 27,0%</td>
+                    <th>
+                        <input type="number" readonly id="totalIva27" name="totalIva27"
+                            value="{{ round(($comprobante)?$comprobante->totalIva27:0, 2) }}" class=" form-control text-center border-info calculateCompra">
                     </th>
                 </tr>
                 <tr>
@@ -188,11 +190,23 @@
                         </span>
                     </th>
                     <th>
+                        @php
+                            $totalComprobante = ($comprobante)?
+                                $comprobante->l25413 +
+                                $comprobante->retater +  
+                                $comprobante->retiva +  
+                                $comprobante->retgan +  
+                                $comprobante->nograv +  
+                                $comprobante->percater +  
+                                $comprobante->perciva +  
+                                $comprobante->exento
+                                :0
+                        @endphp
                         <span class=" form-control border-danger text-center font-weight-bolder totalCompra">
-                            {{ round($totalIva + $total, 2) }}
+                            {{ round($comprobante->totalCompra, 2) }}
                         </span>
 
-                        <input type="hidden" id="totalCompra" name="totalCompra" value="{{ round($totalIva + $total, 2) }}">
+                        <input type="hidden" id="totalCompra" name="totalCompra" value="{{ round($comprobante->totalCompra, 2) }}">
                     </th>
                 </tr>
             </table>

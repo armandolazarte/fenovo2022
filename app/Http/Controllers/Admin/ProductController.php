@@ -160,7 +160,7 @@ class ProductController extends Controller
 
     public function historial(Request $request)
     {
-        $producto = Product::where('id',$request->id)->with('productos_store')->first();
+        $producto = Product::where('id',$request->id)->with('productos_store')->first(); 
 
         if ($request->ajax()) {
             $movimientos = MovementProduct::with(['movement'])
