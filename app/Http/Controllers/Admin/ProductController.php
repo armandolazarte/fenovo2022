@@ -160,7 +160,7 @@ class ProductController extends Controller
 
     public function historial(Request $request)
     {
-        $producto = Product::where('id',$request->id)->with('productos_store')->first();
+        $producto = Product::where('id',$request->id)->with('productos_store')->first(); 
 
         if ($request->ajax()) {
             $movimientos = MovementProduct::with(['movement'])
@@ -1439,7 +1439,7 @@ class ProductController extends Controller
             $productos = DB::table('products as t1')->where('t1.active', 1)
                 ->leftJoin('proveedors as t3', 't3.id', '=', 't1.proveedor_id')
                 ->leftJoin('products_store as t4', 't1.id', '=', 't4.product_id')
-                ->select(['t1.id', 't1.cod_fenovo', 't1.name as producto', 't1.unit_type', 't3.name as proveedor', 't1.unit_weight'])
+                ->select(['t1.id', 't1.cod_fenovo', 't1.name as producto', 't1.unit_type', 't3.name as proveedor', 't1.unit_weight', 't1.unit_package' ])
                 ->selectRaw('t4.stock_f + t4.stock_r + t4.stock_cyo as stock')
                 ->selectRaw('(t4.stock_f + t4.stock_r + t4.stock_cyo) * t1.unit_weight as kilage')
                 ->where('t4.store_id', '=', $request->id)

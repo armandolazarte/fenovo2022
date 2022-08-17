@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Exports\MovementsViewExport;
 use App\Exports\MoviVentasViewExport;
 use App\Exports\OrdenConsolidadaViewExport;
+use App\Exports\StoreViewStocks;
 use App\Http\Controllers\Controller;
 use App\Models\Movement;
-use App\Models\MovementProduct;
 use App\Models\Store;
 use App\Repositories\CustomerRepository;
 use App\Repositories\EnumRepository;
@@ -18,7 +18,6 @@ use App\Repositories\StoreRepository;
 use App\Traits\OriginDataTrait;
 use Barryvdh\DomPDF\Facade as PDF;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use stdClass;
@@ -189,5 +188,12 @@ class PrintController extends Controller
         // return $arrMovimientos;
 
         return Excel::download(new MoviVentasViewExport($mes, $anio), 'MoviVentas.csv', \Maatwebsite\Excel\Excel::CSV, ['Content-Type' => 'text/csv']);
+    }
+
+    public function exportStoreStocks(Request $request)
+    {
+        $store = Store::find($request->id);
+        $archivo = str_pad($store->cod_fenovo, 3, '0', STR_PAD_LEFT).'_stock.csv';
+        return Excel::download(new StoreViewStocks($request->id), $archivo, \Maatwebsite\Excel\Excel::CSV, ['Content-Type' => 'text/csv']);
     }
 }

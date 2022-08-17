@@ -218,7 +218,7 @@ class Movement extends Model
                 if ($returnObject) {
                     return $Store;
                 }
-                return $Store->description;
+                return str_pad($Store->cod_fenovo, 3, '0', STR_PAD_LEFT).' - '.$Store->description ;
             case 'DEVOLUCIONCLIENTE':
                 $customer = Customer::find($this->to);
                 return $customer->razon_social;
@@ -238,13 +238,13 @@ class Movement extends Model
                 if ($returnObject) {
                     return $Store;
                 }
-                return $Store->description;
+                return str_pad($Store->cod_fenovo, 3, '0', STR_PAD_LEFT).' - '.$Store->description ;
             case 'DEVOLUCIONCLIENTE':
                 $Store = Store::find($this->from);
                 if ($returnObject) {
                     return $Store;
                 }
-                return $Store->description;
+                return str_pad($Store->cod_fenovo, 3, '0', STR_PAD_LEFT).' - '.$Store->description ;
             case 'VENTACLIENTE':
                 $Customer = Customer::find($this->to);
                 if ($returnObject) {
@@ -269,8 +269,8 @@ class Movement extends Model
             case 'TRASLADO':
             case 'DEVOLUCION':
             case 'DEBITO':
-                $store = Store::find($typeTo);
-                return $store->description;
+                $Store = Store::find($typeTo);
+                return str_pad($Store->cod_fenovo, 3, '0', STR_PAD_LEFT).' - '.$Store->description ;
             case 'VENTACLIENTE':
             case 'DEBITOCLIENTE':
             case 'DEVOLUCIONCLIENTE':
