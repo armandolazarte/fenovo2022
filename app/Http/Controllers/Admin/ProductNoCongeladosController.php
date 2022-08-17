@@ -37,7 +37,7 @@ class ProductNoCongeladosController extends ProductController
 {
     public function list(Request $request){
         if ($request->ajax()) {
-            $categorieIdBetween = [4,8];
+            $categorieIdBetween = [2,8];
 
             $productos = DB::table('products as t1')
                             ->where('t1.active', 1)
