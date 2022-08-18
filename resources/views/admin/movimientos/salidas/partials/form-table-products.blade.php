@@ -1,18 +1,24 @@
 <div class="table-responsive">
     <table class="table table-striped table-borderless table-condensed table-hover text-center yajra-datatable">
         <thead>
-            <tr class="bg-dark text-black-50">
-                <th>Codigo</th>
-                <th>Nombre del producto</th>
-                <th>Presentación</th>
-                <th>Bultos</th>
-                <th>Cantidad</th>
-                <th>Precio</th>
-                <th>Iva</th>
-                <th class="text-right">Subtotal</th>
-                <th>NroPalet</th>
-                <th>Editar</th>
-                <th></th>
+            <tr class="bg-dark text-white">
+                <td>Codigo</td>
+                <td>Nombre del producto</td>
+                <td>Presentación</td>
+                <td>Bultos</td>
+                <td>Cantidad</td>
+                <td>Precio</th>
+                <td>Iva</td>
+                <td class="text-right">Subtotal</td>
+                <td>NroPalet</td>
+                <td>Editar</td>
+                <td>
+                    @if (in_array(Auth::user()->rol(), ['superadmin', 'admin', 'contable']))
+                    <a href="javascript:void(0)" onclick="deleteItemSession()" title="Eliminar productos seleccionados " class=" text-white">
+                        <i class="fas fa-trash-alt"></i>
+                    </a>
+                    @endif
+                </td>
             </tr>
         </thead>
         <tbody>
@@ -73,12 +79,9 @@
                             </a>
                         </td>
                         <td>
-                            @if (in_array(Auth::user()->rol(), ['superadmin', 'admin','contable']))
-                                <a href="javascript:void(0)"
-                                    onclick="deleteItemSession({{ $session_product->id }},'{{ route('delete.item.session.produc') }}')"
-                                    title="eliminar">
-                                    <i class="fas fa-trash-alt text-danger"></i>
-                                </a>
+
+                            @if (in_array(Auth::user()->rol(), ['superadmin', 'admin', 'contable']))
+                                <input type="checkbox" class="deleteItem" value="{{ $session_product->id }}">                                
                             @endif
                         </td>
                     </tr>
@@ -177,12 +180,4 @@
         iDisplayLength: -1,
     });
 
-    /*
-    jQuery('.select2-container').addClass('select2-container--open');
-    jQuery('.select2-container').click(function(){
-        jQuery('.select2-container').addClass('select2-container--open');
-    })
-    window.addEventListener('scroll',(event) => {
-        jQuery('.select2-container').removeClass('select2-container--open');
-    }); */
 </script>

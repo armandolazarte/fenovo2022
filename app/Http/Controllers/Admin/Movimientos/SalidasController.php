@@ -69,26 +69,25 @@ class SalidasController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-
             $arrTypes = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
             // Tomo los movimientos de 90 dias atras
             $fecha = Carbon::now()->subDays(90)->toDateTimeString();
             if (\Auth::user()->rol() == 'superadmin' || \Auth::user()->rol() == 'admin') {
-
-                $movement = Movement::where('from', 1)
-                    ->where('categoria', '=', 1)
+                $movement = Movement::where('from', 1)->where('categoria', '=', 1)
                     ->whereIn('type', $arrTypes)
                     ->whereDate('created_at', '>', $fecha)
                     ->orderBy('date', 'DESC')
                     ->orderBy('id', 'DESC')
                     ->get();
-
-            }elseif(\Auth::user()->rol() == 'contable') {
+            } elseif (\Auth::user()->rol() == 'contable') {
                 $movement = Movement::whereIn('type', $arrTypes)
+
                 ->whereDate('created_at', '>', $fecha)
                 ->orderBy('date', 'DESC')
                 ->orderBy('id', 'DESC')
                 ->get();
+            }else{
+                $movement       = null;
             }
 
             return DataTables::of($movement)
@@ -100,11 +99,11 @@ class SalidasController extends Controller
                 })
                 ->addColumn('tipo', function ($movement) {
                     $categ = '<span style="font-size:9px;">';
-                    if(\Auth::user()->rol() == 'contable'){
-                        $categ .= ($movement->categoria == 1)? '(CONG)':'(NO-CONG)';
-                        $categ .='</span>';
+                    if (\Auth::user()->rol() == 'contable') {
+                        $categ .= ($movement->categoria == 1) ? '(CONG)' : '(NO-CONG)';
+                        $categ .= '</span>';
                     }
-                    return $movement->type . ' '.$categ ;
+                    return $movement->type . ' ' . $categ;
                 })
                 ->editColumn('date', function ($movement) {
                     return date('d-m-Y', strtotime($movement->date));
@@ -757,7 +756,7 @@ class SalidasController extends Controller
     public function deleteSessionProduct(Request $request)
     {
         try {
-            $session_products = $this->sessionProductRepository->delete($request->input('id'));
+            SessionProduct::whereIn('id', $request->arrId)->delete();
             return new JsonResponse(['type' => 'success', 'msj' => 'ok']);
         } catch (\Exception $e) {
             return  new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
