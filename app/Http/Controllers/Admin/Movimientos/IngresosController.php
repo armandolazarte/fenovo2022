@@ -68,8 +68,10 @@ class IngresosController extends Controller
                     return  $movement->voucher_number;
                 })
                 ->addColumn('edit', function ($movement) {
-                    if($movement->categoria == 1) return '<a href="' . route('ingresos.edit', ['id' => $movement->id]) . '"> <i class="fa fa-pencil-alt"></i></a>';
-                    return '<a href="' . route('ingresos.editNocongelados', ['id' => $movement->id]) . '"> <i class="fa fa-pencil-alt"></i></a>'.$movement->categoria;
+                    if ($movement->categoria == 1) {
+                        return '<a href="' . route('ingresos.edit', ['id' => $movement->id]) . '"> <i class="fa fa-pencil-alt"></i></a>';
+                    }
+                    return '<a href="' . route('ingresos.editNocongelados', ['id' => $movement->id]) . '"> <i class="fa fa-pencil-alt"></i></a>' . $movement->categoria;
                 })
                 ->addColumn('show', function ($movement) {
                     return '<a href="' . route('ingresos.show', ['id' => $movement->id, 'is_cerrada' => false]) . '"> <i class="fa fa-eye"></i> </a>';
@@ -997,6 +999,7 @@ class IngresosController extends Controller
             // Completo los datos del movimiento de COMPRA
             $data['type']           = 'COMPRA';
             $data['subtype']        = $movement_temp->subtype;
+            $data['categoria']      = 2;
             $data['to']             = ($movement_temp->deposito) ? $movement_temp->deposito : 1;
             $data['date']           = $movement_temp->date;
             $data['from']           = $movement_temp->from;

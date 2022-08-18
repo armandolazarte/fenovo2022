@@ -59,8 +59,8 @@
                                 <div class="col-md-1 text-center">
                                     <label class="text-dark">Guardar</label>
                                     <fieldset class="form-group">
-                                        <button type="submit" class="btn btn-dark">
-                                            <i class="fa fa-save text-black-50"></i>
+                                        <button type="submit" class="btn btn-outline-dark">
+                                            <i class="fa fa-save"></i>
                                         </button>
                                     </fieldset>
                                 </div>

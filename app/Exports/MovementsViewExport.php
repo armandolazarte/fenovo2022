@@ -48,7 +48,8 @@ class MovementsViewExport implements FromView
             )
             ->whereIn('t1.type', $arrTipos)
             ->where('t2.entidad_tipo', '!=', 'C')
-            ->where('t1.exported', '=', 1)
+            ->where('t1.exported', 1)
+            ->where('t1.categoria', 1)
             ->whereDate('t1.date', '>', $fecha)
             //->whereDate('t1.created_at', '>', $fecha)
             //->where('t1.id', '=', 3372) // Consulta puntualmente este movimiento
