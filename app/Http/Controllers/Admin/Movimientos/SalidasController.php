@@ -174,6 +174,62 @@ class SalidasController extends Controller
         return view('admin.movimientos.salidas.index');
     }
 
+    public function indexData(Request $request)
+    {
+        return view('admin.movimientos.salidas.indexData');
+    }
+
+    public function getSalidas(Request $request)
+    {
+        $search = $request->input('search.value');
+        $columns = $request->get('columns');
+    
+        $pageSize = ($request->length) ? $request->length : 10;
+    
+        // Condiciones de los movimientos de SALIDA
+        $arrTypes = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
+        $fecha = Carbon::now()->subDays(90)->toDateTimeString();
+
+        $itemQuery = \DB::table('movements')
+            ->where('from', 1)->where('categoria', '=', 1)
+            ->whereIn('type', $arrTypes)
+            ->whereDate('created_at', '>', $fecha);
+            
+    
+        $itemQuery
+            ->orderBy('date', 'DESC')
+            ->orderBy('id', 'DESC');
+
+        $itemCounter = $itemQuery->get();
+        $count_total = $itemCounter->count();
+    
+        $count_filter = 0;
+        if($search != ''){
+            $itemQuery->where( 'id' , 'LIKE' , '%'.$search.'%')
+                    ->orWhere( 'type' , 'LIKE' , '%'.$search.'%')
+                    ->orWhere( 'categoria' , 'LIKE' , '%'.$search.'%');
+            $count_filter = $itemQuery->count();
+        }
+    
+        $itemQuery->select('id', 'type', 'categoria');
+    
+        $start = ($request->start) ? $request->start : 0;
+        $itemQuery->skip($start)->take($pageSize);
+        $items = $itemQuery->get();
+    
+        if($count_filter == 0){
+            $count_filter = $count_total;
+        }
+    
+        return Datatables::of($items)          
+            ->with([
+            "recordsTotal" => $count_total,
+            "recordsFiltered" => $count_filter,
+            ])
+            ->rawColumns(['id', 'type', 'categoria'])
+            ->make(true);
+    }
+
     public function pendientes(Request $request)
     {
         if ($request->ajax()) {
