@@ -1146,9 +1146,12 @@ class ProductController extends Controller
 
     public function compararStock(Request $request)
     {
+        
+        //$product = Product::find(226);
+        //return ($product->stockInicioSemana()) ? $product->stockInicioSemana()->balance : 0;
 
         if ($request->ajax()) {
-            $productos = Product::where('active', '=', 1)->get();
+            $productos = Product::where('active', '=', 1)->where('categorie_id',1)->get();
             return Datatables::of($productos)
                 ->addIndexColumn()
                 ->addColumn('proveedor', function ($product) {

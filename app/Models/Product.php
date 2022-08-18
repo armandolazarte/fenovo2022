@@ -221,7 +221,7 @@ class Product extends Model
             ->first();
         if (!$movimiento) {
             $dias++;
-            $tope = 31;
+            $tope = 1095;
             for ($i = $dias; $i < $tope; $i++) {
                 $movimiento = MovementProduct::whereEntidadId(1)
                     ->where('created_at', '>', Carbon::now()->subDays($i))
