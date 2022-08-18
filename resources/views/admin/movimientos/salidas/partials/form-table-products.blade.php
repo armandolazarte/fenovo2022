@@ -73,7 +73,7 @@
                             </a>
                         </td>
                         <td>
-                            @if (in_array(Auth::user()->rol(), ['superadmin', 'admin']))
+                            @if (in_array(Auth::user()->rol(), ['superadmin', 'admin','contable']))
                                 <a href="javascript:void(0)"
                                     onclick="deleteItemSession({{ $session_product->id }},'{{ route('delete.item.session.produc') }}')"
                                     title="eliminar">

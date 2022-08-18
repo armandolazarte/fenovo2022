@@ -68,7 +68,7 @@
                     searchable: true
                 },
                 {
-                    data: 'type',
+                    data: 'tipo',
                     class: 'text-left',
                     orderable: false,
                     searchable: true
