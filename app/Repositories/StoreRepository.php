@@ -48,13 +48,16 @@ class StoreRepository extends BaseRepository
         }
 
         $traslado = ($type == 'TRASLADO')?TRUE:FALSE;
-
+        $venta    = !$traslado;
         return Store::where('active', true)
             ->when($ids, function ($q, $ids) {
                 $q->whereIn('id', $ids);
             })
             ->when($traslado, function ($q) {
                 $q->where('recibe_traslado', 1);
+            })
+            ->when($venta, function ($q) {
+                $q->whereIn('store_type', ['T','E'])->where('cod_fenovo','!=',3);
             })
             ->where(function ($query) use ($term) {
                 $query->orWhere('description', 'LIKE', '%' . $term . '%')
