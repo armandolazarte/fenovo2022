@@ -85,25 +85,22 @@
                         <a class="dropdown-item text-black-50" href="{{ route('salidas.pendientes') }}">
                             Preparar salidas
                         </a>
-
-                        @if(in_array(Auth::user()->rol(), ['superadmin', 'admin']) )
-
                         <a class="dropdown-item text-black-50" href="{{ route('salidas.index') }}">
                             Salidas finalizadas
                         </a>
-                        <a class="dropdown-item text-black-50" href="{{ route('senasa.index') }}">
-                            Senasa
-                        </a>
-                        <a class="dropdown-item text-black-50" href="{{ route('invoice.index') }}">
-                            Facturas generadas
-                        </a>
-                        <a class="dropdown-item text-black-50" href="{{ route('nc.index') }}">
-                            Notas de <span class=" text-warning">Crédito</span>
-                        </a>
-                        <a class="dropdown-item text-black-50" href="{{ route('nd.index') }}">
-                            Notas de <span class="text-warning">Débito</span>
-                        </a>
-
+                        @if(in_array(Auth::user()->rol(), ['superadmin', 'admin']) )
+                            <a class="dropdown-item text-black-50" href="{{ route('senasa.index') }}">
+                                Senasa
+                            </a>
+                            <a class="dropdown-item text-black-50" href="{{ route('invoice.index') }}">
+                                Facturas generadas
+                            </a>
+                            <a class="dropdown-item text-black-50" href="{{ route('nc.index') }}">
+                                Notas de <span class=" text-warning">Crédito</span>
+                            </a>
+                            <a class="dropdown-item text-black-50" href="{{ route('nd.index') }}">
+                                Notas de <span class="text-warning">Débito</span>
+                            </a>
                         @endif
                     </div>
                 </li>
