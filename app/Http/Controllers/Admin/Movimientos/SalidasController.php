@@ -70,7 +70,7 @@ class SalidasController extends Controller
     {
         if ($request->ajax()) {
             $arrTypes = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
-            $fecha = Carbon::now()->subDays(90)->toDateTimeString();
+            $fecha    = Carbon::now()->subDays(90)->toDateTimeString();
             if (\Auth::user()->rol() == 'superadmin' || \Auth::user()->rol() == 'admin') {
                 $movement = Movement::where('from', 1)->where('categoria', '=', 1)
                     ->whereIn('type', $arrTypes)
@@ -86,7 +86,7 @@ class SalidasController extends Controller
                 ->orderBy('id', 'DESC')
                 ->get();
             } else {
-                $movement       = null;
+                $movement = null;
             }
 
             return DataTables::of($movement)
@@ -172,59 +172,73 @@ class SalidasController extends Controller
 
     public function getSalidas(Request $request)
     {
-        $totalFilteredRecord = $totalDataRecord = $draw = "";
- 
-        $arrTypes = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
-        $fecha = Carbon::now()->subDays(90)->toDateTimeString();
-        $totalDataRecord = Movement::count();
- 
+        $totalFilteredRecord = $totalDataRecord = $draw = '';
+
+        $arrTypes            = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
+        $fecha               = Carbon::now()->subDays(60)->toDateTimeString();
+        $totalDataRecord     = Movement::whereIn('type', $arrTypes)
+            ->whereDate('movements.created_at', '>', $fecha)
+            ->where('from', 1)
+            ->where('categoria', '=', 1) 
+            ->count();
         $totalFilteredRecord = $totalDataRecord;
- 
+
         $limit_val = $request->input('length');
         $start_val = $request->input('start');
- 
+
         if (empty($request->input('search.value'))) {
-            $movimientos = Movement::whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
-            ->offset($start_val)
-            ->limit($limit_val)
-            ->orderBy('date', 'DESC')
-            ->orderBy('movements.id', 'DESC')
-            ->get();
+            if (\Auth::user()->rol() == 'superadmin' || \Auth::user()->rol() == 'admin') {
+                $movimientos = Movement::whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
+                    ->where('from', 1)->where('categoria', '=', 1)      // SE AGREGA PARA FILTRAR INFO A DANTE
+                    ->offset($start_val)
+                    ->limit($limit_val)
+                    ->orderBy('date', 'DESC')
+                    ->orderBy('movements.id', 'DESC')
+                    ->get();
+            } elseif (\Auth::user()->rol() == 'contable') {
+                $movimientos = Movement::whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
+                    ->offset($start_val)
+                    ->limit($limit_val)
+                    ->orderBy('date', 'DESC')
+                    ->orderBy('movements.id', 'DESC')
+                    ->get();
+            }
         } else {
             $search_text = $request->input('search.value');
-            $movimientos =  Movement::join('stores', 'movements.to', '=', 'stores.id')
+            $movimientos = Movement::join('stores', 'movements.to', '=', 'stores.id')
                 ->whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
-                ->Where('type', 'LIKE', "%{$search_text}%")
-                ->orWhere('movements.id', 'LIKE', "%{$search_text}%")
-                ->orWhere('stores.description', 'LIKE', "%{$search_text}%")
+                ->select('movements.*')
+                ->selectRaw('CONCAT(movements.id," ", movements.type," ", stores.description) as txtMovimiento')
+                ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
                 ->offset($start_val)
-                ->limit($limit_val)                
+                ->limit($limit_val)
                 ->orderBy('date', 'desc')
                 ->orderBy('movements.id', 'DESC')
                 ->get();
- 
+
             $totalFilteredRecord = Movement::join('stores', 'movements.to', '=', 'stores.id')
                 ->whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
-                ->Where('type', 'LIKE', "%{$search_text}%")
-                ->orWhere('movements.id', 'LIKE', "%{$search_text}%")
-                ->orWhere('stores.description', 'LIKE', "%{$search_text}%")
+                ->select('movements.*')
+                ->selectRaw('CONCAT(movements.id," ", movements.type," ", stores.description) as txtMovimiento')
+                ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
                 ->count();
         }
- 
+
+
+
         $data = [];
         if (!empty($movimientos)) {
             foreach ($movimientos as $movimiento) {
- 
-                $movement['id']             = $movimiento->id;
-                $movement['date']           = date('d-m-Y', strtotime($movimiento->date));
-                $esVentaDirecta             = ($movimiento->observacion == 'VENTA DIRECTA') ? ' <span class="text-danger"> DIRECTA </span>' : null;
-                $movement['destino']        = $movimiento->origenData($movimiento->type);
-                $movement['type']           = $movimiento->type . ' ' .$esVentaDirecta;
+                $movement['id']      = '<a title="Detalles de salida" href="' . route('salidas.show', ['id' => $movimiento->id]) . '">' . str_pad($movimiento->id, 6, '0', STR_PAD_LEFT) . '</a>';
+                $movement['date']    = date('d-m-Y', strtotime($movimiento->date));
+                $esVentaDirecta      = ($movimiento->observacion == 'VENTA DIRECTA') ? ' <span class="text-danger"> DIRECTA </span>' : null;
+                $movement['destino'] = $movimiento->origenData($movimiento->type);
+                $movement['type']    = $movimiento->type . ' ' . $esVentaDirecta;
 
-                $count = MovementProduct::whereMovementId($movimiento->id)->where('egress', '>', 0)->distinct('product_id')->count();
-                $movement['items']          ='<span class="badge badge-primary">' . $count . '</span>';
+                $count             = MovementProduct::whereMovementId($movimiento->id)->where('egress', '>', 0)->distinct('product_id')->count();
+                $movement['items'] = $count;
 
-                $factura = "--";
+                $factura = '--';
                 if ($movimiento->type == 'VENTA' || $movimiento->type == 'VENTACLIENTE' || $movimiento->type == 'TRASLADO') {
                     if (isset($movimiento->invoice) && count($movimiento->invoice)) {
                         $urls = '';
@@ -244,35 +258,35 @@ class SalidasController extends Controller
                     }
                 }
 
-                $movement['factura']        = $factura;
-                $movement['remito']         = '<a title="Imprimir remito" href="javascript:void(0)" onclick="createRemito(' . $movimiento->id . ')"> <i class="fas fa-print"></i> </a>';
-                $movement['orden']          = '<a class="text-primary" title="Imprimir Orden"  href="' . route('print.orden', ['id' => $movimiento->id]) . '" target="_blank"> <i class="fas fa-list"></i> </a>';
-                $paper                      = null;
+                $movement['factura'] = $factura;
+                $movement['remito']  = '<a title="Imprimir remito" href="javascript:void(0)" onclick="createRemito(' . $movimiento->id . ')"> <i class="fas fa-print"></i> </a>';
+                $movement['orden']   = '<a class="text-primary" title="Imprimir Orden"  href="' . route('print.orden', ['id' => $movimiento->id]) . '" target="_blank"> <i class="fas fa-list"></i> </a>';
+                $paper               = null;
                 if ($movimiento->hasPanama()) {
                     $orden = $movimiento->getPanama()->orden;
                     $paper = '<a class="text-primary" title="Imprime panama"  href="' . route('print.panama', ['id' => $movimiento->id]) . '" target="_blank">' . $orden . '</a>';
                 }
-                $movement['paper']          = $paper;
+                $movement['paper'] = $paper;
 
-                $flete                      = null;
+                $flete = null;
                 if ($movimiento->hasFlete()) {
                     $orden = $movimiento->getFlete()->orden;
                     $flete = '<a class="text-primary" title="Imprimir flete' . $orden . '"  href="' . route('print.panama.felete', ['id' => $movimiento->id]) . '" target="_blank">' . $orden . '</a>';
                 }
-                $movement['flete']          = $flete;
-                
+                $movement['flete'] = $flete;
+
                 $data[] = $movement;
             }
         }
-        $draw = $request->input('draw');
+        $draw          = $request->input('draw');
         $get_json_data = [
-            "draw"            => intval($draw),
-            "recordsTotal"    => intval($totalDataRecord),
-            "recordsFiltered" => intval($totalFilteredRecord),
-            "data"            => $data
+            'draw'            => intval($draw),
+            'recordsTotal'    => intval($totalDataRecord),
+            'recordsFiltered' => intval($totalFilteredRecord),
+            'data'            => $data,
         ];
- 
-        echo json_encode($get_json_data);
+
+        print json_encode($get_json_data);
     }
 
     public function pendientes(Request $request)
@@ -330,7 +344,7 @@ class SalidasController extends Controller
 
     public function pendienteShow(Request $request)
     {
-        $pedido                = $desde_deposito   = $a_deposito  = $destino                = $destinoName                = null;
+        $pedido                = $desde_deposito                = $a_deposito                = $destino                = $destinoName                = null;
         $depositos             = null;
         $es_traslado_depositos = false;
         $list_id               = $request->input('list_id');

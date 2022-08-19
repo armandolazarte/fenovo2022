@@ -27,10 +27,9 @@
                     <thead>
                         <tr class="bg-dark text-white">
                             <td>#</td>
-                            <td style="width: 70px" >Fecha</td>
+                            <td>Fecha</td>
                             <td>Destino</td>
                             <td>Tipo</td>
-                            <td>Directa</td>
                             <td>Item</td>
                             <td>Factura</td>
                             <td>Rto</td>
@@ -52,61 +51,25 @@
 @section('js')
     <script>
         var table = jQuery('.yajra-datatable').DataTable({
-            @include('partials.table.setting'),
-            ajax: "{{ route('salidas.index') }}",
-            columns: [{
-                    data: 'id',
-                    orderable: false,
-                    searchable: true
-                },
-                {
-                    data: 'date'
-                },
-                {
-                    data: 'destino',
-                    class: 'text-left',
-                    searchable: true
-                },
-                {
-                    data: 'tipo',
-                    class: 'text-left',
-                    orderable: false,
-                    searchable: true
-                },
-                {
-                    data: 'observacion',
-                    class: 'text-left',
-                    orderable: false,
-                    searchable: true
-                },
-                {
-                    data: 'items'
-                },
-                {
-                    data: 'factura_nro',
-                    orderable: false,
-                    searchable: false
-                },
-                {
-                    data: 'remito',
-                    orderable: false,
-                    searchable: false
-                },
-                {
-                    data: 'orden',
-                    orderable: false,
-                    searchable: false
-                },
-                {
-                    data: 'paper',
-                    orderable: false,
-                    searchable: false
-                },
-                {
-                    data: 'flete',
-                    orderable: false,
-                    searchable: false
-                }
+            lengthMenu : [[10, 25, 50, 500], [10, 25, 50, 500]],
+            stateSave:true,
+            processing: true,
+            serverSide: true,
+            ordering:false,
+            autoWidth: true,
+            dom: '<lfrtp>',
+            ajax: "{{ route('salidas.getSalidas') }}",
+            columns: [
+                { data: 'id' },
+                { data: 'date' },
+                { data: 'destino', 'class': 'text-left', },
+                { data: 'type', 'class': 'text-left',  },
+                { data: 'items' },
+                { data: 'factura' },
+                { data: 'remito' },
+                { data: 'orden' },
+                { data: 'paper' },
+                { data: 'flete' },                
             ]
         });
 
