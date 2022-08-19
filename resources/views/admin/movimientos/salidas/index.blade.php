@@ -106,13 +106,7 @@
                     data: 'flete',
                     orderable: false,
                     searchable: false
-                },
-
-               /*  {
-                    data: 'ordenpanama',
-                    orderable: false,
-                    searchable: false
-                }, */
+                }
             ]
         });
 
