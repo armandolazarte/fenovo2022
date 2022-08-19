@@ -70,8 +70,7 @@ class SalidasController extends Controller
     {
         if ($request->ajax()) {
             $arrTypes = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
-            // Tomo los movimientos de 90 dias atras
-            $fecha = Carbon::now()->subDays(90)->toDateTimeString();
+            $fecha    = Carbon::now()->subDays(90)->toDateTimeString();
             if (\Auth::user()->rol() == 'superadmin' || \Auth::user()->rol() == 'admin') {
                 $movement = Movement::where('from', 1)->where('categoria', '=', 1)
                     ->whereIn('type', $arrTypes)
@@ -86,8 +85,8 @@ class SalidasController extends Controller
                 ->orderBy('date', 'DESC')
                 ->orderBy('id', 'DESC')
                 ->get();
-            }else{
-                $movement       = null;
+            } else {
+                $movement = null;
             }
 
             return DataTables::of($movement)
@@ -136,11 +135,16 @@ class SalidasController extends Controller
                         return '--';
                     }
                 })
-                ->editColumn('updated_at', function ($movement) {
-                    return date('Y-m-d H:i:s', strtotime($movement->updated_at));
-                })
                 ->addColumn('remito', function ($movement) {
                     return '<a title="Imprimir remito"  href="javascript:void(0)" onclick="createRemito(' . $movement->id . ')"> <i class="fas fa-print"></i> </a>';
+                })
+                ->addColumn('orden', function ($movement) {
+
+                    // se comentan estas lineas el 10/10/22 porque ahora la orden imprime todos los productos tanto panamas como facturados
+                    /* return ($movement->hasInvoices())
+                        ? '<a class="text-primary" title="Imprimir Orden"  href="' . route('print.orden', ['id' => $movement->id]) . '" target="_blank"> <i class="fas fa-list"></i> </a>'
+                        : null; */
+                    return '<a class="text-primary" title="Imprimir Orden"  href="' . route('print.orden', ['id' => $movement->id]) . '" target="_blank"> <i class="fas fa-list"></i> </a>';
                 })
                 ->addColumn('paper', function ($movement) {
                     if ($movement->hasPanama()) {
@@ -154,24 +158,135 @@ class SalidasController extends Controller
                         return '<a class="text-primary" title="Imprimir flete' . $orden . '"  href="' . route('print.panama.felete', ['id' => $movement->id]) . '" target="_blank">' . $orden . '</a>';
                     }
                 })
-                ->addColumn('orden', function ($movement) {
-
-                    // se comentan estas lineas el 10/10/22 porque ahora la orden imprime todos los productos tanto panamas como facturados
-                    /* return ($movement->hasInvoices())
-                        ? '<a class="text-primary" title="Imprimir Orden"  href="' . route('print.orden', ['id' => $movement->id]) . '" target="_blank"> <i class="fas fa-list"></i> </a>'
-                        : null; */
-                    return '<a class="text-primary" title="Imprimir Orden"  href="' . route('print.orden', ['id' => $movement->id]) . '" target="_blank"> <i class="fas fa-list"></i> </a>';
-                })/*
-                ->addColumn('ordenpanama', function ($movement) {
-                    return ($movement->hasPanama() || count($movement->panamas))
-                        ? '<a title="Imprimir Orden panama"  href="' . route('print.ordenPanama', ['id' => $movement->id]) . '" target="_blank"> <i class="fas fa-list"></i> </a>'
-                        : null;
-                }) */
 
                 ->rawColumns(['id', 'origen', 'items', 'date', 'tipo', 'observacion', 'factura_nro', 'remito', 'paper', 'flete', 'orden'])
                 ->make(true);
         }
         return view('admin.movimientos.salidas.index');
+    }
+
+    public function indexData(Request $request)
+    {
+        return view('admin.movimientos.salidas.indexData');
+    }
+
+    public function getSalidas(Request $request)
+    {
+        $totalFilteredRecord = $totalDataRecord = $draw = '';
+
+        $arrTypes            = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
+        $fecha               = Carbon::now()->subDays(60)->toDateTimeString();
+        $totalDataRecord     = Movement::whereIn('type', $arrTypes)
+            ->whereDate('movements.created_at', '>', $fecha)
+            ->where('from', 1)
+            ->where('categoria', '=', 1) 
+            ->count();
+        $totalFilteredRecord = $totalDataRecord;
+
+        $limit_val = $request->input('length');
+        $start_val = $request->input('start');
+
+        if (empty($request->input('search.value'))) {
+            if (\Auth::user()->rol() == 'superadmin' || \Auth::user()->rol() == 'admin') {
+                $movimientos = Movement::whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
+                    ->where('from', 1)->where('categoria', '=', 1)      // SE AGREGA PARA FILTRAR INFO A DANTE
+                    ->offset($start_val)
+                    ->limit($limit_val)
+                    ->orderBy('date', 'DESC')
+                    ->orderBy('movements.id', 'DESC')
+                    ->get();
+            } elseif (\Auth::user()->rol() == 'contable') {
+                $movimientos = Movement::whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
+                    ->offset($start_val)
+                    ->limit($limit_val)
+                    ->orderBy('date', 'DESC')
+                    ->orderBy('movements.id', 'DESC')
+                    ->get();
+            }
+        } else {
+            $search_text = $request->input('search.value');
+            $movimientos = Movement::join('stores', 'movements.to', '=', 'stores.id')
+                ->whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
+                ->select('movements.*')
+                ->selectRaw('CONCAT(movements.id," ", movements.type," ", stores.description) as txtMovimiento')
+                ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
+                ->offset($start_val)
+                ->limit($limit_val)
+                ->orderBy('date', 'desc')
+                ->orderBy('movements.id', 'DESC')
+                ->get();
+
+            $totalFilteredRecord = Movement::join('stores', 'movements.to', '=', 'stores.id')
+                ->whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
+                ->select('movements.*')
+                ->selectRaw('CONCAT(movements.id," ", movements.type," ", stores.description) as txtMovimiento')
+                ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
+                ->count();
+        }
+
+
+
+        $data = [];
+        if (!empty($movimientos)) {
+            foreach ($movimientos as $movimiento) {
+                $movement['id']      = '<a title="Detalles de salida" href="' . route('salidas.show', ['id' => $movimiento->id]) . '">' . str_pad($movimiento->id, 6, '0', STR_PAD_LEFT) . '</a>';
+                $movement['date']    = date('d-m-Y', strtotime($movimiento->date));
+                $esVentaDirecta      = ($movimiento->observacion == 'VENTA DIRECTA') ? ' <span class="text-danger"> DIRECTA </span>' : null;
+                $movement['destino'] = $movimiento->origenData($movimiento->type);
+                $movement['type']    = $movimiento->type . ' ' . $esVentaDirecta;
+
+                $count             = MovementProduct::whereMovementId($movimiento->id)->where('egress', '>', 0)->distinct('product_id')->count();
+                $movement['items'] = $count;
+
+                $factura = '--';
+                if ($movimiento->type == 'VENTA' || $movimiento->type == 'VENTACLIENTE' || $movimiento->type == 'TRASLADO') {
+                    if (isset($movimiento->invoice) && count($movimiento->invoice)) {
+                        $urls = '';
+                        foreach ($movimiento->invoice as $invoice) {
+                            if (!is_null($invoice->cae) && !is_null($invoice->url)) {
+                                $number = ($invoice->cyo) ? 'CyO - ' . $invoice->voucher_number : $invoice->voucher_number;
+                                $urls .= '<a class="text-primary" title="Descargar factura" target="_blank" href="' . $invoice->url . '"> ' . $number . ' </a><br>';
+                            } elseif (!is_null($invoice->cae) && is_null($invoice->url)) {
+                                $number = ($invoice->cyo) ? 'CyO - ' . $invoice->voucher_number : $invoice->voucher_number;
+                                $urls .= '<a class="text-primary" title="Generar Comprobantes" target="_blank" href="' . route('ver.fe', ['movment_id' => $movimiento->id]) . '">' . $number . ' </a><br>';
+                            }
+                        }
+                        $factura = $urls;
+                    }
+                    if ($movimiento->status != 'FINISHED_AND_GENERATED_FACT') {
+                        $factura = '<a href="' . route('pre.invoice', ['movment_id' => $movimiento->id]) . '">Generar Comprobantes </a>';
+                    }
+                }
+
+                $movement['factura'] = $factura;
+                $movement['remito']  = '<a title="Imprimir remito" href="javascript:void(0)" onclick="createRemito(' . $movimiento->id . ')"> <i class="fas fa-print"></i> </a>';
+                $movement['orden']   = '<a class="text-primary" title="Imprimir Orden"  href="' . route('print.orden', ['id' => $movimiento->id]) . '" target="_blank"> <i class="fas fa-list"></i> </a>';
+                $paper               = null;
+                if ($movimiento->hasPanama()) {
+                    $orden = $movimiento->getPanama()->orden;
+                    $paper = '<a class="text-primary" title="Imprime panama"  href="' . route('print.panama', ['id' => $movimiento->id]) . '" target="_blank">' . $orden . '</a>';
+                }
+                $movement['paper'] = $paper;
+
+                $flete = null;
+                if ($movimiento->hasFlete()) {
+                    $orden = $movimiento->getFlete()->orden;
+                    $flete = '<a class="text-primary" title="Imprimir flete' . $orden . '"  href="' . route('print.panama.felete', ['id' => $movimiento->id]) . '" target="_blank">' . $orden . '</a>';
+                }
+                $movement['flete'] = $flete;
+
+                $data[] = $movement;
+            }
+        }
+        $draw          = $request->input('draw');
+        $get_json_data = [
+            'draw'            => intval($draw),
+            'recordsTotal'    => intval($totalDataRecord),
+            'recordsFiltered' => intval($totalFilteredRecord),
+            'data'            => $data,
+        ];
+
+        print json_encode($get_json_data);
     }
 
     public function pendientes(Request $request)
@@ -952,7 +1067,7 @@ class SalidasController extends Controller
                 $quantity = (float)$unidad['value'];
 
                 if ($quantity > 0) {
-                    $explode                     = explode('_', $unidad['name']);
+                    $explode                     = explode('_', $unidad['type']);
                     $insert_data['unit_package'] = $explode[1];
                     $stock_en_session            = $this->sessionProductRepository->getCantidadTotalDeBultosByListId($product_id, $insert_data['unit_package'], $insert_data['list_id']);
                     $insert_data['quantity']     = $quantity + $stock_en_session;

@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-
     <div class="row">
         <div class="col-lg-12 col-xl-12">
             <div class="card card-custom gutter-b bg-transparent shadow-none border-0">
@@ -22,29 +21,35 @@
     </div>
     <div class="row">
         <div class="col-12 ">
-            <div class="table-responsive">
-                <table class="table table-condensed table-hover yajra-datatable text-center">
-                    <thead>
-                        <tr class="bg-dark text-white">
-                            <td>#</td>
-                            <td>Fecha</td>
-                            <td>Destino</td>
-                            <td>Tipo</td>
-                            <td>Item</td>
-                            <td>Factura</td>
-                            <td>Rto</td>
-                            <td>Orden</td>
-                            <td>Paper</td>
-                            <td>Flete</td>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table>
+            <div class="card card-custom gutter-b bg-white border-0">
+                <div class="card-body">
+
+                    <div class="table-datapos">
+                        <div class="table-responsive">
+                            <table class="display table-hover yajra-datatable">
+                                <thead>
+                                    <tr class="bg-dark text-white">
+                                        <td>#</th>
+                                        <td>Fecha</td>
+                                        <td>Destino</td>
+                                        <td>Tipo</td>
+                                        <td>Item</td>
+                                        <td>Factura</td>
+                                        <td>Remito</td>
+                                        <td>Orden</td>
+                                        <th>Paper</th>
+                                        <th>Flete</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-
     @include('admin.movimientos.salidas.partials.modal-open-remito')
 @endsection
 
@@ -60,10 +65,10 @@
             dom: '<lfrtp>',
             ajax: "{{ route('salidas.getSalidas') }}",
             columns: [
-                { data: 'id' },
+                { data: 'id', 'class': 'text-center', orderable: false, searchable: false },
                 { data: 'date' },
-                { data: 'destino', 'class': 'text-left', },
-                { data: 'type', 'class': 'text-left',  },
+                { data: 'destino' },
+                { data: 'type' },
                 { data: 'items' },
                 { data: 'factura' },
                 { data: 'remito' },
@@ -71,11 +76,6 @@
                 { data: 'paper' },
                 { data: 'flete' },                
             ]
-        });
-
-
-        jQuery('.yajra-datatable').on('draw.dt', function() {
-            jQuery('[data-toggle="tooltip" ]').tooltip();
         });
 
         function createRemito(id) {
@@ -111,5 +111,6 @@
         jQuery('#close_modal_salida').on('click', function() {
             jQuery('#createRemito').removeClass('offcanvas-on')
         });
+
     </script>
 @endsection
