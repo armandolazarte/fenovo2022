@@ -31,8 +31,8 @@
                                 <thead class="text-body">
                                     <tr class="bg-light">
                                         <th>Proveedor</th>
-                                        <th>Codigo Fenovo</th>
-                                        <th>Nombre producto</th>
+                                        <th>Codigo</th>
+                                        <th>Producto</th>
                                         <th>Costo</th>
                                         <th>Unidad</th>
                                         <th>Pres</th>
@@ -42,7 +42,7 @@
                                         <th>StockFin</th>
                                     </tr>
                                 </thead>
-                                <tbody class="kt-table-tbody text-dark">
+                                <tbody>
                                 </tbody>
                             </table>
                         </div>
@@ -63,7 +63,7 @@
         @include('partials.table.setting'),
         ajax: "{{ route('products.getCompararStocks') }}",
         columns: [
-            {data: 'proveedor'},
+            {data: 'proveedor', 'className': 'text-left'},
             {data: 'cod_fenovo'},
             {data: 'name', 'className': 'text-left'},
             {data: 'costo'},
