@@ -25,8 +25,8 @@ class Kernel extends ConsoleKernel
      * @return void
      */
     protected function schedule(Schedule $schedule)
-    {
-        // $schedule->command('stock:daily')->dailyAt('23:57')->runInBackground();
+    {   
+        // Actualizacion de precios
         $schedule->command('update:prices')->dailyAt('03:27')->runInBackground();
 
         // Copias DB / mantiene últimas 7 copias
@@ -36,8 +36,11 @@ class Kernel extends ConsoleKernel
         //Exportacion Fenovo ejecutada cada hora
         $schedule->command('sincroniza:diariamente')->hourly()->runInBackground();
 
-        //Exportacion Movimientos Fenovo ejecutada cada 3 horas
+        //Exportacion Movimientos Fenovo ejecutada cada 30 minutos entre las 6 am y las 22 pm
         $schedule->command('sincroniza:movi')->cron('30 6-22 * * *')->runInBackground();
+
+        //Exportacion Fenovo - Compra de productos congelados FENOVO
+        $schedule->command('sincroniza:comprasemanal')->dailyAt('05:00')->runInBackground();
         
     }
 

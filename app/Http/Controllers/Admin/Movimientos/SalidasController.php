@@ -68,106 +68,101 @@ class SalidasController extends Controller
 
     public function index(Request $request)
     {
-        if ($request->ajax()) {
-            $arrTypes = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
-            $fecha    = Carbon::now()->subDays(90)->toDateTimeString();
-            if (\Auth::user()->rol() == 'superadmin' || \Auth::user()->rol() == 'admin') {
-                $movement = Movement::where('from', 1)->where('categoria', '=', 1)
-                    ->whereIn('type', $arrTypes)
-                    ->whereDate('created_at', '>', $fecha)
-                    ->orderBy('date', 'DESC')
-                    ->orderBy('id', 'DESC')
-                    ->get();
-            } elseif (\Auth::user()->rol() == 'contable') {
-                $movement = Movement::whereIn('type', $arrTypes)
+        // if ($request->ajax()) {
+        //     $arrTypes = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
+        //     $fecha    = Carbon::now()->subDays(90)->toDateTimeString();
+        //     if (\Auth::user()->rol() == 'superadmin' || \Auth::user()->rol() == 'admin') {
+        //         $movement = Movement::where('from', 1)->where('categoria', '=', 1)
+        //             ->whereIn('type', $arrTypes)
+        //             ->whereDate('created_at', '>', $fecha)
+        //             ->orderBy('date', 'DESC')
+        //             ->orderBy('id', 'DESC')
+        //             ->get();
+        //     } elseif (\Auth::user()->rol() == 'contable') {
+        //         $movement = Movement::whereIn('type', $arrTypes)
 
-                ->whereDate('created_at', '>', $fecha)
-                ->orderBy('date', 'DESC')
-                ->orderBy('id', 'DESC')
-                ->get();
-            } else {
-                $movement = null;
-            }
+        //         ->whereDate('created_at', '>', $fecha)
+        //         ->orderBy('date', 'DESC')
+        //         ->orderBy('id', 'DESC')
+        //         ->get();
+        //     } else {
+        //         $movement = null;
+        //     }
 
-            return DataTables::of($movement)
-                ->addColumn('id', function ($movement) {
-                    return '<a title="Detalles de salida" href="' . route('salidas.show', ['id' => $movement->id]) . '">' . str_pad($movement->id, 6, '0', STR_PAD_LEFT) . '</a>';
-                })
-                ->addColumn('destino', function ($movement) {
-                    return $movement->origenData($movement->type);
-                })
-                ->addColumn('tipo', function ($movement) {
-                    $categ = '<span style="font-size:9px;">';
-                    if (\Auth::user()->rol() == 'contable') {
-                        $categ .= ($movement->categoria == 1) ? '(CONG)' : '(NO-CONG)';
-                        $categ .= '</span>';
-                    }
-                    return $movement->type . ' ' . $categ;
-                })
-                ->editColumn('date', function ($movement) {
-                    return date('d-m-Y', strtotime($movement->date));
-                })
-                ->addColumn('items', function ($movement) {
-                    $count = MovementProduct::whereMovementId($movement->id)->where('egress', '>', 0)->distinct('product_id')->count();
-                    return '<span class="badge badge-primary">' . $count . '</span>';
-                })
-                ->editColumn('observacion', function ($movement) {
-                    return ($movement->observacion == 'VENTA DIRECTA') ? '<i class="fa fa-check-circle text-dark"></i>' : null;
-                })
-                ->editColumn('factura_nro', function ($movement) {
-                    if ($movement->type == 'VENTA' || $movement->type == 'VENTACLIENTE' || $movement->type == 'TRASLADO') {
-                        if (isset($movement->invoice) && count($movement->invoice)) {
-                            $urls = '';
-                            foreach ($movement->invoice as $invoice) {
-                                if (!is_null($invoice->cae) && !is_null($invoice->url)) {
-                                    $number = ($invoice->cyo) ? 'CyO - ' . $invoice->voucher_number : $invoice->voucher_number;
-                                    $urls .= '<a class="text-primary" title="Descargar factura" target="_blank" href="' . $invoice->url . '"> ' . $number . ' </a><br>';
-                                } elseif (!is_null($invoice->cae) && is_null($invoice->url)) {
-                                    $number = ($invoice->cyo) ? 'CyO - ' . $invoice->voucher_number : $invoice->voucher_number;
-                                    $urls .= '<a class="text-primary" title="Generar Comprobantes" target="_blank" href="' . route('ver.fe', ['movment_id' => $movement->id]) . '">' . $number . ' </a><br>';
-                                }
-                            }
-                            return $urls;
-                        }
-                        if ($movement->status != 'FINISHED_AND_GENERATED_FACT') {
-                            return '<a href="' . route('pre.invoice', ['movment_id' => $movement->id]) . '">Generar Comprobantes </a>';
-                        }
-                        return '--';
-                    }
-                })
-                ->addColumn('remito', function ($movement) {
-                    return '<a title="Imprimir remito"  href="javascript:void(0)" onclick="createRemito(' . $movement->id . ')"> <i class="fas fa-print"></i> </a>';
-                })
-                ->addColumn('orden', function ($movement) {
+        //     return DataTables::of($movement)
+        //         ->addColumn('id', function ($movement) {
+        //             return '<a title="Detalles de salida" href="' . route('salidas.show', ['id' => $movement->id]) . '">' . str_pad($movement->id, 6, '0', STR_PAD_LEFT) . '</a>';
+        //         })
+        //         ->addColumn('destino', function ($movement) {
+        //             return $movement->origenData($movement->type);
+        //         })
+        //         ->addColumn('tipo', function ($movement) {
+        //             $categ = '<span style="font-size:9px;">';
+        //             if (\Auth::user()->rol() == 'contable') {
+        //                 $categ .= ($movement->categoria == 1) ? '(CONG)' : '(NO-CONG)';
+        //                 $categ .= '</span>';
+        //             }
+        //             return $movement->type . ' ' . $categ;
+        //         })
+        //         ->editColumn('date', function ($movement) {
+        //             return date('d-m-Y', strtotime($movement->date));
+        //         })
+        //         ->addColumn('items', function ($movement) {
+        //             $count = MovementProduct::whereMovementId($movement->id)->where('egress', '>', 0)->distinct('product_id')->count();
+        //             return '<span class="badge badge-primary">' . $count . '</span>';
+        //         })
+        //         ->editColumn('observacion', function ($movement) {
+        //             return ($movement->observacion == 'VENTA DIRECTA') ? '<i class="fa fa-check-circle text-dark"></i>' : null;
+        //         })
+        //         ->editColumn('factura_nro', function ($movement) {
+        //             if ($movement->type == 'VENTA' || $movement->type == 'VENTACLIENTE' || $movement->type == 'TRASLADO') {
+        //                 if (isset($movement->invoice) && count($movement->invoice)) {
+        //                     $urls = '';
+        //                     foreach ($movement->invoice as $invoice) {
+        //                         if (!is_null($invoice->cae) && !is_null($invoice->url)) {
+        //                             $number = ($invoice->cyo) ? 'CyO - ' . $invoice->voucher_number : $invoice->voucher_number;
+        //                             $urls .= '<a class="text-primary" title="Descargar factura" target="_blank" href="' . $invoice->url . '"> ' . $number . ' </a><br>';
+        //                         } elseif (!is_null($invoice->cae) && is_null($invoice->url)) {
+        //                             $number = ($invoice->cyo) ? 'CyO - ' . $invoice->voucher_number : $invoice->voucher_number;
+        //                             $urls .= '<a class="text-primary" title="Generar Comprobantes" target="_blank" href="' . route('ver.fe', ['movment_id' => $movement->id]) . '">' . $number . ' </a><br>';
+        //                         }
+        //                     }
+        //                     return $urls;
+        //                 }
+        //                 if ($movement->status != 'FINISHED_AND_GENERATED_FACT') {
+        //                     return '<a href="' . route('pre.invoice', ['movment_id' => $movement->id]) . '">Generar Comprobantes </a>';
+        //                 }
+        //                 return '--';
+        //             }
+        //         })
+        //         ->addColumn('remito', function ($movement) {
+        //             return '<a title="Imprimir remito"  href="javascript:void(0)" onclick="createRemito(' . $movement->id . ')"> <i class="fas fa-print"></i> </a>';
+        //         })
+        //         ->addColumn('orden', function ($movement) {
 
-                    // se comentan estas lineas el 10/10/22 porque ahora la orden imprime todos los productos tanto panamas como facturados
-                    /* return ($movement->hasInvoices())
-                        ? '<a class="text-primary" title="Imprimir Orden"  href="' . route('print.orden', ['id' => $movement->id]) . '" target="_blank"> <i class="fas fa-list"></i> </a>'
-                        : null; */
-                    return '<a class="text-primary" title="Imprimir Orden"  href="' . route('print.orden', ['id' => $movement->id]) . '" target="_blank"> <i class="fas fa-list"></i> </a>';
-                })
-                ->addColumn('paper', function ($movement) {
-                    if ($movement->hasPanama()) {
-                        $orden = $movement->getPanama()->orden;
-                        return '<a class="text-primary" title="Imprime panama"  href="' . route('print.panama', ['id' => $movement->id]) . '" target="_blank">' . $orden . '</a>';
-                    }
-                })
-                ->addColumn('flete', function ($movement) {
-                    if ($movement->hasFlete()) {
-                        $orden = $movement->getFlete()->orden;
-                        return '<a class="text-primary" title="Imprimir flete' . $orden . '"  href="' . route('print.panama.felete', ['id' => $movement->id]) . '" target="_blank">' . $orden . '</a>';
-                    }
-                })
+        //             // se comentan estas lineas el 10/10/22 porque ahora la orden imprime todos los productos tanto panamas como facturados
+        //             /* return ($movement->hasInvoices())
+        //                 ? '<a class="text-primary" title="Imprimir Orden"  href="' . route('print.orden', ['id' => $movement->id]) . '" target="_blank"> <i class="fas fa-list"></i> </a>'
+        //                 : null; */
+        //             return '<a class="text-primary" title="Imprimir Orden"  href="' . route('print.orden', ['id' => $movement->id]) . '" target="_blank"> <i class="fas fa-list"></i> </a>';
+        //         })
+        //         ->addColumn('paper', function ($movement) {
+        //             if ($movement->hasPanama()) {
+        //                 $orden = $movement->getPanama()->orden;
+        //                 return '<a class="text-primary" title="Imprime panama"  href="' . route('print.panama', ['id' => $movement->id]) . '" target="_blank">' . $orden . '</a>';
+        //             }
+        //         })
+        //         ->addColumn('flete', function ($movement) {
+        //             if ($movement->hasFlete()) {
+        //                 $orden = $movement->getFlete()->orden;
+        //                 return '<a class="text-primary" title="Imprimir flete' . $orden . '"  href="' . route('print.panama.felete', ['id' => $movement->id]) . '" target="_blank">' . $orden . '</a>';
+        //             }
+        //         })
 
-                ->rawColumns(['id', 'origen', 'items', 'date', 'tipo', 'observacion', 'factura_nro', 'remito', 'paper', 'flete', 'orden'])
-                ->make(true);
-        }
+        //         ->rawColumns(['id', 'origen', 'items', 'date', 'tipo', 'observacion', 'factura_nro', 'remito', 'paper', 'flete', 'orden'])
+        //         ->make(true);
+        // }
         return view('admin.movimientos.salidas.index');
-    }
-
-    public function indexData(Request $request)
-    {
-        return view('admin.movimientos.salidas.indexData');
     }
 
     public function getSalidas(Request $request)

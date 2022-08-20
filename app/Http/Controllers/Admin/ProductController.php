@@ -1160,48 +1160,62 @@ class ProductController extends Controller
         $start_val = $request->input('start');
 
         if (empty($request->input('search.value'))) {
-            $productos = Product::where('active', '=', 1)->where('categorie_id', 1)
+            $productos = Product::where('products.active', '=', 1)->where('categorie_id', 1)
+                ->join('stock_semanal_compra', 'products.id', '=', 'stock_semanal_compra.product_id')
+                ->join('proveedors', 'products.proveedor_id', '=', 'proveedors.id')
+                ->select('products.name as producto', 'products.cod_fenovo', 'products.unit_package', 'products.unit_type',
+                    'proveedors.name as proveedor',
+                    'stock_semanal_compra.inicio', 'stock_semanal_compra.compras', 'stock_semanal_compra.salidas', 'stock_semanal_compra.actual',
+                    'stock_semanal_compra.costo',
+                )
                 ->offset($start_val)
                 ->limit($limit_val)
                 ->orderBy('cod_fenovo')
                 ->get();
         } else {
             $search_text = $request->input('search.value');
-            $productos   = Product::where('active', '=', 1)->where('categorie_id', 1)
-                ->where('cod_fenovo', 'LIKE', "%{$search_text}%")
+            $productos   = Product::where('products.active', '=', 1)->where('categorie_id', 1)
+                ->join('stock_semanal_compra', 'products.id', '=', 'stock_semanal_compra.product_id')
+                ->join('proveedors', 'products.proveedor_id', '=', 'proveedors.id')
+                ->select('products.name as producto', 'products.cod_fenovo', 'products.unit_package', 'products.unit_type',
+                    'proveedors.name as proveedor',
+                    'stock_semanal_compra.inicio', 'stock_semanal_compra.compras', 'stock_semanal_compra.salidas', 'stock_semanal_compra.actual',
+                    'stock_semanal_compra.costo',
+                )
+                ->selectRaw('CONCAT(products.cod_fenovo," ", products.name," ", proveedors.name) as txtMovimiento')
+                ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
                 ->offset($start_val)
                 ->limit($limit_val)
                 ->orderBy('cod_fenovo')
                 ->get();
 
-            $totalFilteredRecord = Product::where('active', '=', 1)->where('categorie_id', 1)
-                ->where('cod_fenovo', 'LIKE', "%{$search_text}%")
-                ->offset($start_val)
-                ->limit($limit_val)
-                ->orderBy('cod_fenovo')
+            $totalFilteredRecord = Product::where('products.active', '=', 1)->where('categorie_id', 1)
+                ->join('stock_semanal_compra', 'products.id', '=', 'stock_semanal_compra.product_id')
+                ->join('proveedors', 'products.proveedor_id', '=', 'proveedors.id')
+                ->select('products.name as producto', 'products.cod_fenovo', 'products.unit_package', 'products.unit_type',
+                    'proveedors.name as proveedor',
+                    'stock_semanal_compra.inicio', 'stock_semanal_compra.compras', 'stock_semanal_compra.salidas', 'stock_semanal_compra.actual',
+                    'stock_semanal_compra.costo',
+                )
+                ->selectRaw('CONCAT(products.cod_fenovo," ", products.name," ", proveedors.name) as txtMovimiento')
+                ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
                 ->count();
         }
 
         $data = [];
-        $hoy  = Carbon::parse(now())->format('Y-m-d');
 
         if (!empty($productos)) {
             foreach ($productos as $producto) {
-                $movement['proveedor']         = $producto->proveedor->name;
-                $movement['name']              = $producto->name;
+                $movement['name']              = $producto->producto;
+                $movement['costo']             = $producto->costo;
                 $movement['cod_fenovo']        = $producto->cod_fenovo;
-                $movement['unit_type']         = $producto->unit_type;
                 $movement['unit_package']      = $producto->unit_package;
-                $movement['stockInicioSemana'] = ($producto->stockInicioSemana()) ? $producto->stockInicioSemana()->balance : 0;
-                $movement['ingresoSemana']     = $producto->ingresoSemana();
-                $movement['salidaSemana']      = $producto->salidaSemana();
-                $movement['stock']             = $producto->stockFinSemana();
-
-                $oferta            = SessionOferta::whereProductId($producto->id)->select('costfenovo')->where('fecha_desde', '<=', $hoy)->where('fecha_hasta', '>=', $hoy)->first();
-                $costo             = (!$oferta) ? $producto->product_price->costfenovo : $oferta->costfenovo;
-                $costo             = number_format($costo, 2);
-                $movement['costo'] = $costo;
-
+                $movement['unit_type']         = $producto->unit_type;
+                $movement['proveedor']         = $producto->proveedor;
+                $movement['stockInicioSemana'] = $producto->inicio;
+                $movement['ingresoSemana']     = $producto->compras;
+                $movement['salidaSemana']      = $producto->salidas;
+                $movement['stock']             = $producto->actual;
                 $data[] = $movement;
             }
         }
