@@ -1747,35 +1747,37 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * Class StockSummary
+ * App\Models\StockSemanalCompra
  *
  * @property int $id
- * @property int|null $product_id
  * @property int|null $store_id
- * @property float|null $daily_sale
- * @property float|null $stock_min
- * @property float|null $stock_actual
- * @property float|null $net_weight
- * @property float|null $gross_weight
- * @property string|null $unit_type
- * @property string|null $unit_package
- * @property string|null $product_name
- * @property float|null $stock_capacity
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
- * @package App\Models
- * @method static \Illuminate\Database\Eloquent\Builder|StockSummary newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|StockSummary newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|StockSummary query()
- * @method static \Illuminate\Database\Eloquent\Builder|StockSummary whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|StockSummary whereDailySale($value)
- * @method static \Illuminate\Database\Eloquent\Builder|StockSummary whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|StockSummary whereProductId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|StockSummary whereStockActual($value)
- * @method static \Illuminate\Database\Eloquent\Builder|StockSummary whereStoreId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|StockSummary whereUpdatedAt($value)
+ * @property int|null $product_id
+ * @property string|null $costo
+ * @property string|null $fechaCaptura Fecha donde se obtuvo el movimiento
+ * @property int|null $inicio
+ * @property int|null $compras
+ * @property int|null $salidas
+ * @property int|null $actual
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property-read \App\Models\Product|null $product
+ * @property-read \App\Models\Store|null $store
+ * @method static \Illuminate\Database\Eloquent\Builder|StockSemanalCompra newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|StockSemanalCompra newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|StockSemanalCompra query()
+ * @method static \Illuminate\Database\Eloquent\Builder|StockSemanalCompra whereActual($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|StockSemanalCompra whereCompras($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|StockSemanalCompra whereCosto($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|StockSemanalCompra whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|StockSemanalCompra whereFechaCaptura($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|StockSemanalCompra whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|StockSemanalCompra whereInicio($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|StockSemanalCompra whereProductId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|StockSemanalCompra whereSalidas($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|StockSemanalCompra whereStoreId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|StockSemanalCompra whereUpdatedAt($value)
  */
-	class StockSummary extends \Eloquent {}
+	class StockSemanalCompra extends \Eloquent {}
 }
 
 namespace App\Models{
@@ -1861,23 +1863,24 @@ namespace App\Models{
 
 namespace App\Models{
 /**
- * Class StoreResume
+ * App\Models\StoreResume
  *
  * @property int $id
  * @property int|null $store_id
- * @property float|null $total_daily_sale
- * @property float|null $stock_capacity
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
- * @package App\Models
+ * @property string|null $total_venta_diaria_bultos
+ * @property string|null $total_venta_diaria_kgrs
+ * @property string|null $capacidad_disponible
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  * @method static \Illuminate\Database\Eloquent\Builder|StoreResume newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|StoreResume newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|StoreResume query()
+ * @method static \Illuminate\Database\Eloquent\Builder|StoreResume whereCapacidadDisponible($value)
  * @method static \Illuminate\Database\Eloquent\Builder|StoreResume whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|StoreResume whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|StoreResume whereStockCapacity($value)
  * @method static \Illuminate\Database\Eloquent\Builder|StoreResume whereStoreId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|StoreResume whereTotalDailySale($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|StoreResume whereTotalVentaDiariaBultos($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|StoreResume whereTotalVentaDiariaKgrs($value)
  * @method static \Illuminate\Database\Eloquent\Builder|StoreResume whereUpdatedAt($value)
  */
 	class StoreResume extends \Eloquent {}
@@ -2030,6 +2033,33 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder|Vehiculo whereTransportistaId($value)
  */
 	class Vehiculo extends \Eloquent {}
+}
+
+namespace App\Models{
+/**
+ * App\Models\VentaDiaria
+ *
+ * @property int $id
+ * @property int|null $product_id
+ * @property int|null $store_id
+ * @property string|null $bultos
+ * @property string|null $kgrs
+ * @property string|null $stock_actual
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @method static \Illuminate\Database\Eloquent\Builder|VentaDiaria newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|VentaDiaria newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|VentaDiaria query()
+ * @method static \Illuminate\Database\Eloquent\Builder|VentaDiaria whereBultos($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|VentaDiaria whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|VentaDiaria whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|VentaDiaria whereKgrs($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|VentaDiaria whereProductId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|VentaDiaria whereStockActual($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|VentaDiaria whereStoreId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|VentaDiaria whereUpdatedAt($value)
+ */
+	class VentaDiaria extends \Eloquent {}
 }
 
 namespace App\Models{
