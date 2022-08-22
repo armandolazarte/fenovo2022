@@ -8,6 +8,10 @@ Route::get('salidas', [SalidasController::class, 'index'])->name('salidas.index'
 Route::get('salidas/add', [SalidasController::class, 'add'])->name('salidas.add');
 Route::get('salidas/show', [SalidasController::class, 'show'])->name('salidas.show');
 
+// Salidas DataTable
+Route::get('salidas/data', [SalidasController::class, 'indexData'])->name('salidas.indexData');
+Route::get('salidas/data/get', [SalidasController::class, 'getSalidas'])->name('salidas.getSalidas');
+
 Route::get('salidas-pendientes', [SalidasController::class, 'pendientes'])->name('salidas.pendientes');
 Route::get('salidas-pendiente/show', [SalidasController::class, 'pendienteShow'])->name('salidas.pendiente.show');
 Route::get('salidas-pendiente/motivo', [SalidasController::class, 'pendienteMotivoDestroy'])->name('salidas.pendienteMotivo');

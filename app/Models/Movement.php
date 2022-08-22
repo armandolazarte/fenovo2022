@@ -10,7 +10,6 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Env;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -56,6 +55,7 @@ class Movement extends Model
         'exported',
         'user_id',
         'observacion',
+        'categoria'
     ];
 
     public function movement_products()
@@ -63,27 +63,31 @@ class Movement extends Model
         return $this->hasMany(MovementProduct::class);
     }
 
-    public function products_egress(){
+    public function products_egress()
+    {
         return $this->hasMany(MovementProduct::class)->where('egress', '>', 0);
     }
 
     public function movement_salida_products()
     {
-       return $this->hasMany(MovementProduct::class)->where('egress', '>', 0)->where('circuito', '!=', 'CyO');
+        return $this->hasMany(MovementProduct::class)->where('egress', '>', 0)->where('circuito', '!=', 'CyO');
     }
 
-    public function group_products_egress(){
-        return $this->hasMany(MovementProduct::class)->where('egress', '>', 0)
-                     ->select(['*',DB::raw("SUM(bultos) as bultos")])
-                     ->groupBy('product_id');
+    public function group_products_egress()
+    {
+        $movimientos =  $this->hasMany(MovementProduct::class)->where('egress', '>', 0)
+            ->select(['*', DB::raw('SUM(bultos) as bultos')])
+            ->groupBy('product_id');
+
+        return $movimientos->join('products', 'movement_products.product_id', '=', 'products.id')->orderBy('products.cod_fenovo', 'asc');
     }
 
     public function group_movement_salida_products()
     {
-       return $this->hasMany(MovementProduct::class)->where('egress', '>', 0)
+        return $this->hasMany(MovementProduct::class)->where('egress', '>', 0)
                     ->where('circuito', '!=', 'CyO')
-                    ->where('invoice',true)
-                    ->select(['*',DB::raw("SUM(bultos) as bultos")])
+                    ->where('invoice', true)
+                    ->select(['*', DB::raw('SUM(bultos) as bultos')])
                     ->groupBy('product_id');
     }
 
@@ -105,7 +109,6 @@ class Movement extends Model
     public function totalKgrs()
     {
         $kgrs = 0;
-
         $arrIngreso = ['COMPRA', 'DEVOLUCION', 'DEVOLUCIONCLIENTE'];
         $arrEgreso  = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
         $mp         = (in_array($this->type, $arrIngreso)) ? $this->movement_ingreso_products : $this->movement_salida_products;
@@ -120,6 +123,11 @@ class Movement extends Model
     public function invoice()
     {
         return $this->hasMany(Invoice::class);
+    }
+
+    public function invoiceCompra()
+    {
+        return $this->hasOne(InvoiceCompra::class);
     }
 
     public function invoice_fenovo()
@@ -138,14 +146,14 @@ class Movement extends Model
                     ->where('egress', '>', 0)
                     ->where('invoice', false)
                     ->where('circuito', '!=', 'CyO')
-                    ->select(['*',DB::raw("SUM(bultos) as bultos")])
-                    ->groupBy('product_id');;
+                    ->select(['*', DB::raw('SUM(bultos) as bultos')])
+                    ->groupBy('product_id');
     }
 
     public function verifSiFactura()
     {
         return MovementProduct::where('movement_id', $this->id)
-                              ->where('entidad_id',\Auth::user()->store_active)
+                              ->where('entidad_id', \Auth::user()->store_active)
                               ->where('entidad_tipo', 'S')
                               ->where('invoice', true)
                               ->count();
@@ -155,7 +163,7 @@ class Movement extends Model
     {
         if(Panamas::where('movement_id', $this->id)->where('tipo','PAN')->exists()) return 0;
         return MovementProduct::where('movement_id', $this->id)
-                             ->where('entidad_id',\Auth::user()->store_active)
+                             ->where('entidad_id', \Auth::user()->store_active)
                              ->where('entidad_tipo', 'S')
                              ->where('invoice', false)
                              ->count();
@@ -212,7 +220,7 @@ class Movement extends Model
                 if ($returnObject) {
                     return $Store;
                 }
-                return $Store->description;
+                return str_pad($Store->cod_fenovo, 3, '0', STR_PAD_LEFT).' - '.$Store->description ;
             case 'DEVOLUCIONCLIENTE':
                 $customer = Customer::find($this->to);
                 return $customer->razon_social;
@@ -232,13 +240,13 @@ class Movement extends Model
                 if ($returnObject) {
                     return $Store;
                 }
-                return $Store->description;
+                return str_pad($Store->cod_fenovo, 3, '0', STR_PAD_LEFT).' - '.$Store->description ;
             case 'DEVOLUCIONCLIENTE':
                 $Store = Store::find($this->from);
                 if ($returnObject) {
                     return $Store;
                 }
-                return $Store->description;
+                return str_pad($Store->cod_fenovo, 3, '0', STR_PAD_LEFT).' - '.$Store->description ;
             case 'VENTACLIENTE':
                 $Customer = Customer::find($this->to);
                 if ($returnObject) {
@@ -263,8 +271,8 @@ class Movement extends Model
             case 'TRASLADO':
             case 'DEVOLUCION':
             case 'DEBITO':
-                $store = Store::find($typeTo);
-                return $store->description;
+                $Store = Store::find($typeTo);
+                return str_pad($Store->cod_fenovo, 3, '0', STR_PAD_LEFT).' - '.$Store->description ;
             case 'VENTACLIENTE':
             case 'DEBITOCLIENTE':
             case 'DEVOLUCIONCLIENTE':

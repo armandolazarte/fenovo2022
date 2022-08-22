@@ -20,7 +20,7 @@
                                     <a href="{{url('fletes')}}" class="mt-1 mr-3">
                                         Parámetros de fletes
                                     </a>
-                                    
+
                                     <a href="{{ route('stores.add') }}" class="ml-2">
                                         <i class="fa fa-2x fa-plus-circle text-primary"></i>
                                     </a>

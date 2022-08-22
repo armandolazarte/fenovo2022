@@ -43,6 +43,7 @@ class MovementProduct extends Model
         'circuito',
         'punto_venta',
         'palet',
+        'deposito',
     ];
 
     public function movement()

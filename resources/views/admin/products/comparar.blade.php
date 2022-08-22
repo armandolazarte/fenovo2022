@@ -31,8 +31,8 @@
                                 <thead class="text-body">
                                     <tr class="bg-light">
                                         <th>Proveedor</th>
-                                        <th>Codigo Fenovo</th>
-                                        <th>Nombre producto</th>
+                                        <th>Codigo</th>
+                                        <th>Producto</th>
                                         <th>Costo</th>
                                         <th>Unidad</th>
                                         <th>Pres</th>
@@ -42,7 +42,7 @@
                                         <th>StockFin</th>
                                     </tr>
                                 </thead>
-                                <tbody class="kt-table-tbody text-dark">
+                                <tbody>
                                 </tbody>
                             </table>
                         </div>
@@ -61,18 +61,18 @@
 <script>
     var table = jQuery('.yajra-datatable').DataTable({
         @include('partials.table.setting'),
-        ajax: "{{ route('products.compararStock') }}",
+        ajax: "{{ route('products.getCompararStocks') }}",
         columns: [
-            {data: 'proveedor', orderable: false},
-            {data: 'cod_fenovo', orderable: false},
-            {data: 'name', 'className': 'text-left',orderable: false},
-            {data: 'costo', orderable: false, searchable: false},
-            {data: 'unit_type', orderable: false, searchable: false},
-            {data: 'unit_package', orderable: false, searchable: false},
-            {data: 'stockInicioSemana', orderable: false, searchable: false},
-            {data: 'ingresoSemana', 'className': 'text-success', orderable: false, searchable: false},
-            {data: 'salidaSemana', 'className': 'text-danger', orderable: false, searchable: false},
-            {data: 'stock', 'className': 'font-weight-bolder', orderable: false, searchable: false},
+            {data: 'proveedor', 'className': 'text-left'},
+            {data: 'cod_fenovo'},
+            {data: 'name', 'className': 'text-left'},
+            {data: 'costo'},
+            {data: 'unit_type'},
+            {data: 'unit_package'},
+            {data: 'stockInicioSemana'},
+            {data: 'ingresoSemana', 'className': 'text-success'},
+            {data: 'salidaSemana', 'className': 'text-danger'},
+            {data: 'stock', 'className': 'font-weight-bolder'},
         ]
     });
 </script>

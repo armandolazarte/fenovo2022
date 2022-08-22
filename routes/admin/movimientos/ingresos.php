@@ -14,6 +14,17 @@ Route::post('ingresos/store', [IngresosController::class, 'store'])->name('ingre
 Route::get('ingresos/close', [IngresosController::class, 'close'])->name('ingresos.close');
 Route::get('ingresos/checked', [IngresosController::class, 'checkedCerrada'])->name('ingresos.checkedCerrada');
 
+// No congelados
+Route::get('ingresos/add/no-congelados', [IngresosController::class, 'addNocongelados'])->name('ingresos.addNocongelados');
+Route::post('ingresos/store/no-congelados', [IngresosController::class, 'storeNocongelados'])->name('ingresos.storeNocongelados');
+Route::get('ingresos/edit/no-congelados', [IngresosController::class, 'editNocongelados'])->name('ingresos.editNocongelados');
+Route::post('ingresos/close/no-congelados', [IngresosController::class, 'closeNocongelados'])->name('ingresos.closeNocongelados');
+Route::post('ingresos/close/no-congelados/check', [IngresosController::class, 'closeNocongeladosCheck'])->name('ingresos.closeNocongelados.check');
+Route::post('ingresos/check-voucher', [IngresosController::class, 'checkVoucher'])->name('ingresos.checkVoucher');
+
+Route::get('ingresos/check/no-congelados', [IngresosController::class, 'checkNocongelados'])->name('ingresos.checkNocongelados');
+
+
 Route::get('ingresos/edit', [IngresosController::class, 'edit'])->name('ingresos.edit');
 Route::get('ingresos/edit-ingreso', [IngresosController::class, 'editIngreso'])->name('ingresos.editIngreso');
 Route::post('ingresos/update-ingreso', [IngresosController::class, 'updateIngreso'])->name('ingresos.updateIngreso');
@@ -41,10 +52,21 @@ Route::get('ingresos/ajustar/stockDepositos/close', [IngresosController::class, 
 // Ajustar Stock de las compras
 Route::post('ingresos/ajustar/item', [IngresosController::class, 'ajustarIngresoItem'])->name('ajustar.ingreso.item');
 
-
 // Detalle ingresos
 Route::get('detalle-ingresos/movimentos', [DetalleIngresosController::class, 'getMovements'])->name('detalle-movimiento.getMovements');
 Route::post('detalle-ingresos/destroy', [DetalleIngresosController::class, 'destroy'])->name('detalle-ingresos.destroy');
 Route::post('detalle-ingresos/store', [DetalleIngresosController::class, 'store'])->name('detalle-ingresos.store');
 Route::post('detalle-ingresos/check', [DetalleIngresosController::class, 'check'])->name('detalle-ingresos.check');
 
+Route::post('detalle-ingresos/check/no-congelados', [DetalleIngresosController::class, 'checkNoCongelados'])->name('detalle-ingresos.check.noCongelado');
+Route::post('detalle-ingresos/check/no-congelados/check', [DetalleIngresosController::class, 'checkNoCongeladosCheck'])->name('detalle-ingresos.check.noCongelado.check');
+
+Route::get('ingresos/edit-producto/no-congelados', [IngresosController::class, 'editProductNoCongelados'])->name('ingresos.editProduct.noCongelado');
+Route::get('ingresos/edit-producto/no-congelados/check', [IngresosController::class, 'editProductNoCongeladosCheck'])->name('ingresos.editProduct.noCongelado.check');
+Route::post('ingresos/update-producto/no-congelados', [IngresosController::class, 'updateProductNoCongelados'])->name('ingresos.updateProduct.noCongelado');
+Route::post('ingresos/update-producto/no-congelados/check', [IngresosController::class, 'updateProductNoCongeladosCheck'])->name('ingresos.updateProduct.noCongelado.check');
+Route::post('detalle-ingresos/destroy/no-congelados', [DetalleIngresosController::class, 'destroyNoCongelados'])->name('detalle-ingresos.destroy.noCongelado');
+Route::post('detalle-ingresos/destroy/no-congelados/check', [DetalleIngresosController::class, 'destroyNoCongeladosCheck'])->name('detalle-ingresos.destroy.noCongelado.check');
+
+Route::post('detalle-ingresos/store/no-congelados', [DetalleIngresosController::class, 'storeNoCongelados'])->name('detalle-ingresos.store.noCongelado');
+Route::post('detalle-ingresos/store/no-congelados/check', [DetalleIngresosController::class, 'storeNoCongeladosCheck'])->name('detalle-ingresos.store.noCongelado.check');

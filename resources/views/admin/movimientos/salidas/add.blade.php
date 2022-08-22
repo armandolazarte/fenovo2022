@@ -1,5 +1,18 @@
 @extends('layouts.app')
 
+@section('css')
+    <style>
+        .not-display {
+            display: none;
+            visibility: hidden;
+        }
+
+        .display-block {
+            display: block;
+        }
+    </style>
+@endsection
+
 @section('content')
     <div class="subheader py-2 py-lg-6 subheader-solid">
         <div class="container-fluid">
@@ -33,6 +46,31 @@
 @endsection
 
 @section('js')
+    @if (\Auth::user()->rol() == 'contable')
+        <script>
+            jQuery(document).ready(function() {
+                cargarTablaProductos();
+            });
+            jQuery("#to_type").change(function() {
+                var type = jQuery("#to_type").val();
+                if (type == 'TRASLADO') {
+                    jQuery("#col-tienda").removeClass('display-block');
+                    jQuery("#col-tienda").addClass('not-display');
+                    jQuery("#desde-deposito").removeClass('not-display');
+                    jQuery("#a-deposito").removeClass('not-display');
+                    jQuery("#desde-deposito").addClass('display-block');
+                    jQuery("#a-deposito").addClass('display-block');
+                } else {
+                    jQuery("#col-tienda").removeClass('not-display');
+                    jQuery("#col-tienda").addClass('display-block');
+                    jQuery("#desde-deposito").addClass('not-display');
+                    jQuery("#a-deposito").addClass('not-display');
+                    jQuery("#desde-deposito").removeClass('display-block');
+                    jQuery("#a-deposito").removeClass('display-block');
+                }
+            })
+        </script>
+    @endif
     <script>
         jQuery(document).ready(function() {
             @if (isset($destino))
@@ -48,13 +86,16 @@
             jQuery('.movimientoPopup').addClass('offcanvas-on');
         }
 
-        const cambioPalet = (id, palet)=>{
+        const cambioPalet = (id, palet) => {
             var url = "{{ route('store.session.product.item') }}";
             jQuery.ajax({
                 url: url,
                 type: 'POST',
-                data: {id, palet}
-            });            
+                data: {
+                    id,
+                    palet
+                }
+            });
         }
 
         const actualizarMovimiento = () => {
@@ -138,9 +179,22 @@
             var elements = document.querySelectorAll('.is-invalid');
             var id = jQuery("#product_search").val();
 
+            var desde_deposito = null;
+            var a_deposito = null;
+
             var to_type = jQuery("#to_type").val();
             var to = jQuery("#to").val();
             var list_id = to_type + '_' + to;
+            desde_deposito = jQuery("#desde_deposito").val();
+            a_deposito = jQuery("#a_deposito").val();
+            var nro_pedido = jQuery("#nro_pedido").val();
+            if (nro_pedido) {
+                var list_id = to_type + '_' + to + '_' + nro_pedido;
+            } else if (desde_deposito) {
+                var list_id = to_type + '_' + desde_deposito + '-' + a_deposito;
+            } else {
+                var list_id = to_type + '_' + to;
+            }
 
             if (id != '') {
                 jQuery.ajax({
@@ -178,41 +232,73 @@
             cargarTablaProductos();
         });
 
-        function deleteItemSession(id, route) {
-            ymz.jq_confirm({
-                title: 'Eliminar',
-                text: "confirma borrar registro ?",
-                no_btn: "Cancelar",
-                yes_btn: "Confirma",
-                no_fn: function() {
-                    return false;
-                },
-                yes_fn: function() {
-                    jQuery.ajax({
-                        url: route,
-                        type: 'POST',
-                        dataType: 'json',
-                        data: {
-                            id: id
-                        },
-                        success: function(data) {
-                            if (data['type'] == 'success') {
-                                jQuery("#divAlertStock").html('');
-                                cargarTablaProductos();
+        jQuery('#desde_deposito').change(function() {
+            cargarTablaProductos();
+        });
+
+        jQuery('#a_deposito').change(function() {
+            cargarTablaProductos();
+        });
+
+        function deleteItemSession() {
+
+            let route = '{{ route('delete.item.session.produc') }}';
+            var arrId = [];
+            jQuery('.deleteItem:checked').each(function() {
+                arrId.push(jQuery(this).val());
+            })
+
+            if (arrId.length > 0) {
+
+                ymz.jq_confirm({
+                    title: 'Eliminar',
+                    text: "confirma borrar registro/s ?",
+                    no_btn: "Cancelar",
+                    yes_btn: "Confirma",
+                    no_fn: function() {
+                        return false;
+                    },
+                    yes_fn: function() {
+                        jQuery.ajax({
+                            url: route,
+                            type: 'POST',
+                            dataType: 'json',
+                            data: {
+                                arrId
+                            },
+                            success: function(data) {
+                                if (data['type'] == 'success') {
+                                    jQuery("#divAlertStock").html('');
+                                    cargarTablaProductos();
+                                }
                             }
-                        }
-                    });
-                }
-            });
+                        });
+                    }
+                });
+
+            }
         }
 
         function cargarTablaProductos() {
+
+            var desde_deposito = null;
+            var a_deposito = null;
+
             var nro_pedido = jQuery("#nro_pedido").val();
             var to_type = jQuery("#to_type").val();
             var to = jQuery("#to").val();
-            if(nro_pedido){
+
+            desde_deposito = jQuery("#desde_deposito").val();
+            a_deposito = jQuery("#a_deposito").val();
+            var nro_pedido = jQuery("#nro_pedido").val();
+            console.log(desde_deposito)
+            console.log(a_deposito)
+            console.log(nro_pedido)
+            if (nro_pedido) {
                 var list_id = to_type + '_' + to + '_' + nro_pedido;
-            }else{
+            } else if (desde_deposito) {
+                var list_id = to_type + '_' + desde_deposito + '-' + a_deposito;
+            } else {
                 var list_id = to_type + '_' + to;
             }
 
@@ -242,10 +328,22 @@
         }
 
         function cargarFlete() {
+            var desde_deposito = null;
+            var a_deposito = null;
             var to_type = jQuery("#to_type").val();
             var to = jQuery("#to").val();
             var list_id = to_type + '_' + to;
             var total_from_session = jQuery("#total_from_session").val();
+            desde_deposito = jQuery("#desde_deposito").val();
+            a_deposito = jQuery("#a_deposito").val();
+            var nro_pedido = jQuery("#nro_pedido").val();
+            if (nro_pedido) {
+                var list_id = to_type + '_' + to + '_' + nro_pedido;
+            } else if (desde_deposito) {
+                var list_id = to_type + '_' + desde_deposito + '-' + a_deposito;
+            } else {
+                var list_id = to_type + '_' + to;
+            }
             var formData = {
                 list_id,
                 total_from_session
@@ -312,7 +410,8 @@
                         let presentacion_input = jQuery(this).attr("id").split('_');
                         let unit_type = jQuery("#unit_type").val();
                         let presentacion = presentacion_input[1];
-                        total = (unit_type == 'K') ? total + (valor * presentacion * unit_weight) : total + (valor * presentacion);
+                        total = (unit_type == 'K') ? total + (valor * presentacion * unit_weight) : total + (valor *
+                            presentacion);
                     });
                     total = total.toFixed(2);
                 }
@@ -341,14 +440,28 @@
         })
 
         function guardarProductoEnSession() {
+            var deposito = null;
+            var desde_deposito = null;
+            var a_deposito = null;
+
             var unit_type = jQuery("#unit_type").val();
             var to_type = jQuery("#to_type").val();
             var product_id = jQuery("#product_search").val();
             var to = jQuery("#to").val();
+            deposito = document.querySelector('input[name="deposito"]:checked');
+            if (deposito) {
+                deposito = deposito.value;
+            }
+
+            desde_deposito = jQuery("#desde_deposito").val();
+            a_deposito = jQuery("#a_deposito").val();
+
             var nro_pedido = jQuery("#nro_pedido").val();
-            if(nro_pedido){
+            if (nro_pedido) {
                 var list_id = to_type + '_' + to + '_' + nro_pedido;
-            }else{
+            } else if (desde_deposito) {
+                var list_id = to_type + '_' + desde_deposito + '-' + a_deposito;
+            } else {
                 var list_id = to_type + '_' + to;
             }
             var unidades = jQuery("#unidades_a_enviar").serializeArray();
@@ -358,8 +471,13 @@
                 unidades,
                 to,
                 to_type,
-                unit_type
+                deposito,
+                desde_deposito,
+                a_deposito,
+                unit_type,
+                nro_pedido
             };
+
             var url = "{{ route('store.session.product') }}";
             var elements = document.querySelectorAll('.is-invalid');
             jQuery.ajax({
@@ -402,7 +520,7 @@
 
         jQuery('#btnPrintCerrarSalida').click(function(e) {
             var list_id = jQuery("#list_id").val();
-            if(!list_id || list_id == ''){
+            if (!list_id || list_id == '') {
                 var to_type = jQuery("#to_type").val();
                 var to = jQuery("#to").val();
                 var list_id = to_type + '_' + to;
@@ -430,11 +548,11 @@
                 type: 'POST',
                 data: formData,
                 beforeSend: function() {
-                    jQuery("#btnCloseSalida").attr('disabled',true);
+                    jQuery("#btnCloseSalida").attr('disabled', true);
                     jQuery('#loader').removeClass('hidden');
                 },
                 success: function(data) {
-                    jQuery("#btnCloseSalida").attr('disabled',false);
+                    jQuery("#btnCloseSalida").attr('disabled', false);
                     if (data['type'] == 'error') {
                         jQuery("#divAlertStock").html('');
                         jQuery("#divAlertStock").html(data['alert']);
@@ -443,14 +561,14 @@
                     } else {
                         toastr.info(data['msj'], 'EXITO');
                         setTimeout(() => {
-                            window.location.href = "{{route('salidas.index')}}"
+                            window.location.href = "{{ route('salidas.index') }}"
                         }, 600);
                     }
                 },
                 error: function(data) {},
                 complete: function() {
                     jQuery('#loader').addClass('hidden');
-                    jQuery("#btnCloseSalida").attr('disabled',false);
+                    jQuery("#btnCloseSalida").attr('disabled', false);
                 }
             });
         })

@@ -1,4 +1,4 @@
-lengthMenu : [[25, 50, -1], [25, 50, "Todos"]],
+lengthMenu : [[10, 25, 50, 500], [10, 25, 50, 500]],
 stateSave:true,
 processing: true,
 serverSide: true,
