@@ -256,7 +256,7 @@ class InvoiceController extends Controller
                 }
 
                 if (!isset($movement->factura_flete) && $movement->flete > 0) {
-                    if(!Panamas::where('movement_id', $movement->id)->where('tipo','FLE')->exists()){
+                    if(!Panamas::where('movement_id', $movement->id)->where('tipo','FLE')->orWhere('tipo','FLE T')->exists()){
                         $data_panama['tipo']               = 'FLE';
                         $data_panama['orden']              = $orden + 1;
                         $data_panama['neto105']            = 0.0;
