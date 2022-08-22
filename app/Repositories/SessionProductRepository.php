@@ -14,7 +14,8 @@ class SessionProductRepository extends BaseRepository
         return new SessionProduct();
     }
 
-    public function getByListId($list_id){
+    public function getByListId($list_id)
+    {
         return $this->newQuery()->where('list_id', $list_id)->whereNull('pausado')->with('producto')->orderBy('product_id')->get();
     }
 
@@ -28,7 +29,7 @@ class SessionProductRepository extends BaseRepository
         return $this->newQuery()->where('id', $id)->delete();
     }
 
-    public function getCantidadTotalDeBultosByListId($product_id, $unit_package = null, $list_id, $circuito=false)
+    public function getCantidadTotalDeBultosByListId($product_id, $unit_package = null, $list_id, $circuito = false)
     {
         return $this->newQuery()->where('product_id', $product_id)
                                 ->where('list_id', $list_id)
@@ -61,7 +62,7 @@ class SessionProductRepository extends BaseRepository
                 'store_id'     => $data['store_id'],
                 'list_id'      => $data['list_id'],
                 'circuito'     => $data['circuito'],
-                'pausado'      => null
+                'pausado'      => null,
             ],
             $data
         );
@@ -74,22 +75,22 @@ class SessionProductRepository extends BaseRepository
 
     public function groupBy($group)
     {
-        if(\Auth::user()->rol() == 'superadmin'){
-            return SessionProduct::select('*', DB::raw("COUNT(id) as total"))
-                                    ->where('store_id',\Auth::user()->store_active)
-                                    ->where('list_id', 'not like', '%DEVOLUCION_%')
-                                    ->orderBy('updated_at', 'DESC')
-                                    ->groupBy('list_id','pausado')
-                                    ->get();
-        }else{
-            return SessionProduct::select('*', DB::raw("COUNT(id) as total"))
-                                    ->where('store_id',\Auth::user()->store_active)
-                                    ->where('list_id', 'not like', '%DEVOLUCION_%')
-                                    ->where('user_id', \Auth::user()->id)
-                                    ->orderBy('updated_at', 'DESC')
-                                    ->groupBy('list_id','pausado')
-                                    ->get();
+        if (\Auth::user()->rol() == 'superadmin') {
+            return SessionProduct::select('*', DB::raw('COUNT(id) as total'))
+                ->where('store_id', \Auth::user()->store_active)
+                ->where('list_id', 'not like', '%DEVOLUCION_%')
+                ->orderBy('updated_at', 'DESC')
+                ->groupBy('list_id', 'pausado')
+                ->get();
         }
+        $user_id = (\Auth::user()->rol() == 'deposito') ? 24 : \Auth::user()->id;
+        return SessionProduct::select('*', DB::raw('COUNT(id) as total'))
+            ->where('store_id', \Auth::user()->store_active)
+            ->where('list_id', 'not like', '%DEVOLUCION_%')
+            ->where('user_id', $user_id)
+            ->orderBy('updated_at', 'DESC')
+            ->groupBy('list_id', 'pausado')
+            ->get();
     }
 
     public function getFlete($list_id)
