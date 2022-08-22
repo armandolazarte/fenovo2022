@@ -30,16 +30,16 @@
                             <table class=" table table-hover yajra-datatable text-center">
                                 <thead class="text-body">
                                     <tr class="bg-light">
-                                        <th>Proveedor</th>
                                         <th>Codigo</th>
                                         <th>Producto</th>
+                                        <th>Proveedor</th>
                                         <th>Costo</th>
-                                        <th>Unidad</th>
-                                        <th>Pres</th>
-                                        <th>StockIni</th>
-                                        <th>Entrada</th>
-                                        <th>Salida</th>
-                                        <th>StockFin</th>
+                                        <th>U.</th>
+                                        <th>P.</th>
+                                        <th>Inicio</th>
+                                        <th>Compras</th>
+                                        <th>Salidas</th>
+                                        <th>Actual</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -63,9 +63,9 @@
         @include('partials.table.setting'),
         ajax: "{{ route('products.getCompararStocks') }}",
         columns: [
-            {data: 'proveedor', 'className': 'text-left'},
             {data: 'cod_fenovo'},
             {data: 'name', 'className': 'text-left'},
+            {data: 'proveedor', 'className': 'text-left'},
             {data: 'costo'},
             {data: 'unit_type'},
             {data: 'unit_package'},
