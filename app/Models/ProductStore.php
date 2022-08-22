@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class ProductStore extends Model
@@ -20,10 +19,11 @@ class ProductStore extends Model
         'cod_fenovo',
         'stock_f',
         'stock_r',
-        'stock_cyo'
+        'stock_cyo',
     ];
 
-    public function deposito(){
+    public function deposito()
+    {
         return $this->hasOne(Store::class, 'id', 'store_id');
     }
 }
