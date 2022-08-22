@@ -80,13 +80,13 @@ class ProductController extends Controller
     public function list(Request $request)
     {
         if ($request->ajax()) {
-            $categorieIdBetween = [1,3];
-            $productos = DB::table('products as t1')
+            $categorieIdBetween = [1, 3];
+            $productos          = DB::table('products as t1')
                             ->where('t1.active', 1)
                             ->whereBetween('t1.categorie_id', $categorieIdBetween)
                             ->join('product_prices as t2', 't1.id', '=', 't2.product_id')
                             ->join('proveedors as t3', 't3.id', '=', 't1.proveedor_id')
-                            ->select(['t1.id','t1.active', 't1.cod_fenovo', 't1.name', 't1.unit_type', 't2.costfenovo', 't3.name as proveedor'])
+                            ->select(['t1.id', 't1.active', 't1.cod_fenovo', 't1.name', 't1.unit_type', 't2.costfenovo', 't3.name as proveedor'])
                             ->orderBy('t1.cod_fenovo')
                             ->get();
 
@@ -103,7 +103,7 @@ class ProductController extends Controller
                 })
 
                 ->addColumn('activo', function ($producto) {
-                    return ($producto->active == 0)?'<i class="fas fa-minus-circle text-danger"></i>':null ;
+                    return ($producto->active == 0) ? '<i class="fas fa-minus-circle text-danger"></i>' : null;
                 })
                 ->addColumn('ajuste', function ($producto) {
                     return '<a href="' . route('getData.stock.detail', ['id' => $producto->id]) . '"> <i class="fa fa-wrench" aria-hidden="true"></i> </a>';
@@ -160,7 +160,7 @@ class ProductController extends Controller
 
     public function historial(Request $request)
     {
-        $producto = Product::where('id',$request->id)->with('productos_store')->first(); 
+        $producto = Product::where('id', $request->id)->with('productos_store')->first();
 
         if ($request->ajax()) {
             $movimientos = MovementProduct::with(['movement'])
@@ -174,23 +174,23 @@ class ProductController extends Controller
                     return date('d/m/Y', strtotime($movimiento->created_at));
                 })
                 ->addColumn('type', function ($movimiento) {
-                    return ($movimiento->movement)?$movimiento->movement->type:null;
+                    return ($movimiento->movement) ? $movimiento->movement->type : null;
                 })
                 ->addColumn('from', function ($movimiento) {
-                    if(!is_null($movimiento->deposito) && $movimiento->movement->type != 'COMPRA'){
-                        $dep = Store::where('id',$movimiento->deposito)->first();
+                    if (!is_null($movimiento->deposito) && $movimiento->movement->type != 'COMPRA') {
+                        $dep = Store::where('id', $movimiento->deposito)->first();
                         return $dep->razon_social;
                     }
                     return $movimiento->movement->From($movimiento->movement->type);
                 })
                 ->addColumn('to', function ($movimiento) {
-                    return ($movimiento->movement)?$movimiento->movement->To($movimiento->movement->type):null;
+                    return ($movimiento->movement) ? $movimiento->movement->To($movimiento->movement->type) : null;
                 })
                 ->addColumn('orden', function ($movimiento) {
-                    return ($movimiento->movement)?$movimiento->movement->id:null;
+                    return ($movimiento->movement) ? $movimiento->movement->id : null;
                 })
                 ->addColumn('observacion', function ($movimiento) {
-                    return ($movimiento->movement)?$movimiento->movement->observacion:null;
+                    return ($movimiento->movement) ? $movimiento->movement->observacion : null;
                 })
 
                 ->rawColumns(['fecha', 'type', 'from', 'to', 'orden', 'observacion'])
@@ -208,7 +208,7 @@ class ProductController extends Controller
             $movimientos = MovementProduct::with(['movement'])
                 ->whereProductId($producto->id)
                 ->whereEntidadId($store->id)
-                ->orWhere('deposito',$store->id)
+                ->orWhere('deposito', $store->id)
                 ->orderBy('id', 'DESC')
                 ->get();
             return Datatables::of($movimientos)
@@ -217,14 +217,14 @@ class ProductController extends Controller
                     return date('d/m/Y', strtotime($movimiento->created_at));
                 })
                 ->addColumn('type', function ($movimiento) {
-                    if(!is_null($movimiento->deposito) && $movimiento->entry > 0 && $movimiento->movement->type == 'TRASLADO'){
+                    if (!is_null($movimiento->deposito) && $movimiento->entry > 0 && $movimiento->movement->type == 'TRASLADO') {
                         return 'INGRESO';
                     }
                     return $movimiento->movement->type;
                 })
                 ->addColumn('from', function ($movimiento) {
-                    if(!is_null($movimiento->deposito) && $movimiento->movement->type == 'TRASLADO'){
-                        $dep = Store::where('id',$movimiento->deposito)->first();
+                    if (!is_null($movimiento->deposito) && $movimiento->movement->type == 'TRASLADO') {
+                        $dep = Store::where('id', $movimiento->deposito)->first();
                         return $dep->razon_social;
                     }
                     return $movimiento->movement->From($movimiento->movement->type);
@@ -1146,39 +1146,88 @@ class ProductController extends Controller
 
     public function compararStock(Request $request)
     {
+        return view('admin.products.comparar');
+    }
 
-        if ($request->ajax()) {
-            $productos = Product::where('active', '=', 1)->get();
-            return Datatables::of($productos)
-                ->addIndexColumn()
-                ->addColumn('proveedor', function ($product) {
-                    return $product->proveedor->name;
-                })
-                ->addColumn('stockInicioSemana', function ($product) {
-                    return ($product->stockInicioSemana()) ? $product->stockInicioSemana()->balance : 0;
-                })
-                ->addColumn('ingresoSemana', function ($product) {
-                    return $product->ingresoSemana();
-                })
-                ->addColumn('salidaSemana', function ($product) {
-                    return $product->salidaSemana();
-                })
-                ->addColumn('stock', function ($product) {
-                    return $product->stockFinSemana();
-                })
-                ->addColumn('costo', function ($product) {
+    public function getCompararStocks(Request $request)
+    {
+        $totalFilteredRecord = $totalDataRecord = $draw = '';
 
-                    // Buscar si el producto tiene oferta del proveedor
-                    $hoy    = Carbon::parse(now())->format('Y-m-d');
-                    $oferta = SessionOferta::whereProductId($product->id)->select('costfenovo')->where('fecha_desde', '<=', $hoy)->where('fecha_hasta', '>=', $hoy)->first();
-                    $costo  = (!$oferta) ? $product->product_price->costfenovo : $oferta->costfenovo;
-                    return number_format($costo, 2);
-                })
-                ->rawColumns(['stockInicioSemana', 'ingresoSemana', 'salidaSemana', 'stock', 'costo'])
-                ->make(true);
+        $totalDataRecord     = Product::where('active', '=', 1)->where('categorie_id', 1)->count();
+        $totalFilteredRecord = $totalDataRecord;
+
+        $limit_val = $request->input('length');
+        $start_val = $request->input('start');
+
+        if (empty($request->input('search.value'))) {
+            $productos = Product::where('products.active', '=', 1)->where('categorie_id', 1)
+                ->join('stock_semanal_compra', 'products.id', '=', 'stock_semanal_compra.product_id')
+                ->join('proveedors', 'products.proveedor_id', '=', 'proveedors.id')
+                ->select('products.name as producto', 'products.cod_fenovo', 'products.unit_package', 'products.unit_type',
+                    'proveedors.name as proveedor',
+                    'stock_semanal_compra.inicio', 'stock_semanal_compra.compras', 'stock_semanal_compra.salidas', 'stock_semanal_compra.actual',
+                    'stock_semanal_compra.costo',
+                )
+                ->offset($start_val)
+                ->limit($limit_val)
+                ->orderBy('cod_fenovo')
+                ->get();
+        } else {
+            $search_text = $request->input('search.value');
+            $productos   = Product::where('products.active', '=', 1)->where('categorie_id', 1)
+                ->join('stock_semanal_compra', 'products.id', '=', 'stock_semanal_compra.product_id')
+                ->join('proveedors', 'products.proveedor_id', '=', 'proveedors.id')
+                ->select('products.name as producto', 'products.cod_fenovo', 'products.unit_package', 'products.unit_type',
+                    'proveedors.name as proveedor',
+                    'stock_semanal_compra.inicio', 'stock_semanal_compra.compras', 'stock_semanal_compra.salidas', 'stock_semanal_compra.actual',
+                    'stock_semanal_compra.costo',
+                )
+                ->selectRaw('CONCAT(products.cod_fenovo," ", products.name," ", proveedors.name) as txtMovimiento')
+                ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
+                ->offset($start_val)
+                ->limit($limit_val)
+                ->orderBy('cod_fenovo')
+                ->get();
+
+            $totalFilteredRecord = Product::where('products.active', '=', 1)->where('categorie_id', 1)
+                ->join('stock_semanal_compra', 'products.id', '=', 'stock_semanal_compra.product_id')
+                ->join('proveedors', 'products.proveedor_id', '=', 'proveedors.id')
+                ->select('products.name as producto', 'products.cod_fenovo', 'products.unit_package', 'products.unit_type',
+                    'proveedors.name as proveedor',
+                    'stock_semanal_compra.inicio', 'stock_semanal_compra.compras', 'stock_semanal_compra.salidas', 'stock_semanal_compra.actual',
+                    'stock_semanal_compra.costo',
+                )
+                ->selectRaw('CONCAT(products.cod_fenovo," ", products.name," ", proveedors.name) as txtMovimiento')
+                ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
+                ->count();
         }
 
-        return view('admin.products.comparar');
+        $data = [];
+
+        if (!empty($productos)) {
+            foreach ($productos as $producto) {
+                $movement['name']              = $producto->producto;
+                $movement['costo']             = $producto->costo;
+                $movement['cod_fenovo']        = $producto->cod_fenovo;
+                $movement['unit_package']      = $producto->unit_package;
+                $movement['unit_type']         = $producto->unit_type;
+                $movement['proveedor']         = $producto->proveedor;
+                $movement['stockInicioSemana'] = $producto->inicio;
+                $movement['ingresoSemana']     = $producto->compras;
+                $movement['salidaSemana']      = $producto->salidas;
+                $movement['stock']             = $producto->actual;
+                $data[] = $movement;
+            }
+        }
+        $draw          = $request->input('draw');
+        $get_json_data = [
+            'draw'            => intval($draw),
+            'recordsTotal'    => intval($totalDataRecord),
+            'recordsFiltered' => intval($totalFilteredRecord),
+            'data'            => $data,
+        ];
+
+        print json_encode($get_json_data);
     }
 
     public function printCompararStock(Request $request)
@@ -1439,7 +1488,7 @@ class ProductController extends Controller
             $productos = DB::table('products as t1')->where('t1.active', 1)
                 ->leftJoin('proveedors as t3', 't3.id', '=', 't1.proveedor_id')
                 ->leftJoin('products_store as t4', 't1.id', '=', 't4.product_id')
-                ->select(['t1.id', 't1.cod_fenovo', 't1.name as producto', 't1.unit_type', 't3.name as proveedor', 't1.unit_weight', 't1.unit_package' ])
+                ->select(['t1.id', 't1.cod_fenovo', 't1.name as producto', 't1.unit_type', 't3.name as proveedor', 't1.unit_weight', 't1.unit_package'])
                 ->selectRaw('t4.stock_f + t4.stock_r + t4.stock_cyo as stock')
                 ->selectRaw('(t4.stock_f + t4.stock_r + t4.stock_cyo) * t1.unit_weight as kilage')
                 ->where('t4.store_id', '=', $request->id)
@@ -1462,26 +1511,27 @@ class ProductController extends Controller
         return Excel::download(new ListaMayoristaFenovo(), 'lista-mayorista-fenovo-' . date('d-m-Y') . '.xlsx');
     }
 
-    public function importNoCongelados(){
+    public function importNoCongelados()
+    {
         $filepath = public_path('/imports/almacen.TXT');
-            $file     = fopen($filepath, 'r');
+        $file     = fopen($filepath, 'r');
 
-            $importData_arr = [];
-            $i              = 0;
+        $importData_arr = [];
+        $i              = 0;
 
-            while (($filedata = fgetcsv($file, 0, ',')) !== false) {
-                $num = count($filedata);
-                for ($c = 0; $c < $num; $c++) {
-                    $importData_arr[$i][] = $filedata[$c];
-                }
-                $i++;
+        while (($filedata = fgetcsv($file, 0, ',')) !== false) {
+            $num = count($filedata);
+            for ($c = 0; $c < $num; $c++) {
+                $importData_arr[$i][] = $filedata[$c];
             }
+            $i++;
+        }
 
-            fclose($file);
-            foreach ($importData_arr as $importData) {
-                $data       = [];
-                $categ = $importData[0];
-                switch ($categ) {
+        fclose($file);
+        foreach ($importData_arr as $importData) {
+            $data  = [];
+            $categ = $importData[0];
+            switch ($categ) {
                 case 'MP':
                     $categoria_id = 4;
                     break;
@@ -1497,35 +1547,35 @@ class ProductController extends Controller
                 default:
                     $categoria_id = 4;
                     break;
-                }
+            }
 
-                $costFenovo = $importData[3];
-                $mupFtk = $importData[7];
-                $cosven = $importData[8];
-                $iva    = $importData[9];
+            $costFenovo = $importData[3];
+            $mupFtk     = $importData[7];
+            $cosven     = $importData[8];
+            $iva        = $importData[9];
 
-                $insertData = [
-                    'cod_fenovo'    => $importData[1],
-                    'cod_proveedor' => null,
-                    'name'          => $importData[2],
-                    'proveedor_id'  => null,
-                    'categorie_id'  => $categoria_id,
-                    'barcode'       => null,
-                    'unit_type'     => $importData[4],
-                    'unit_weight'   => $importData[5],
-                    'unit_package'  => $importData[6],
-                    'package_palet' => 0,
-                    'package_row'   => 0,
-                    'cod_descuento' => null,
-                ];
+            $insertData = [
+                'cod_fenovo'    => $importData[1],
+                'cod_proveedor' => null,
+                'name'          => $importData[2],
+                'proveedor_id'  => null,
+                'categorie_id'  => $categoria_id,
+                'barcode'       => null,
+                'unit_type'     => $importData[4],
+                'unit_weight'   => $importData[5],
+                'unit_package'  => $importData[6],
+                'package_palet' => 0,
+                'package_row'   => 0,
+                'cod_descuento' => null,
+            ];
 
-                $producto_nuevo      = Product::updateOrCreate(['cod_fenovo'=>$importData[1]],$insertData);
+            $producto_nuevo = Product::updateOrCreate(['cod_fenovo' => $importData[1]], $insertData);
 
-                $plist1 = round($cosven * ($iva / 100 + 1) * (10 / 100 + 1), 2);
-                $plist2 = round($cosven * ($iva / 100 + 1) * (20 / 100 + 1), 2);
+            $plist1 = round($cosven * ($iva / 100 + 1) * (10 / 100 + 1), 2);
+            $plist2 = round($cosven * ($iva / 100 + 1) * (20 / 100 + 1), 2);
 
-                $plist1 = ((int)$plist1 == 0) ? 1 : $plist1;
-                $plist2 = ((int)$plist2 == 0) ? 1 : $plist2;
+            $plist1 = ((int)$plist1 == 0) ? 1 : $plist1;
+            $plist2 = ((int)$plist2 == 0) ? 1 : $plist2;
 
             $data = [
                 'product_id'        => $producto_nuevo->id,
@@ -1560,7 +1610,7 @@ class ProductController extends Controller
                 'cantmay1' => 10,
                 'cantmay2' => 10,
             ];
-            ProductPrice::updateOrCreate(['product_id'=>$producto_nuevo->id],$data);
+            ProductPrice::updateOrCreate(['product_id' => $producto_nuevo->id], $data);
         }
         dd('ok');
     }

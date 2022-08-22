@@ -95,7 +95,7 @@
                         @endif    
                     </td>
                     <td>
-                        <a href="{{ route('product.historial.tienda', ['store_id' => $store->id,'product_id' => $producto->id]) }}">
+                        <a href="{{ route('product.historial', ['id' => $producto->id]) }}">
                             <i class="fa fa-list" aria-hidden="true"></i>
                         </a>
                     </td>

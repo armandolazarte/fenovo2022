@@ -6,7 +6,6 @@ use App\Exports\CabeEleExport;
 use App\Exports\CabeExport;
 use App\Exports\DescuentosViewExport;
 use App\Exports\ExcepViewExport;
-use App\Exports\MovementsViewExport;
 use App\Exports\OfertaViewExport;
 use App\Exports\OrdenConsolidadaViewExport;
 use App\Exports\PresentacionesViewExport;

@@ -211,19 +211,19 @@ class Product extends Model
         return $stock;
     }
 
-    public function stockInicioSemana()
+    public function stockInicioSemana($entidad_id = 1)
     {
         $dias       = 8;
-        $movimiento = MovementProduct::whereEntidadId(1)
+        $movimiento = MovementProduct::whereEntidadId($entidad_id)
             ->where('created_at', '>', Carbon::now()->subDays($dias))
             ->whereProductId($this->id)
             ->orderBy('created_at')
             ->first();
         if (!$movimiento) {
             $dias++;
-            $tope = 31;
+            $tope = 1095;
             for ($i = $dias; $i < $tope; $i++) {
-                $movimiento = MovementProduct::whereEntidadId(1)
+                $movimiento = MovementProduct::whereEntidadId($entidad_id)
                     ->where('created_at', '>', Carbon::now()->subDays($i))
                     ->whereProductId($this->id)
                     ->orderBy('created_at')
