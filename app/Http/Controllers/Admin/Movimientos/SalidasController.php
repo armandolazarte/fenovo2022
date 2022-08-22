@@ -248,7 +248,7 @@ class SalidasController extends Controller
                         }
                         $factura = $urls;
                     }
-                    if ($movimiento->status != 'FINISHED_AND_GENERATED_FACT') {
+                    if (($movimiento->status != 'FINISHED_AND_GENERATED_FACT') && ($movimiento->type == 'VENTA' || $movimiento->type == 'VENTACLIENTE' )) {
                         $factura = '<a href="' . route('pre.invoice', ['movment_id' => $movimiento->id]) . '">Generar Comprobantes </a>';
                     }
                 }
