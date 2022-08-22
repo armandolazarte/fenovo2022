@@ -9,9 +9,9 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
-class VentaDiaria extends Model
+class StoreVentaDiaria extends Model
 {
-	protected $table = 'ventas_diarias';
+	protected $table = 'store_venta_diaria';
 
 	protected $fillable = [
 		'product_id',

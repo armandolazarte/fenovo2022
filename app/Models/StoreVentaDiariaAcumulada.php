@@ -5,9 +5,9 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
-class StoreResume extends Model
+class StoreVentaDiariaAcumulada extends Model
 {
-	protected $table = 'store_resumes';
+	protected $table = 'store_venta_diaria_acumulada';
 
 	protected $fillable = [
 		'store_id',

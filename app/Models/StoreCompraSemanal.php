@@ -9,27 +9,27 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
-class StockSemanalCompra extends Model
+class StoreCompraSemanal extends Model
 {
-	protected $table = 'stock_semanal_compra';
+    protected $table = 'store_compra_semanal';
 
-	protected $fillable = [
-		'store_id',
-		'product_id',
-		'costo',
-		'fechaCaptura',
-		'inicio',
-		'compras',
-		'salidas',
-		'actual',
-	];
+    protected $fillable = [
+        'store_id',
+        'product_id',
+        'costo',
+        'fechaCaptura',
+        'inicio',
+        'compras',
+        'salidas',
+        'actual',
+    ];
 
     public function store()
     {
         return $this->belongsTo(Store::class, 'store_id');
     }
 
-	public function product()
+    public function product()
     {
         return $this->belongsTo(Product::class, 'product_id');
     }

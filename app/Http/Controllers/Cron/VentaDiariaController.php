@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductStore;
 use App\Models\Store;
-use App\Models\StoreResume;
-use App\Models\VentaDiaria;
+use App\Models\StoreVentaDiaria;
+use App\Models\StoreVentaDiariaAcumulada;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -15,8 +15,9 @@ class VentaDiariaController extends Controller
 {
     public function init()
     {
-        VentaDiaria::truncate();
-        $stores   = Store::where('active', 1)->whereIn('store_type', ['B'])->get();
+        StoreVentaDiaria::truncate();
+        $stores   = Store::where('active', 1)->where('id', 11)->get();
+        //$stores   = Store::where('active', 1)->whereIn('store_type', ['B'])->get();
         $products = Product::where('categorie_id', 1)->where('active', 1)->get();
 
         foreach ($stores as $store) {
@@ -32,14 +33,14 @@ class VentaDiariaController extends Controller
                     'kgrs'         => $venta_diaria_kgrs,
                     'stock_actual' => $stock_actual,
                 ];
-                VentaDiaria::create($dataVentaDiaria);
+                StoreVentaDiaria::create($dataVentaDiaria);
             }
 
-            $total_venta_bultos = DB::table('ventas_diarias')->where('store_id', $store->id)->sum('bultos');
-            $total_venta_kgrs   = DB::table('ventas_diarias')->where('store_id', $store->id)->sum('kgrs');
+            $total_venta_bultos = DB::table('store_venta_diaria')->where('store_id', $store->id)->sum('bultos');
+            $total_venta_kgrs   = DB::table('store_venta_diaria')->where('store_id', $store->id)->sum('kgrs');
             $total_venta        = (is_null($total_venta_bultos)) ? 0 : (float)$total_venta_bultos;
             $stock_capacity     = round($store->stock_capacity - $total_venta, 2);
-            StoreResume::create([
+            StoreVentaDiariaAcumulada::create([
                 'store_id'             => $store->id,
                 'total_venta_diaria_bultos'   => $total_venta_bultos,
                 'total_venta_diaria_kgrs'   => $total_venta_kgrs,
@@ -80,5 +81,4 @@ class VentaDiariaController extends Controller
             ->sum('egress');
         return (is_null($suma)) ? 0 : (float)$suma;
     }
-
 }

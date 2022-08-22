@@ -1161,12 +1161,12 @@ class ProductController extends Controller
 
         if (empty($request->input('search.value'))) {
             $productos = Product::where('products.active', '=', 1)->where('categorie_id', 1)
-                ->join('stock_semanal_compra', 'products.id', '=', 'stock_semanal_compra.product_id')
+                ->join('store_compra_semanal', 'products.id', '=', 'store_compra_semanal.product_id')
                 ->join('proveedors', 'products.proveedor_id', '=', 'proveedors.id')
                 ->select('products.name as producto', 'products.cod_fenovo', 'products.unit_package', 'products.unit_type',
                     'proveedors.name as proveedor',
-                    'stock_semanal_compra.inicio', 'stock_semanal_compra.compras', 'stock_semanal_compra.salidas', 'stock_semanal_compra.actual',
-                    'stock_semanal_compra.costo',
+                    'store_compra_semanal.inicio', 'store_compra_semanal.compras', 'store_compra_semanal.salidas', 'store_compra_semanal.actual',
+                    'store_compra_semanal.costo',
                 )
                 ->offset($start_val)
                 ->limit($limit_val)
@@ -1175,12 +1175,12 @@ class ProductController extends Controller
         } else {
             $search_text = $request->input('search.value');
             $productos   = Product::where('products.active', '=', 1)->where('categorie_id', 1)
-                ->join('stock_semanal_compra', 'products.id', '=', 'stock_semanal_compra.product_id')
+                ->join('store_compra_semanal', 'products.id', '=', 'store_compra_semanal.product_id')
                 ->join('proveedors', 'products.proveedor_id', '=', 'proveedors.id')
                 ->select('products.name as producto', 'products.cod_fenovo', 'products.unit_package', 'products.unit_type',
                     'proveedors.name as proveedor',
-                    'stock_semanal_compra.inicio', 'stock_semanal_compra.compras', 'stock_semanal_compra.salidas', 'stock_semanal_compra.actual',
-                    'stock_semanal_compra.costo',
+                    'store_compra_semanal.inicio', 'store_compra_semanal.compras', 'store_compra_semanal.salidas', 'store_compra_semanal.actual',
+                    'store_compra_semanal.costo',
                 )
                 ->selectRaw('CONCAT(products.cod_fenovo," ", products.name," ", proveedors.name) as txtMovimiento')
                 ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
@@ -1190,12 +1190,12 @@ class ProductController extends Controller
                 ->get();
 
             $totalFilteredRecord = Product::where('products.active', '=', 1)->where('categorie_id', 1)
-                ->join('stock_semanal_compra', 'products.id', '=', 'stock_semanal_compra.product_id')
+                ->join('store_compra_semanal', 'products.id', '=', 'store_compra_semanal.product_id')
                 ->join('proveedors', 'products.proveedor_id', '=', 'proveedors.id')
                 ->select('products.name as producto', 'products.cod_fenovo', 'products.unit_package', 'products.unit_type',
                     'proveedors.name as proveedor',
-                    'stock_semanal_compra.inicio', 'stock_semanal_compra.compras', 'stock_semanal_compra.salidas', 'stock_semanal_compra.actual',
-                    'stock_semanal_compra.costo',
+                    'store_compra_semanal.inicio', 'store_compra_semanal.compras', 'store_compra_semanal.salidas', 'store_compra_semanal.actual',
+                    'store_compra_semanal.costo',
                 )
                 ->selectRaw('CONCAT(products.cod_fenovo," ", products.name," ", proveedors.name) as txtMovimiento')
                 ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
@@ -1211,7 +1211,7 @@ class ProductController extends Controller
                 $movement['cod_fenovo']        = $producto->cod_fenovo;
                 $movement['unit_package']      = $producto->unit_package;
                 $movement['unit_type']         = $producto->unit_type;
-                $movement['proveedor']         = $producto->proveedor;
+                $movement['proveedor']         = mb_substr($producto->proveedor,0,15);
                 $movement['stockInicioSemana'] = $producto->inicio;
                 $movement['ingresoSemana']     = $producto->compras;
                 $movement['salidaSemana']      = $producto->salidas;

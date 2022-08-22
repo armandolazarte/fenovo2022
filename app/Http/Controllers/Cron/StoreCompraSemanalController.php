@@ -5,11 +5,11 @@ namespace App\Http\Controllers\Cron;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\SessionOferta;
-use App\Models\StockSemanalCompra;
+use App\Models\StoreCompraSemanal;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
-class StockCompraSemanalController extends Controller
+class StoreCompraSemanalController extends Controller
 {
     public function init()
     {
@@ -17,7 +17,7 @@ class StockCompraSemanalController extends Controller
         // $productos = Product::whereIn('id', [1, 2, 3, 4, 5])->get(); DESCOMENTAR CUANDO SE HACEN PRUEBAS PARA POCOS PRODUCTOS
         $hoy       = Carbon::parse(now())->format('Y-m-d');
 
-        DB::table('stock_semanal_compra')->truncate();
+        DB::table('store_compra_semanal')->truncate();
 
         $store_id = 1;
         if (!empty($productos)) {
@@ -33,7 +33,7 @@ class StockCompraSemanalController extends Controller
                 $data['compras']       = $producto->ingresoSemana();
                 $data['salidas']      = $producto->salidaSemana();
                 $data['actual']       = $producto->stockFinSemana();
-                StockSemanalCompra::create($data);
+                StoreCompraSemanal::create($data);
             }
         }
     }
