@@ -240,36 +240,6 @@ class InvoiceController extends Controller
 
                 $store_from                     = Store::where('id', $movement->from)->first();
                 $data_panama['cip']             = (is_null($store_from->cip))?8889:$store_from->cip;
-                if ($movement->verifSiCreatePanama() && $movement->type != 'TRASLADO') {
-                    $orden += 1;
-                    $data_panama['tipo']               = 'PAN';
-                    $data_panama['orden']              = $orden;
-                    $data_panama['neto105']            = (is_null($movement->neto105(false))     || is_null($movement->neto105(false)->neto105)) ? '0.0' : $movement->neto105(false)->neto105;
-                    $data_panama['iva_neto105']        = (is_null($movement->neto105(false))     || is_null($movement->neto105(false)->neto_iva105)) ? '0.0' : $movement->neto105(false)->neto_iva105;
-                    $data_panama['neto21']             = (is_null($movement->neto21(false))      || is_null($movement->neto21(false)->neto21)) ? '0.0' : $movement->neto21(false)->neto21;
-                    $data_panama['iva_neto21']         = (is_null($movement->neto21(false))      || is_null($movement->neto21(false)->neto_iva21)) ? '0.0' : $movement->neto21(false)->neto_iva21;
-                    $data_panama['totalIibb']          = (is_null($movement->totalIibb(false))   || is_null($movement->totalIibb(false)->total_no_gravado)) ? '0.0' : $movement->totalIibb(false)->total_no_gravado;
-                    $data_panama['totalConIva']        = (is_null($movement->totalConIva(false)) || is_null($movement->totalConIva(false)->totalConIva)) ? '0.0' : $movement->totalConIva(false)->totalConIva;
-                    $data_panama['costo_fenovo_total'] = (is_null($movement->cosventa(false))    || is_null($movement->cosventa(false)->cost_venta)) ? '0.0' : $movement->cosventa(false)->cost_venta;
-
-                    Panamas::create($data_panama);
-                }
-
-                if (!isset($movement->factura_flete) && $movement->flete > 0) {
-                    if(!Panamas::where('movement_id', $movement->id)->where('tipo','FLE')->orWhere('tipo','FLETE T')->orWhere('tipo','FLETE P')->exists()){
-                        $data_panama['tipo']               = 'FLE';
-                        $data_panama['orden']              = $orden + 1;
-                        $data_panama['neto105']            = 0.0;
-                        $data_panama['iva_neto105']        = 0.0;
-                        $data_panama['neto21']             = $movement->flete;
-                        $data_panama['iva_neto21']         = $movement->flete * 0.21;
-                        $data_panama['totalIibb']          = 0.0;
-                        $data_panama['totalConIva']        = $movement->flete;
-                        $data_panama['costo_fenovo_total'] = 0.0;
-
-                        Panamas::create($data_panama);
-                    }
-                }
 
                 if($movement->verifSiFactura() && $movement->type != 'TRASLADO'){
                     $result  = $this->createVoucher($movement,$this->pto_vta);
@@ -295,6 +265,8 @@ class InvoiceController extends Controller
                         $error = json_encode($result);
                     }
                 }
+            }else{
+                $error = 'No hay productos cargados';
             }
             // fin de creacion del invoice con punto de vta fenovo
             if(is_null($error)){
@@ -336,7 +308,38 @@ class InvoiceController extends Controller
                     }
                 }
             }
+
             if(is_null($error)){
+                if ($movement->verifSiCreatePanama() && $movement->type != 'TRASLADO') {
+                    $orden += 1;
+                    $data_panama['tipo']               = 'PAN';
+                    $data_panama['orden']              = $orden;
+                    $data_panama['neto105']            = (is_null($movement->neto105(false))     || is_null($movement->neto105(false)->neto105)) ? '0.0' : $movement->neto105(false)->neto105;
+                    $data_panama['iva_neto105']        = (is_null($movement->neto105(false))     || is_null($movement->neto105(false)->neto_iva105)) ? '0.0' : $movement->neto105(false)->neto_iva105;
+                    $data_panama['neto21']             = (is_null($movement->neto21(false))      || is_null($movement->neto21(false)->neto21)) ? '0.0' : $movement->neto21(false)->neto21;
+                    $data_panama['iva_neto21']         = (is_null($movement->neto21(false))      || is_null($movement->neto21(false)->neto_iva21)) ? '0.0' : $movement->neto21(false)->neto_iva21;
+                    $data_panama['totalIibb']          = (is_null($movement->totalIibb(false))   || is_null($movement->totalIibb(false)->total_no_gravado)) ? '0.0' : $movement->totalIibb(false)->total_no_gravado;
+                    $data_panama['totalConIva']        = (is_null($movement->totalConIva(false)) || is_null($movement->totalConIva(false)->totalConIva)) ? '0.0' : $movement->totalConIva(false)->totalConIva;
+                    $data_panama['costo_fenovo_total'] = (is_null($movement->cosventa(false))    || is_null($movement->cosventa(false)->cost_venta)) ? '0.0' : $movement->cosventa(false)->cost_venta;
+
+                    Panamas::create($data_panama);
+                }
+
+                if (!isset($movement->factura_flete) && $movement->flete > 0) {
+                    if(!Panamas::where('movement_id', $movement->id)->where('tipo', 'LIKE', 'FLE%')->exists()){
+                        $data_panama['tipo']               = 'FLE';
+                        $data_panama['orden']              = $orden + 1;
+                        $data_panama['neto105']            = 0.0;
+                        $data_panama['iva_neto105']        = 0.0;
+                        $data_panama['neto21']             = $movement->flete;
+                        $data_panama['iva_neto21']         = $movement->flete * 0.21;
+                        $data_panama['totalIibb']          = 0.0;
+                        $data_panama['totalConIva']        = $movement->flete;
+                        $data_panama['costo_fenovo_total'] = 0.0;
+
+                        Panamas::create($data_panama);
+                    }
+                }
                 $movement = Movement::where('id', $movement_id)->first();
                 $movement->status = 'FINISHED_AND_GENERATED_FACT';
                 $movement->save();
