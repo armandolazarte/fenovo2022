@@ -18,7 +18,6 @@
                         </a>
                         <div class="dropdown-menu bg-dark">
 
-
                             <a class="dropdown-item" href="{{ url('productos') }}">
                                 <span class="text-black-50"> Lista de productos </span>
                             </a>
@@ -26,19 +25,9 @@
                             <a class="dropdown-item" href="{{ url('productos-no-congelados') }}">
                                 <span class="text-black-50"> Productos No congelados </span>
                             </a>
-                            <a class="dropdown-item" href="{{ route('productos.stock.deposito') }}">
-                                <span class="text-black-50"> Stock de productos en Friotekas </span>
-                            </a>
-
-                            <a class="dropdown-item" href="{{ route('productos.ajusteHistoricoDeposito') }}">
-                                <span class="text-black-50"> Lista de productos - Depósito reclamos </span>
-                            </a>
 
                             <a class="dropdown-item" href="{{ route('products.compararStock') }}">
                                 <span class="text-black-50">Comparar stocks</span>
-                            </a>
-                            <a class="dropdown-item" href="{{ route('ingresos.ajustarStockIndex') }}">
-                                <span class="text-black-50">Ajustes de stocks entre depósitos</span>
                             </a>
 
                             <a class="dropdown-item" href="{{ url('oferta') }}" title="Oferta de precios">
@@ -119,7 +108,6 @@
                     </li>
                 @endcan
 
-
                 @can('stores.index')
                     <li class="nav-item dropdown mt-2" title="">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button"
@@ -133,6 +121,22 @@
                             <a class="dropdown-item text-black-50" href="{{ url('tiendas') }}">
                                 Franquicias
                             </a>
+
+                            <a class="dropdown-item" href="{{ route('productos.stock.deposito') }}">
+                                <span class="text-black-50"> Stocks en depósitos </span>
+                            </a>
+
+                            <a class="dropdown-item" href="{{ route('depositos.balance') }}">
+                                <span class="text-black-50"> Balance de depósitos </span>
+                            </a>
+
+                            <a class="dropdown-item" href="{{ route('productos.ajusteHistoricoDeposito') }}">
+                                <span class="text-black-50">Depósito reclamos </span>
+                            </a>
+                            <a class="dropdown-item" href="{{ route('ingresos.ajustarStockIndex') }}">
+                                <span class="text-black-50">Ajustes entre depósitos</span>
+                            </a>
+
                         </div>
                     </li>
                 @endcan

@@ -19,9 +19,13 @@ class StoreController extends Controller
 {
     protected $storeRepository;
     protected $regionRepository;
+    protected $enumRepository;
 
-    public function __construct(StoreRepository $storeRepository, RegionRepository $regionRepository, EnumRepository $enumRepository)
-    {
+    public function __construct(
+        StoreRepository $storeRepository,
+        RegionRepository $regionRepository,
+        EnumRepository $enumRepository
+    ) {
         $this->storeRepository  = $storeRepository;
         $this->regionRepository = $regionRepository;
         $this->enumRepository   = $enumRepository;
@@ -30,7 +34,7 @@ class StoreController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $store = Store::orderBy('cod_fenovo', 'asc')->where('active', 1)->where('store_type','!=','D')->get();
+            $store = Store::orderBy('cod_fenovo', 'asc')->where('active', 1)->where('store_type', '!=', 'D')->get();
 
             return Datatables::of($store)
                 ->addIndexColumn()
