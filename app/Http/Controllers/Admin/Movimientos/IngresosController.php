@@ -89,13 +89,22 @@ class IngresosController extends Controller
     public function indexCerradas(Request $request)
     {
         if ($request->ajax()) {
-            $movement = Movement::where('type', 'COMPRA')
-                ->where('user_id', Auth::user()->id)
-                ->whereStatus('FINISHED')
-                ->with('movement_ingreso_products')
-                ->orderBy('date', 'DESC')
-                ->orderBy('id', 'DESC')
-                ->get();
+            if (\Auth::user()->rol() == 'superadmin' || \Auth::user()->rol() == 'admin') {
+                $movement = Movement::where('type', 'COMPRA')
+                    ->whereStatus('FINISHED')
+                    ->with('movement_ingreso_products')
+                    ->orderBy('date', 'DESC')
+                    ->orderBy('id', 'DESC')
+                    ->get();
+            } else {
+                $movement = Movement::where('type', 'COMPRA')
+                    ->where('user_id', Auth::user()->id)
+                    ->whereStatus('FINISHED')
+                    ->with('movement_ingreso_products')
+                    ->orderBy('date', 'DESC')
+                    ->orderBy('id', 'DESC')
+                    ->get();
+            }
 
             return Datatables::of($movement)
                 ->addIndexColumn()
@@ -269,7 +278,6 @@ class IngresosController extends Controller
 
             // Generar la venta directa si viene el Id de Store
             if ($tienda) {
-
                 // Obtengo el orden
                 $count = Movement::where('from', 1)->whereIn('type', ['VENTA'])->count();
                 $orden = ($count) ? $count + 1 : 1;
@@ -294,7 +302,6 @@ class IngresosController extends Controller
 
             // Considerar cada uno de los movimientos
             foreach ($movement_temp->movement_ingreso_products as $movimiento) {
-
                 // Ajusto el STOCK DEL PRODUCTO luego de la compra
                 $product        = Product::find($movimiento['product_id']);
                 $latest         = $product->stockReal();
@@ -311,7 +318,7 @@ class IngresosController extends Controller
                 $entidad_tipo = 'S';
 
                 if (!is_null($movement_temp->deposito)) {
-                    $stock_cyo  = $stock_f  = $stock_r  = 0;
+                    $stock_cyo  = $stock_f = $stock_r = 0;
                     $prod_store = ProductStore::where('product_id', $movimiento['product_id'])->where('store_id', $movement_temp->deposito)->first();
                     //$stock_inicial_store = ($prod_store) ? $prod_store->stock_f + $prod_store->stock_r + $prod_store->stock_cyo : 0;
                     //$balance_compra = ($stock_inicial_store) ? $stock_inicial_store + $movimiento['entry'] : $movimiento['entry'];
@@ -360,7 +367,6 @@ class IngresosController extends Controller
 
                 // Generar la venta directa si viene el Id de Store
                 if ($tienda) {
-
                     // Ajusto STOCK DE NAVE - "RESTO ENTRADA"
                     $product->stock_f = $product->stock_f - $movimiento['entry'];
                     $product->save();
@@ -645,7 +651,6 @@ class IngresosController extends Controller
             $hoy = Carbon::parse(now())->format('Y-m-d');
 
             foreach ($request->datos as $key => $movimiento) {
-
                 // Actualizo Origen y Destino del Ajuste
                 if ($key == 0) {
                     $movement_temp       = MovementTemp::find($movimiento['movement_id']);
@@ -689,6 +694,7 @@ class IngresosController extends Controller
             return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
         }
     }
+
     public function check(Request $request)
     {
         try {
@@ -1045,7 +1051,6 @@ class IngresosController extends Controller
 
             // Considerar cada uno de los movimientos
             foreach ($movement_temp->movement_ingreso_products as $movimiento) {
-
                 // Ajusto el STOCK DEL PRODUCTO luego de la compra
                 $product        = Product::find($movimiento['product_id']);
                 $latest         = $product->stockReal();
@@ -1062,7 +1067,7 @@ class IngresosController extends Controller
                 $entidad_tipo = 'S';
 
                 if (!is_null($movement_temp->deposito)) {
-                    $stock_cyo  = $stock_f  = $stock_r  = 0;
+                    $stock_cyo  = $stock_f = $stock_r = 0;
                     $prod_store = ProductStore::where('product_id', $movimiento['product_id'])->where('store_id', $movement_temp->deposito)->first();
 
                     if ($movimiento['cyo']) {

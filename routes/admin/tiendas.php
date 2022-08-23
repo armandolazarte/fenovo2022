@@ -17,3 +17,6 @@ Route::post('depositos/store', [DepositosController::class, 'store'])->name('dep
 Route::get('depositos/edit', [DepositosController::class, 'edit'])->name('depositos.edit');
 Route::post('depositos/update', [DepositosController::class, 'update'])->name('depositos.update');
 Route::post('depositos/destroy', [DepositosController::class, 'destroy'])->name('depositos.destroy');
+
+Route::get('depositos/balance', [DepositosController::class, 'balance'])->name('depositos.balance');
+Route::get('depositos/balance/detalle', [DepositosController::class, 'balanceDetalle'])->name('depositos.balance.detalle');
