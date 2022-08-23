@@ -70,6 +70,8 @@ class DepositosController extends StoreController
 
         $entradas = $this->movimientoRepository->getSumaEntradasValorizada(1, 11, $fecha_desde, $fecha_hasta);
         $salidas = $this->movimientoRepository->getSumaSalidasValorizada(1, 11, $fecha_desde, $fecha_hasta);
+
+        
     }
 
 
