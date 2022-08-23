@@ -286,6 +286,7 @@ class SalidasController extends Controller
 
     public function pendientes(Request $request)
     {
+
         if ($request->ajax()) {
             $pendientes = $this->sessionProductRepository->groupBy('list_id');
             return DataTables::of($pendientes)
@@ -429,7 +430,7 @@ class SalidasController extends Controller
 
             // Se comenta esto el 10/10/2022 porque en Orden ahora van todos los productos tantos facturados como panama
 
-            $movimientos = $movement->group_products_egress; //($movement->type == 'TRASLADO') ? $movement->group_products_egress : $movement->group_movement_salida_products;
+            $movimientos = $movement->movement_salida_products; //($movement->type == 'TRASLADO') ? $movement->group_products_egress : $movement->group_movement_salida_products;
             foreach ($movimientos as $movimiento) {
 
                 // if ($movimiento->invoice) {
