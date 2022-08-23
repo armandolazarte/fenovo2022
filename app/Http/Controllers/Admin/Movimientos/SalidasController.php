@@ -141,7 +141,7 @@ class SalidasController extends Controller
 
                 $factura = '--';
                 if ($movimiento->type == 'VENTA' || $movimiento->type == 'VENTACLIENTE' || $movimiento->type == 'TRASLADO') {
-                    if ($movimiento->hasInvoices()) {
+                    if (isset($movimiento->invoice) && count($movimiento->invoice)) {
                         $urls = '';
                         foreach ($movimiento->invoice as $invoice) {
                             if ((!is_null($invoice->cae) && !is_null($invoice->url) && $movimiento->status == 'FINISHED') ||
