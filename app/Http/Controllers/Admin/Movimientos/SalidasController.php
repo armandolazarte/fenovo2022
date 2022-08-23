@@ -235,10 +235,11 @@ class SalidasController extends Controller
 
                 $factura = '--';
                 if ($movimiento->type == 'VENTA' || $movimiento->type == 'VENTACLIENTE' || $movimiento->type == 'TRASLADO') {
-                    if (isset($movimiento->invoice) && count($movimiento->invoice)) {
+                    if ($movimiento->hasInvoices()) {
                         $urls = '';
                         foreach ($movimiento->invoice as $invoice) {
-                            if (!is_null($invoice->cae) && !is_null($invoice->url)) {
+                            if ((!is_null($invoice->cae) && !is_null($invoice->url) && $movimiento->status == 'FINISHED') ||
+                                 !is_null($invoice->cae) && !is_null($invoice->url) && $movimiento->status == 'FINISHED_AND_GENERATED_FACT') {
                                 $number = ($invoice->cyo) ? 'CyO - ' . $invoice->voucher_number : $invoice->voucher_number;
                                 $urls .= '<a class="text-primary" title="Descargar factura" target="_blank" href="' . $invoice->url . '"> ' . $number . ' </a><br>';
                             } elseif (!is_null($invoice->cae) && is_null($invoice->url)) {
@@ -247,8 +248,7 @@ class SalidasController extends Controller
                             }
                         }
                         $factura = $urls;
-                    }
-                    if (($movimiento->status != 'FINISHED_AND_GENERATED_FACT')) {
+                    }elseif (($movimiento->status != 'FINISHED_AND_GENERATED_FACT')) {
                         $factura = '<a href="' . route('pre.invoice', ['movment_id' => $movimiento->id]) . '">Generar Comprobantes </a>';
                     }
                 }
