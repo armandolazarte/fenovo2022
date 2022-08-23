@@ -121,7 +121,7 @@ class IngresosController extends Controller
                     return  $movement->voucher_number;
                 })
                 ->addColumn('show', function ($movement) {
-                    return '<a href="' . route('ingresos.checkNocongelados', ['id' => $movement->id, 'is_cerrada' => true]) . '"> <i class="fa fa-eye"></i> </a>';
+                    return '<a href="' . route('ingresos.show', ['id' => $movement->id, 'is_cerrada' => true]) . '"> <i class="fa fa-eye"></i> </a>';
                 })
                 ->rawColumns(['origen', 'date', 'items', 'voucher', 'show'])
                 ->make(true);
