@@ -68,8 +68,8 @@ class DepositosController extends StoreController
         // Obtener los productos CONGELADOS
         $productos = Product::whereActive(1)->select('id')->whereCategorieId(1)->get();
 
-        return $entradas = $this->movimientoRepository->getSumaEntradas(1, 11, $fecha_desde, $fecha_hasta);
-        $salidas = $this->movimientoRepository->getSumaSalidas(1, 11, $fecha_desde, $fecha_hasta);
+        $entradas = $this->movimientoRepository->getSumaEntradasValorizada(1, 11, $fecha_desde, $fecha_hasta);
+        $salidas = $this->movimientoRepository->getSumaSalidasValorizada(1, 11, $fecha_desde, $fecha_hasta);
     }
 
 
