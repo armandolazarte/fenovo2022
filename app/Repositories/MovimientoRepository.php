@@ -26,9 +26,9 @@ class MovimientoRepository extends BaseRepository
     public function getSumaEntradasValorizada($product_id, $store_id, $date_from, $date_to)
     {
         $suma = DB::table('movement_products')
-            ->where('product_id', $product_id)
             ->where('entidad_id', $store_id)
             ->whereBetween(DB::raw('DATE(created_at)'), [$date_to, $date_from])
+            ->selectRaw('(t4.stock_f + t4.stock_r + t4.stock_cyo) * t1.unit_weight as kilage')
             ->sum('entry');
         return (is_null($suma)) ? 0 : (float)$suma;
     }

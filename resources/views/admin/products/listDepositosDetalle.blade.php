@@ -95,9 +95,15 @@
                         @endif    
                     </td>
                     <td>
+                        @if (in_array($store->store_type, ['N', 'D']))
                         <a href="{{ route('product.historial', ['id' => $producto->id]) }}">
                             <i class="fa fa-list" aria-hidden="true"></i>
-                        </a>
+                        </a>     
+                        @else
+                        <a href="{{ route('product.historial.tienda', ['product_id' => $producto->id, 'store_id' => $store->id]) }}">
+                            <i class="fa fa-list" aria-hidden="true"></i>
+                        </a>                            
+                        @endif
                     </td>
                 </tr>
                 @endforeach
