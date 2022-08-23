@@ -340,10 +340,12 @@ class InvoiceController extends Controller
                         Panamas::create($data_panama);
                     }
                 }
-                $m = Movement::where('id', $movement_id)->first();
-                $m->status = 'FINISHED_AND_GENERATED_FACT';
-                $m->save();
             }
+
+            $m = Movement::where('id', $movement_id)->first();
+            $m->status = 'FINISHED_AND_GENERATED_FACT';
+            $m->save();
+
             DB::commit();
             Schema::enableForeignKeyConstraints();
             if($error){
