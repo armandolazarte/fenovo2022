@@ -14,26 +14,28 @@
 
                 <div class="row mt-2">
                     <div class="col-6">
-                        <fieldset class="form-group">
-                            <select class="rounded form-control bg-transparent" name="storeId" id="storeId">
-                                <option value="">Seleccione frioteka </option>
-                                @foreach ($stores as $store)
-                                    <option value="{{ $store->id }}">
-                                        {{ str_pad($store->cod_fenovo, 3, '0', STR_PAD_LEFT) }} - {{ $store->description }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </fieldset>
+                        <select class="form-control" name="storeId" id="storeId">
+                            <option value="">... </option>
+                            @foreach ($stores as $store)
+                                <option value="{{ $store->id }}">
+                                    {{ str_pad($store->cod_fenovo, 3, '0', STR_PAD_LEFT) }} - {{ $store->description }}
+                                </option>
+                            @endforeach
+                        </select>                        
                     </div>
                 </div>
                 <div class="row mt-2">
-                    <div class="col-3">
-                        <fieldset class="form-group">
-                            <input type="week" id="semana" name="semana" class=" form-control">
-                        </fieldset>
-                    </div>
-                    <div class="col-2">
-                        <button class=" btn btn-sm btn-outline-primary" id="btnBalance" >Ver balance</button>
+                    <div class="col-6">
+                        <fieldset class="input-group form-group mb-3">
+                            <input type="week" id="semana" name="semana" class="form-control input-lg">
+                            <div class="input-group-prepend bg-transparent">
+                                <span class="input-group-text">
+                                    <a href="javscript:void(0)" id="btnBalance" class=" badge badge-primary rounded p-1" >
+                                        CONSULTAR
+                                    </a>
+                                </span>
+                            </div>
+                        </fieldset>                        
                     </div>
                 </div>
 
@@ -57,7 +59,7 @@
         jQuery(document).ready(function() {
 
             jQuery('#storeId').select2({
-                placeholder: 'Seleccione una frioteka ...',
+                placeholder: 'Seleccione una frioteka / deposito ...',
             })
         });
 

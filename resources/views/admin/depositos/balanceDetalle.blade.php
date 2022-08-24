@@ -21,6 +21,7 @@
                 <td>Entradas</td>
                 <td>Salidas</td>
                 <td>Resultado</td>
+                <td>Actual</td>
             </tr>
         </thead>
         <tbody>
@@ -32,6 +33,7 @@
                     <td>{{ $producto['entradas'] }}</td>
                     <td>{{ $producto['salidas'] }}</td>
                     <td>{{ $producto['resultado'] }}</td>
+                    <td>{{ $producto['actual'] }}</td>
                 </tr>
             @endforeach
         </tbody>

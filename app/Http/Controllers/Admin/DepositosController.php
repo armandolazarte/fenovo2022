@@ -66,10 +66,10 @@ class DepositosController extends StoreController
 
         $productos = [];
         foreach ($products as $producto) {
-
             $inicial  = $this->movimientoRepository->getSumaInicialValorizada($producto->id, $store->id, $fecha_desde);
             $entradas = $this->movimientoRepository->getSumaEntradasValorizada($producto->id, $store->id, $fecha_desde, $fecha_hasta);
             $salidas  = $this->movimientoRepository->getSumaSalidasValorizada($producto->id, $store->id, $fecha_desde, $fecha_hasta);
+            $actual   = $this->movimientoRepository->getSumaActualValorizada($producto->id, $store->id);
 
             $data['id']         = $producto->id;
             $data['cod_fenovo'] = $producto->cod_fenovo;
@@ -78,13 +78,13 @@ class DepositosController extends StoreController
             $data['entradas']   = $entradas;
             $data['salidas']    = $salidas;
             $data['resultado']  = $inicial + $entradas - $salidas;
+            $data['actual']     = $actual;
             array_push($productos, $data);
-            $data           = null;
         }
 
         return new JsonResponse([
             'type' => 'success',
-            'html' => view('admin.depositos.balanceDetalle', compact( 'store', 'fecha_desde', 'fecha_hasta', 'productos'))->render(),
+            'html' => view('admin.depositos.balanceDetalle', compact('store', 'fecha_desde', 'fecha_hasta', 'productos'))->render(),
         ]);
     }
 
