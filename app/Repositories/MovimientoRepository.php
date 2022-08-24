@@ -3,7 +3,6 @@
 namespace App\Repositories;
 
 use DateTime;
-
 use Illuminate\Support\Facades\DB;
 
 class MovimientoRepository extends BaseRepository
@@ -14,16 +13,15 @@ class MovimientoRepository extends BaseRepository
 
     public function getSumaInicialValorizada($product_id, $store_id, $date_from)
     {
-        return DB::table('movement_products')
+        $registro = DB::table('movement_products')
             ->where('entidad_id', $store_id)
             ->where('product_id', $product_id)
-            ->where('entry', '>', 0)
-            ->where('created_at', '<',$date_from)
-            ->select('movement_products.id')
-            ->selectRaw('(unit_price * balance) as suma')
+            ->select('id', 'unit_price', 'balance')
+            ->where('created_at', '<', $date_from)
             ->orderByDesc('created_at')
-            ->limit(1)
-            ->get();
+            ->first();
+
+        return ($registro) ? $registro->unit_price * $registro->balance : 0;
     }
 
     public function getSumaEntradasValorizada($product_id, $store_id, $date_from, $date_to)
