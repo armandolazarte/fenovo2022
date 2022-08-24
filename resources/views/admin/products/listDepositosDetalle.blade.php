@@ -49,10 +49,6 @@
                     @endif
                 </th>
             </tr>
-            
-                
-
-            
         </table>
         
     </div>

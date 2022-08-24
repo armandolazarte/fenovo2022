@@ -290,10 +290,9 @@
 
             desde_deposito = jQuery("#desde_deposito").val();
             a_deposito = jQuery("#a_deposito").val();
+
             var nro_pedido = jQuery("#nro_pedido").val();
-            console.log(desde_deposito)
-            console.log(a_deposito)
-            console.log(nro_pedido)
+
             if (nro_pedido) {
                 var list_id = to_type + '_' + to + '_' + nro_pedido;
             } else if (desde_deposito) {
