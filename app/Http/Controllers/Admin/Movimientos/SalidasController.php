@@ -276,7 +276,7 @@ class SalidasController extends Controller
         if (!$es_traslado_depositos) {
             $destino     = $this->origenData($tipo, $explode[1], true);
             $destinoName = $this->origenData($tipo, $explode[1]);
-        }
+        }      
 
         return view(
             'admin.movimientos.salidas.add',
@@ -728,6 +728,7 @@ class SalidasController extends Controller
     {
         try {
             $list_id = $request->input('list_id');
+
             if (count(explode('_', $list_id)) == 2) {
                 $list_id .= '_' . Auth::user()->store_active;
             }
