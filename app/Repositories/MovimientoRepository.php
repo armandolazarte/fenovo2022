@@ -2,55 +2,70 @@
 
 namespace App\Repositories;
 
-use Illuminate\Support\Facades\DB;
-
 use DateTime;
+
+use Illuminate\Support\Facades\DB;
 
 class MovimientoRepository extends BaseRepository
 {
     public function getModel()
     {
-        return;
     }
 
-    public function getSumaSalidasValorizada($product_id, $store_id, $date_from, $date_to)
+    public function getSumaInicialValorizada($product_id, $store_id, $date_from)
     {
-        $suma = DB::table('movement_products')
-            ->where('product_id', $product_id)
+        return DB::table('movement_products')
             ->where('entidad_id', $store_id)
-            ->whereBetween(DB::raw('DATE(created_at)'), [$date_to, $date_from])
-            ->sum('egress');
-        return (is_null($suma)) ? 0 : (float)$suma;
+            ->where('product_id', $product_id)
+            ->where('entry', '>', 0)
+            ->where('created_at', '<',$date_from)
+            ->select('movement_products.id')
+            ->selectRaw('(unit_price * balance) as suma')
+            ->orderByDesc('created_at')
+            ->limit(1)
+            ->get();
     }
 
     public function getSumaEntradasValorizada($product_id, $store_id, $date_from, $date_to)
     {
-        $suma = DB::table('movement_products')
+        return DB::table('movement_products')
             ->where('entidad_id', $store_id)
-            ->whereBetween(DB::raw('DATE(created_at)'), [$date_to, $date_from])
-            ->selectRaw('(t4.stock_f + t4.stock_r + t4.stock_cyo) * t1.unit_weight as kilage')
-            ->sum('entry');
-        return (is_null($suma)) ? 0 : (float)$suma;
+            ->where('product_id', $product_id)
+            ->where('entry', '>', 0)
+            ->whereBetween('created_at', [$date_from, $date_to])
+            ->selectRaw('(bultos * unit_package * cost_fenovo) as suma')
+            ->get()
+            ->sum('suma');
+    }
+
+    public function getSumaSalidasValorizada($product_id, $store_id, $date_from, $date_to)
+    {
+        return DB::table('movement_products')
+            ->where('entidad_id', $store_id)
+            ->where('product_id', $product_id)
+            ->where('egress', '>', 0)
+            ->whereBetween('created_at', [$date_from, $date_to])
+            ->selectRaw('(bultos * unit_package * unit_price) as suma')
+            ->get()
+            ->sum('suma');
     }
 
     public function getSumaSalidas($product_id, $store_id, $date_from, $date_to)
     {
-        $suma = DB::table('movement_products')
+        return DB::table('movement_products')
             ->where('product_id', $product_id)
             ->where('entidad_id', $store_id)
             ->whereBetween(DB::raw('DATE(created_at)'), [$date_to, $date_from])
             ->sum('egress');
-        return (is_null($suma)) ? 0 : (float)$suma;
     }
 
     public function getSumaEntradas($product_id, $store_id, $date_from, $date_to)
     {
-        $suma = DB::table('movement_products')
+        return DB::table('movement_products')
             ->where('product_id', $product_id)
             ->where('entidad_id', $store_id)
             ->whereBetween(DB::raw('DATE(created_at)'), [$date_to, $date_from])
             ->sum('entry');
-        return (is_null($suma)) ? 0 : (float)$suma;
     }
 
     public function getStartAndEndDate($week, $year)

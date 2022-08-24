@@ -49,7 +49,7 @@ class DepositosController extends StoreController
 
     public function balance(Request $request)
     {
-        return view('admin.products.listDepositosBalance');
+        return view('admin.depositos.listDepositosBalance');
     }
 
     public function balanceDetalle(Request $request)
@@ -58,8 +58,8 @@ class DepositosController extends StoreController
         $week = $request->semana;
         $year = $request->anio;
         $dates= $this->movimientoRepository->getStartAndEndDate($week, $year);
-        $fecha_desde =  $dates['start_date'];
-        $fecha_hasta =  $dates['end_date'];
+        $fecha_desde =  date($dates['start_date']);
+        $fecha_hasta =  date($dates['end_date']);
 
         // Obtener las tiendas tipo BASE
         $typeStores = ['B'];
@@ -68,10 +68,11 @@ class DepositosController extends StoreController
         // Obtener los productos CONGELADOS
         $productos = Product::whereActive(1)->select('id')->whereCategorieId(1)->get();
 
+        return $inicial = $this->movimientoRepository->getSumaInicialValorizada(1, 11, $fecha_desde);
         $entradas = $this->movimientoRepository->getSumaEntradasValorizada(1, 11, $fecha_desde, $fecha_hasta);
         $salidas = $this->movimientoRepository->getSumaSalidasValorizada(1, 11, $fecha_desde, $fecha_hasta);
 
-        
+
     }
 
 
