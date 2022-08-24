@@ -30,7 +30,7 @@ class StoreCompraSemanalController extends Controller
                 $data['costo']        = $costo;
                 $data['fechaCaptura'] = ($producto->stockInicioSemana()) ? $producto->stockInicioSemana()->created_at : null;
                 $data['inicio']       = ($producto->stockInicioSemana()) ? $producto->stockInicioSemana()->balance : 0;
-                $data['compras']       = $producto->ingresoSemana();
+                $data['compras']      = $producto->ingresoSemana();
                 $data['salidas']      = $producto->salidaSemana();
                 $data['actual']       = $producto->stockFinSemana();
                 StoreCompraSemanal::create($data);

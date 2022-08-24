@@ -2,18 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Admin\StoreController;
 use App\Models\Product;
-use Illuminate\Http\Request;
+use App\Models\Store;
 
 use App\Repositories\MovimientoRepository;
 
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
-
-use App\Models\Store;
-use DateTime;
 
 class DepositosController extends StoreController
 {
@@ -21,7 +17,7 @@ class DepositosController extends StoreController
 
     public function __construct(MovimientoRepository $movimientoRepository)
     {
-        $this->movimientoRepository  = $movimientoRepository;
+        $this->movimientoRepository = $movimientoRepository;
     }
 
     public function index(Request $request)
@@ -41,7 +37,7 @@ class DepositosController extends StoreController
                     $ruta = 'destroy(' . $store->id . ",'" . route('depositos.destroy') . "')";
                     return '<a href="javascript:void(0)" onclick="' . $ruta . '"> <i class="fa fa-trash"></i> </a>';
                 })
-                ->rawColumns(['cod_fenovo','edit', 'destroy'])
+                ->rawColumns(['cod_fenovo', 'edit', 'destroy'])
                 ->make(true);
         }
         return view('admin.depositos.index');
@@ -49,38 +45,54 @@ class DepositosController extends StoreController
 
     public function balance(Request $request)
     {
-        return view('admin.products.listDepositosBalance');
+        $stores = Store::orderBy('description')->get();
+        return view('admin.depositos.balance', compact('stores'));
     }
 
     public function balanceDetalle(Request $request)
     {
         // Obtener fechas a partir de la SEMANA y AÑO seleccionado
-        $week = $request->semana;
-        $year = $request->anio;
-        $dates= $this->movimientoRepository->getStartAndEndDate($week, $year);
-        $fecha_desde =  date($dates['start_date']);
-        $fecha_hasta =  date($dates['end_date']);
+        $week        = $request->semana;
+        $year        = $request->anio;
+        $dates       = $this->movimientoRepository->getStartAndEndDate($week, $year);
+        $fecha_desde = date($dates['start_date']);
+        $fecha_hasta = date($dates['end_date']);
 
-        // Obtener las tiendas tipo BASE
-        $typeStores = ['B'];
-        $stores = Store::whereIn('store_type', $typeStores)->get();
+        // Obtener la tienda
+        $store = Store::find($request->store_id);
 
         // Obtener los productos CONGELADOS
-        $productos = Product::whereActive(1)->select('id')->whereCategorieId(1)->get();
+        $products = Product::whereActive(1)->select('id', 'cod_fenovo', 'name')->whereCategorieId(1)->get();
 
-        return $entradas = $this->movimientoRepository->getSumaEntradasValorizada(11, $fecha_desde, $fecha_hasta);
-        $salidas = $this->movimientoRepository->getSumaSalidasValorizada(11, $fecha_desde, $fecha_hasta);
+        $productos = [];
+        foreach ($products as $producto) {
 
+            $inicial  = $this->movimientoRepository->getSumaInicialValorizada($producto->id, $store->id, $fecha_desde);
+            $entradas = $this->movimientoRepository->getSumaEntradasValorizada($producto->id, $store->id, $fecha_desde, $fecha_hasta);
+            $salidas  = $this->movimientoRepository->getSumaSalidasValorizada($producto->id, $store->id, $fecha_desde, $fecha_hasta);
 
+            $data['id']         = $producto->id;
+            $data['cod_fenovo'] = $producto->cod_fenovo;
+            $data['name']       = $producto->name;
+            $data['inicial']    = $inicial;
+            $data['entradas']   = $entradas;
+            $data['salidas']    = $salidas;
+            $data['resultado']  = $inicial + $entradas - $salidas;
+            array_push($productos, $data);
+            $data           = null;
+        }
+
+        return new JsonResponse([
+            'type' => 'success',
+            'html' => view('admin.depositos.balanceDetalle', compact( 'store', 'fecha_desde', 'fecha_hasta', 'productos'))->render(),
+        ]);
     }
-
-
 
     public function add()
     {
-        $value = 9090;
+        $value        = 9090;
         $stores_count = Store::orderBy('cod_fenovo', 'asc')->where('active', 1)->where('store_type', 'D')->count();
-        $code_fenovo = $value + $stores_count + 1;
+        $code_fenovo  = $value + $stores_count + 1;
         return  view('admin.depositos.form', compact('code_fenovo'));
     }
 
@@ -98,13 +110,13 @@ class DepositosController extends StoreController
 
     public function edit(Request $request)
     {
-        $store     = $this->storeRepository->getOne($request->id);
+        $store = $this->storeRepository->getOne($request->id);
         return  view('admin.depositos.form', compact('store'));
     }
 
     public function update(Request $request)
     {
-        $data                = $request->only(['cod_fenovo', 'description','razon_social','responsable']);
+        $data = $request->only(['cod_fenovo', 'description', 'razon_social', 'responsable']);
         Store::where('id', $request->input('store_id'))->update($data);
         return redirect()->route('depositos.index');
     }
