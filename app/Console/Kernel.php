@@ -40,7 +40,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('sincroniza:movi')->cron('30 6-22 * * *')->runInBackground();
 
         //Exportacion Fenovo - Compra de productos congelados FENOVO
-        $schedule->command('sincroniza:comprasemanal')->dailyAt('05:00')->runInBackground();
+        $schedule->command('sincroniza:comprasemanal')->cron('45 */3 * * *')->runInBackground();
         
     }
 
