@@ -27,10 +27,10 @@
                 <div class="row mt-2">
                     <div class="col-6">
                         <fieldset class="input-group form-group mb-3">
-                            <input type="week" id="semana" name="semana" class="form-control input-lg">
+                            <input type="week" id="semana" name="semana" class="form-control input-lg" value="{{ date('Y').'-W'.date('W') }}">
                             <div class="input-group-prepend bg-transparent">
                                 <span class="input-group-text">
-                                    <a href="javscript:void(0)" id="btnBalance" class=" badge badge-primary rounded p-1" >
+                                    <a href="javascript:void(0)" id="btnBalance" class=" badge badge-light rounded p-1" >
                                         CONSULTAR
                                     </a>
                                 </span>
@@ -56,12 +56,22 @@
 @section('js')
     <script>
 
+        let route = '{{ route('depositos.balance.detalle') }}';
+
         jQuery(document).ready(function() {
 
             jQuery('#storeId').select2({
                 placeholder: 'Seleccione una frioteka / deposito ...',
             })
+
+            if (localStorage.storeIdBalance){
+                jQuery("#storeId").val(localStorage.storeIdBalance).trigger( "change" );
+                jQuery("#semana").val(localStorage.semanaBalance);            
+                jQuery("#btnBalance").trigger( "click" );
+            }
+
         });
+        
 
         jQuery('#btnBalance').on('click', function() {
             let fecha = jQuery("#semana").val().split('-');
@@ -69,11 +79,13 @@
             if(jQuery("#storeId").val() == '' || jQuery("#storeId").val() == 'undefined') return;                
             if(jQuery("#semana").val() == '' || jQuery("#semana").val() == 'undefined') return;                
 
+            // Guardo los datos en el Storage
+            localStorage.setItem('storeIdBalance', jQuery("#storeId").val());
+            localStorage.setItem('semanaBalance', jQuery("#semana").val());
+
             let store_id= jQuery("#storeId").val();
             let anio    = fecha[0];
             let semana  = fecha[1].slice(1);
-            
-            let route = '{{ route('depositos.balance.detalle') }}';
 
             jQuery.ajax({
                 url: route,
