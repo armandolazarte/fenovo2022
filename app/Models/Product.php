@@ -30,6 +30,7 @@ class Product extends Model
         'senasa_id'        => 'int',
         'iibb'             => 'int',
         'active'           => 'int',
+        'factura_aparte'   => 'int',
     ];
 
     protected $dates = [
@@ -76,6 +77,7 @@ class Product extends Model
         'iibb',
         'active',
         'palet',
+        'factura_aparte'
     ];
 
     public function product_category()
