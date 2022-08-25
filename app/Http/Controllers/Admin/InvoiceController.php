@@ -206,41 +206,42 @@ class InvoiceController extends Controller
             // Inicio creacion del invoice con punto de vta fenovo
             $movement = Movement::where('id', $movement_id)->with('salida_products_no_cyo')->firstOrFail();
             $movement->products = $movement->salida_products_no_cyo;
+
+            $countPanama = Panamas::orderBy('orden', 'DESC')->where('emision_store',\Auth::user()->store_active)->first();
+            $ordenPanama = (isset($countPanama)) ? $countPanama->orden : 1;
+
+            $pto_vta       = $cuit = $iva_type = '';
+            $cliente       = null;
+
+            if ($movement->type == 'VENTA' || $movement->type == 'TRASLADO') {
+                $cliente = Store::where('id', $movement->to)->with('region')->first();
+                $pto_vta = 'PVTA_' . str_pad($cliente->cod_fenovo, 3, '0', STR_PAD_LEFT);
+            } elseif ($movement->type == 'VENTACLIENTE') {
+                $cliente = Customer::where('id', $movement->to)->with('store')->first();
+                $pto_vta = 'CLI_' . str_pad($cliente->id, '0', 3, STR_PAD_LEFT);
+            }
+
+            if ($cliente) {
+                $cuit1    = substr($cliente->cuit, 0, 2);
+                $cuit2    = substr($cliente->cuit, 2, 8);
+                $cuit3    = substr($cliente->cuit, 10, 1);
+                $cuit     = $cuit1 . '-' . $cuit2 . '-' . $cuit3;
+                $iva_type = ($cliente->iva_type == 'RI') ? 'I' : $cliente->iva_type;
+            }
+
+            $data_panama                    = [];
+            $data_panama['movement_id']     = $movement->id;
+            $data_panama['client_name']     = ($cliente) ? $cliente->razon_social : '';
+            $data_panama['client_address']  = ($cliente) ? $cliente->address : '';
+            $data_panama['client_cuit']     = $cuit;
+            $data_panama['client_iva_type'] = $iva_type;
+            $data_panama['pto_vta']         = $pto_vta;
+            $data_panama['emision_store']   = \Auth::user()->store_active;
+
+            $store_from                     = Store::where('id', $movement->from)->first();
+            $data_panama['cip']             = (is_null($store_from->cip))?8889:$store_from->cip;
+
             if(isset($movement->products) && count($movement->products)){
-                $count = Panamas::orderBy('orden', 'DESC')->where('emision_store',\Auth::user()->store_active)->first();
-                $orden = (isset($count)) ? $count->orden : 1;
-
-                $pto_vta       = $cuit = $iva_type = '';
-                $cliente       = null;
-
-                if ($movement->type == 'VENTA' || $movement->type == 'TRASLADO') {
-                    $cliente = Store::where('id', $movement->to)->with('region')->first();
-                    $pto_vta = 'PVTA_' . str_pad($cliente->cod_fenovo, 3, '0', STR_PAD_LEFT);
-                } elseif ($movement->type == 'VENTACLIENTE') {
-                    $cliente = Customer::where('id', $movement->to)->with('store')->first();
-                    $pto_vta = 'CLI_' . str_pad($cliente->id, '0', 3, STR_PAD_LEFT);
-                }
-
-                if ($cliente) {
-                    $cuit1    = substr($cliente->cuit, 0, 2);
-                    $cuit2    = substr($cliente->cuit, 2, 8);
-                    $cuit3    = substr($cliente->cuit, 10, 1);
-                    $cuit     = $cuit1 . '-' . $cuit2 . '-' . $cuit3;
-                    $iva_type = ($cliente->iva_type == 'RI') ? 'I' : $cliente->iva_type;
-                }
-
-                $data_panama                    = [];
-                $data_panama['movement_id']     = $movement->id;
-                $data_panama['client_name']     = ($cliente) ? $cliente->razon_social : '';
-                $data_panama['client_address']  = ($cliente) ? $cliente->address : '';
-                $data_panama['client_cuit']     = $cuit;
-                $data_panama['client_iva_type'] = $iva_type;
-                $data_panama['pto_vta']         = $pto_vta;
-                $data_panama['emision_store']   = \Auth::user()->store_active;
-
-                $store_from                     = Store::where('id', $movement->from)->first();
-                $data_panama['cip']             = (is_null($store_from->cip))?8889:$store_from->cip;
-
                 if($movement->verifSiFactura() && $movement->type != 'TRASLADO'){
                     $result  = $this->createVoucher($movement,$this->pto_vta);
                     if ($result['status']) {
@@ -311,9 +312,9 @@ class InvoiceController extends Controller
 
             if(is_null($error)){
                 if ($movement->verifSiCreatePanama() && $movement->type != 'TRASLADO') {
-                    $orden += 1;
+                    $ordenPanama += 1;
                     $data_panama['tipo']               = 'PAN';
-                    $data_panama['orden']              = $orden;
+                    $data_panama['orden']              = $ordenPanama;
                     $data_panama['neto105']            = (is_null($movement->neto105(false))     || is_null($movement->neto105(false)->neto105)) ? '0.0' : $movement->neto105(false)->neto105;
                     $data_panama['iva_neto105']        = (is_null($movement->neto105(false))     || is_null($movement->neto105(false)->neto_iva105)) ? '0.0' : $movement->neto105(false)->neto_iva105;
                     $data_panama['neto21']             = (is_null($movement->neto21(false))      || is_null($movement->neto21(false)->neto21)) ? '0.0' : $movement->neto21(false)->neto21;
@@ -328,7 +329,7 @@ class InvoiceController extends Controller
                 if (!isset($movement->factura_flete) && $movement->flete > 0) {
                     if(!Panamas::where('movement_id', $movement->id)->where('tipo', 'LIKE', 'FLE%')->exists()){
                         $data_panama['tipo']               = 'FLE';
-                        $data_panama['orden']              = $orden + 1;
+                        $data_panama['orden']              = $ordenPanama + 1;
                         $data_panama['neto105']            = 0.0;
                         $data_panama['iva_neto105']        = 0.0;
                         $data_panama['neto21']             = $movement->flete;
