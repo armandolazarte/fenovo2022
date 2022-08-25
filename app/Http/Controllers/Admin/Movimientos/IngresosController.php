@@ -660,8 +660,17 @@ class IngresosController extends Controller
                 }
 
                 $product      = Product::find($movimiento['product_id']);
-                $costo_fenovo = 0;
-                $unit_price   = 0;
+
+                // Buscar si el producto tiene oferta del proveedor
+                $oferta = DB::table('products as t1')
+                    ->join('session_ofertas as t2', 't1.id', '=', 't2.product_id')
+                    ->select('t2.costfenovo', 't2.plist0neto')
+                    ->where('t1.id', $movimiento['product_id'])
+                    ->where('t2.fecha_desde', '<=', $hoy)
+                    ->where('t2.fecha_hasta', '>=', $hoy)
+                    ->first();
+                $costo_fenovo = (!$oferta) ? $product->product_price->costfenovo : $oferta->costfenovo;
+                $unit_price   = (!$oferta) ? $product->product_price->plist0neto : $oferta->plist0neto;
 
                 MovementProductTemp::firstOrCreate(
                     [
@@ -751,14 +760,24 @@ class IngresosController extends Controller
                 if ($tiendaEgreso == 1) {
                     $product = Product::find($movimiento['product_id']);
                     $latest  = $product->stockReal();
+                    
+                    // Actualizo el Stock
+                    $product->stock_f = $product->stock_f - $cantidad;
+                    $product->save();
                 } else {
                     $product = ProductStore::whereProductId($movimiento['product_id'])->whereStoreId($tiendaEgreso)->first();
-                    $latest  = $product->stock_f + $product->stock_r + $product->cyo;
+                    if ($product) {
+                        $latest  =  ($product->stock_f + $product->stock_r + $product->cyo)-$cantidad;
+                    } else {
+                        $latest  = 0-$cantidad;
+                        $data_prod_store['product_id'] = $movimiento['product_id'];
+                        $data_prod_store['store_id']   = $tiendaEgreso;
+                        $data_prod_store['stock_f']    = $latest;
+                        $data_prod_store['stock_r']    = 0;
+                        $data_prod_store['stock_cyo']  = 0;
+                        ProductStore::create($data_prod_store);
+                    }
                 }
-
-                // Actualizo el Stock
-                $product->stock_f = $product->stock_f - $cantidad;
-                $product->save();
 
                 // Ingreso el movimiento
                 MovementProduct::create([
@@ -777,21 +796,29 @@ class IngresosController extends Controller
                     'bultos'       => $movimiento['bultos'],
                     'entry'        => 0,
                     'egress'       => $cantidad,
-                    'balance'      => $latest - $cantidad,
+                    'balance'      => $latest,
                 ]);
 
                 // Ajustar tiendaIngreso
                 if ($tiendaIngreso == 1) {
                     $product = Product::find($movimiento['product_id']);
                     $latest  = $product->stockReal();
+                    $product->stock_f = $product->stock_f + $cantidad;
+                    $product->save();
                 } else {
-                    $product = ProductStore::whereProductId($movimiento['product_id'])->whereStoreId($tiendaIngreso)->first();
-                    $latest  = $product->stock_f + $product->stock_r + $product->cyo;
-                }
-
-                // Actualizo el Stock
-                $product->stock_f = $product->stock_f + $cantidad;
-                $product->save();
+                    $product = ProductStore::whereProductId($movimiento['product_id'])->whereStoreId($tiendaEgreso)->first();
+                    if ($product) {
+                        $latest  =  ($product->stock_f + $product->stock_r + $product->cyo ) + $cantidad;
+                    } else {
+                        $latest  = $cantidad;
+                        $data_prod_store['product_id'] = $movimiento['product_id'];
+                        $data_prod_store['store_id']   = $tiendaEgreso;
+                        $data_prod_store['stock_f']    = $latest;
+                        $data_prod_store['stock_r']    = 0;
+                        $data_prod_store['stock_cyo']  = 0;
+                        ProductStore::create($data_prod_store);
+                    }
+                }                
 
                 MovementProduct::create([
                     'entidad_id'   => $tiendaIngreso,
@@ -809,7 +836,7 @@ class IngresosController extends Controller
                     'bultos'       => $movimiento['bultos'],
                     'entry'        => $cantidad,
                     'egress'       => 0,
-                    'balance'      => $latest + $cantidad,
+                    'balance'      => $latest,
                 ]);
             }
 
