@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 
 // Ingresos
 Route::get('ingresos', [IngresosController::class, 'index'])->name('ingresos.index');
+Route::get('ingresos/getCompras', [IngresosController::class, 'getCompras'])->name('ingresos.getCompras');
 Route::get('ingresos/cerradas', [IngresosController::class, 'indexCerradas'])->name('ingresos.indexCerradas');
 Route::get('ingresos/chequeadas', [IngresosController::class, 'indexChequeadas'])->name('ingresos.indexChequeadas');
 
