@@ -62,29 +62,45 @@ class DepositosController extends StoreController
         $store = Store::find($request->store_id);
 
         // Obtener los productos CONGELADOS
+        //$products = Product::whereId(4)->whereActive(1)->select('id', 'cod_fenovo', 'name')->whereCategorieId(1)->get(); // ** Pruebas descomentar **
+        
         $products = Product::whereActive(1)->select('id', 'cod_fenovo', 'name')->whereCategorieId(1)->get();
 
         $productos = [];
         foreach ($products as $producto) {
 
-            $inicial  = $this->movimientoRepository->getSumaInicialValorizada($producto->id, $store->id, $fecha_desde);
-            $entradas = $this->movimientoRepository->getSumaEntradasValorizada($producto->id, $store->id, $fecha_desde, $fecha_hasta);
-            $salidas  = $this->movimientoRepository->getSumaSalidasValorizada($producto->id, $store->id, $fecha_desde, $fecha_hasta);
+            $inicial  = $this->movimientoRepository->getSumaInicial($producto->id, $store->id, $fecha_desde);
+            $entradas = $this->movimientoRepository->getSumaEntradas($producto->id, $store->id, $fecha_desde, $fecha_hasta);
+            $salidas  = $this->movimientoRepository->getSumaSalidas($producto->id, $store->id, $fecha_desde, $fecha_hasta);
+            $actual   = $this->movimientoRepository->getSumaActual($producto->id, $store->id);
+
+            // Valorizacion
+            $inicialValorizada  = $this->movimientoRepository->getSumaInicialValorizada($producto->id, $store->id, $fecha_desde);
+            $entradasValorizada = $this->movimientoRepository->getSumaEntradasValorizada($producto->id, $store->id, $fecha_desde, $fecha_hasta);
+            $salidasValorizada  = $this->movimientoRepository->getSumaSalidasValorizada($producto->id, $store->id, $fecha_desde, $fecha_hasta);
+            $actualValorizada   = $this->movimientoRepository->getSumaActualValorizada($producto->id, $store->id);
 
             $data['id']         = $producto->id;
             $data['cod_fenovo'] = $producto->cod_fenovo;
             $data['name']       = $producto->name;
+
             $data['inicial']    = $inicial;
-            $data['entradas']   = $entradas;
-            $data['salidas']    = $salidas;
-            $data['resultado']  = $inicial + $entradas - $salidas;
+            $data['entradas']   = number_format($entradas, 0, ',', '.');
+            $data['salidas']    = number_format($salidas, 0, ',', '.');
+            $data['resultado']  = number_format($inicial + $entradas - $salidas, 0, ',', '.');
+            $data['actual']     = number_format($actual, 0, ',', '.');
+
+            $data['inicialValorizada']    = $inicialValorizada;
+            $data['entradasValorizada']   = number_format($entradasValorizada, 0, ',', '.');
+            $data['salidasValorizada']    = number_format($salidasValorizada, 0, ',', '.');
+            $data['resultadoValorizada']  = number_format($inicialValorizada + $entradasValorizada - $salidasValorizada, 0, ',', '.');
+            $data['actualValorizada']     = number_format($actualValorizada, 0, ',', '.');
             array_push($productos, $data);
-            $data           = null;
         }
 
         return new JsonResponse([
             'type' => 'success',
-            'html' => view('admin.depositos.balanceDetalle', compact( 'store', 'fecha_desde', 'fecha_hasta', 'productos'))->render(),
+            'html' => view('admin.depositos.balanceDetalle', compact('store', 'fecha_desde', 'fecha_hasta', 'productos'))->render(),
         ]);
     }
 

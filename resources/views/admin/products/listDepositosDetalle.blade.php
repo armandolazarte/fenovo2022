@@ -6,7 +6,7 @@
             <tr>
                 <th colspan="2">
                     <p>
-                        @if($store->store_type == 'D') Depósito @else Local @endif :: {{ str_pad($store->cod_fenovo, 3, '0', STR_PAD_LEFT)  }} - {{ $store->description }}
+                        #{{ str_pad($store->id, 3, '0', STR_PAD_LEFT)  }} - ( {{ str_pad($store->cod_fenovo, 3, '0', STR_PAD_LEFT)  }} ) {{ $store->description }}
                     </p>    
                 </th>
                 <td>
