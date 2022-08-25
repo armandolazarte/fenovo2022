@@ -17,7 +17,7 @@ class MovimientoRepository extends BaseRepository
             ->join('product_prices', 'product_prices.product_id', '=', 'products_store.product_id')
             ->where('products_store.store_id', $store_id)
             ->where('products_store.product_id', $product_id)
-            ->selectRaw('((product_prices.plist0neto * products_store.stock_f + products_store.stock_r + products_store.stock_cyo)) as total')
+            ->selectRaw('(product_prices.plist0neto * (products_store.stock_f + products_store.stock_r + products_store.stock_cyo)) as total')
             ->first();
         return ($registro) ? (int)$registro->total : 0;
     }
@@ -81,7 +81,6 @@ class MovimientoRepository extends BaseRepository
             ->join('product_prices', 'product_prices.product_id', '=', 'movement_products.product_id')
             ->where('movement_products.entidad_id', $store_id)
             ->where('movement_products.product_id', $product_id)
-            //->selectRaw('balance as total')
             ->selectRaw('movement_products.balance as total')
             ->where('movement_products.created_at', '<', $date_from)
             ->orderByDesc('movement_products.created_at')
