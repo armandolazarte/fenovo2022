@@ -44,6 +44,7 @@ class MovementProduct extends Model
         'punto_venta',
         'palet',
         'deposito',
+        'factura_aparte'
     ];
 
     public function movement()

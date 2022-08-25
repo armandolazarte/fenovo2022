@@ -93,7 +93,12 @@ class Movement extends Model
 
     public function salida_products_no_cyo()
     {
-        return $this->hasMany(MovementProduct::class)->where('egress', '>', 0)->where('circuito', '!=', 'CyO');
+        return $this->hasMany(MovementProduct::class)->where('egress', '>', 0)->where('circuito', '!=', 'CyO')->where('factura_aparte',0);
+    }
+
+    public function salida_products_no_cyo_factura_aparte()
+    {
+        return $this->hasMany(MovementProduct::class)->where('egress', '>', 0)->where('circuito', '!=', 'CyO')->where('factura_aparte',1);
     }
 
     public function salida_products_cyo()

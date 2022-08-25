@@ -319,11 +319,12 @@ class ProductController extends Controller
     public function store(AddProduct $request)
     {
         try {
-            $data                 = $request->all();
-            $data['unit_package'] = implode('|', $data['unit_package']);
-            $data['online_sale']  = isset($request->online_sale) ? 1 : 0;
-            $data['iibb']         = isset($request->iibb) ? 1 : 0;
-            $data['active']       = isset($request->active) ? 1 : 0;
+            $data                   = $request->all();
+            $data['unit_package']   = implode('|', $data['unit_package']);
+            $data['online_sale']    = isset($request->online_sale) ? 1 : 0;
+            $data['iibb']           = isset($request->iibb) ? 1 : 0;
+            $data['active']         = isset($request->active) ? 1 : 0;
+            $data['factura_aparte'] = isset($request->factura_aparte) ? 1 : 0;
             $preciosCalculados    = $this->calcularPrecios($request);
             $data                 = array_merge($data, $preciosCalculados);
             $producto_nuevo       = $this->productRepository->create($data);
@@ -777,6 +778,7 @@ class ProductController extends Controller
             $data['online_sale']  = isset($request->online_sale) ? 1 : 0;
             $data['iibb']         = isset($request->iibb) ? 1 : 0;
             $data['active']       = isset($request->active) ? 1 : 0;
+            $data['factura_aparte'] = isset($request->factura_aparte) ? 1 : 0;
             $product_id           = $data['product_id'];
             $data['unit_package'] = implode('|', $data['unit_package']);
             $producto_actualizado = $this->productRepository->fill($product_id, $data);
