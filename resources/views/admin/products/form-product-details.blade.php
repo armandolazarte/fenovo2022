@@ -244,7 +244,7 @@
                 </fieldset>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-3">
                 <label class="text-body">Fragilidad *</label>
                 <fieldset class="form-group mb-3">
                     <select class="js-example-basic-single js-states form-control bg-transparent" name="fragility"
@@ -256,7 +256,7 @@
                 </fieldset>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-3">
                 <label class="text-body">Moneda *</label>
                 <fieldset class="form-group mb-3">
                     <select class="js-example-basic-single js-states form-control bg-transparent" name="currency"
@@ -267,6 +267,19 @@
                         <option value="USD" @if (isset($product) && $product->currency == 'USD') selected @endif>Dolar</option>
                     </select>
                 </fieldset>
+            </div>
+
+            <div class="col-md-6">
+                <label class="text-body">Categoria senasa</label>
+                <select class="js-example-basic-single js-states form-control bg-transparent" name="senasa_id">
+                    <option value="">seleccione ...</option>
+                    @foreach ($senasaDefinitions as $senasaDefinition)
+                        <option value="{{ $senasaDefinition->id }}"
+                            @if (isset($product) && $product->senasa_id == $senasaDefinition->id) selected @endif>{{ $senasaDefinition->product_name }}
+                        </option>
+                    @endforeach
+                </select>
+
             </div>
         </div>
     </div>
@@ -336,18 +349,16 @@
             </div>
 
 
-            <div class="col-md-3">
-                <p>Categoria senasa</p>
-                <select class="js-example-basic-single js-states form-control bg-transparent" name="senasa_id">
-                    <option value="">seleccione ...</option>
-                    @foreach ($senasaDefinitions as $senasaDefinition)
-                        <option value="{{ $senasaDefinition->id }}"
-                            @if (isset($product) && $product->senasa_id == $senasaDefinition->id) selected @endif>{{ $senasaDefinition->product_name }}
-                        </option>
-                    @endforeach
-                </select>
-
+            <div class="col-md-2">
+                <p>Factura aparte :</p>
+                <div class="custom-control switch custom-switch custom-control-inline">
+                    <input type="checkbox" class="custom-control-input" id="factura_aparte" name="factura_aparte"
+                        @if (isset($product) && $product->factura_aparte) checked="" @elseif(isset($product) && !$product->factura_aparte) unchecked="" @endif
+                        value="1">
+                    <label class="custom-control-label mr-1" for="factura_aparte"></label>
+                </div>
             </div>
+
         </div>
     </div>
 

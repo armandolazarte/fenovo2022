@@ -74,7 +74,8 @@ class SessionProduct extends Model
         'user_id',
         'deposito',
         'desde_deposito',
-        'a_deposito'
+        'a_deposito',
+        'factura_aparte'
     ];
 
     public function producto()

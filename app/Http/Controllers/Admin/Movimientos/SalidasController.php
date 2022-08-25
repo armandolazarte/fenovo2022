@@ -276,7 +276,7 @@ class SalidasController extends Controller
         if (!$es_traslado_depositos) {
             $destino     = $this->origenData($tipo, $explode[1], true);
             $destinoName = $this->origenData($tipo, $explode[1]);
-        }      
+        }
 
         return view(
             'admin.movimientos.salidas.add',
@@ -947,7 +947,11 @@ class SalidasController extends Controller
                     ];
                     $insert_data['unit_price'] = $listAssociates[$customer->listprice_associate];
                     $insert_data['tasiva']     = $prices->tasiva;
-                    $insert_data['neto']       = $insert_data['unit_price'] / (1 + ($prices->tasiva / 100)); //Este valor se toma cuando no se factura
+                    if($customer->listprice_associate == 'L0'){
+                        $insert_data['neto'] = $insert_data['unit_price'];
+                    }else{
+                        $insert_data['neto']       = $insert_data['unit_price'] / (1 + ($prices->tasiva / 100)); //Este valor se toma cuando no se factura
+                    }
                     break;
             }
 
@@ -964,6 +968,7 @@ class SalidasController extends Controller
             $insert_data['desde_deposito'] = $desde_deposito;
             $insert_data['a_deposito']     = $a_deposito;
             $insert_data['nro_pedido']     = $nro_pedido;
+            $insert_data['factura_aparte'] =(int) $product->factura_aparte;
 
             for ($i = 0; $i < count($unidades); $i++) {
                 $unidad   = $unidades[$i];
@@ -1349,6 +1354,7 @@ class SalidasController extends Controller
                             'punto_venta'  => $punto_venta,
                             'circuito'     => $circuito,
                             'deposito'     => $deposito,
+                            'factura_aparte'=> $product->factura_aparte,
                         ]);
 
                         if (!$deposito || !$a_deposito) {
@@ -1371,6 +1377,7 @@ class SalidasController extends Controller
                                 'punto_venta'  => $punto_venta,
                                 'circuito'     => $circuito,
                                 'deposito'     => $a_deposito,
+                                'factura_aparte'=> $product->factura_aparte,
                             ]);
                         }
                     }
@@ -1395,6 +1402,18 @@ class SalidasController extends Controller
         try {
             $id          = $request->input('id');
             $mp          = MovementProduct::where('id', $id)->where('product_id', $request->input('product_id'))->first();
+            $m           = Movement::where('id',$mp->movement_id)->first();
+
+            $destino = $this->origenData($m->type, $m->to, true);
+            $lista = $destino->listprice_associate;
+
+            if($lista != 'L0'){
+                if($mp->invoice){
+                    $mp->unit_price  = $mp->unit_price / (1 + ($mp->tasiva / 100));
+                }else{
+                    $mp->unit_price  = $mp->unit_price * (1 + ($mp->tasiva / 100));
+                }
+            }
             $mp->invoice = !$mp->invoice;
             $mp->save();
             return new JsonResponse(['msj' => 'Facturación cambiada', 'type' => 'success']);

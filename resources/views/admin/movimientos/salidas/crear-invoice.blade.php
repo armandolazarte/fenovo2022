@@ -58,10 +58,20 @@
             jQuery.ajax({
                 url: "{{ route('change.product.invoice') }}",
                 type: 'POST',
-                data: {id, product_id}
+                data: {id, product_id},
+                success: function(data) {
+                    if(data['type'] == 'success'){
+                        toastr.success(data['msj'], 'EXITO')
+                        setTimeout(() => {
+                            location.reload();
+                        }, 450);
+                    }else{
+                        toastr.error(data['msj'], 'Verifique')
+                    }
+                },
             });
         }
-        
+
         function disableBtn(){
             jQuery("#btn-crear-invoice").attr('disabled',true);
             jQuery('#loader').removeClass('hidden');
