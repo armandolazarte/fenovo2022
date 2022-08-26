@@ -305,9 +305,24 @@
                     return false;
                 },
                 yes_fn: function() {
-                    let url =
-                        `{{ route('ingresos.close.ajuste') }}?id=${id}&tiendaIngreso=${tiendaIngreso}&tiendaEgreso=${tiendaEgreso}`
-                    window.location = url;
+
+                    jQuery.ajax({
+                        url: '{{ route('ingresos.close.ajuste') }}',
+                        type: 'POST',
+                        data: {
+                            id,
+                            tiendaIngreso,
+                            tiendaEgreso
+                        },
+                        success: function(data) {
+                            if (data['type'] == 'success') {
+                                window.location = '{{ route('ingresos.ajustarStockIndex') }}';
+                            }
+                            if (data['type'] !== 'success') {
+                                toastr.error(data['msj'], 'Verifique');
+                            }
+                        }
+                    })
                 }
             });
         };
