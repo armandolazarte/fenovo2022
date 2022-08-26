@@ -28,7 +28,7 @@
                             <div class="card-body">
                                 <div class="table-datapos">
                                     <div class="table-responsive">
-                                        <table class="display table-hover yajra-datatable">
+                                        <table class="display table-hover yajra-datatable text-center">
                                             <thead>
                                                 <tr class="bg-dark text-white">
                                                     <th>#</th>
@@ -65,16 +65,16 @@
 <script>
     var table = jQuery('.yajra-datatable').DataTable({
         @include('partials.table.setting'),
-        ajax: "{{ route('ingresos.indexCerradas', ['status' => '']) }}",
+        ajax: "{{ route('ingresos.getCompras') }}",
         ordering: false,
         columns: [
-            {data: 'id', 'class':'text-center', searchable: false},
-            {data: 'date', 'class':'text-center', searchable: false},
-            {data: 'origen'},
+            {data: 'id'},
+            {data: 'date'},
+            {data: 'origen', class: 'text-left'},
             {data: 'subtype'},
-            {data: 'items', 'class':'text-center', searchable: false},
-            {data: 'voucher',  'class':'text-center'},
-            {data: 'show', 'class':'text-center', searchable: false},
+            {data: 'items'},
+            {data: 'voucher'},
+            {data: 'show'},
         ],
         });
 </script>
