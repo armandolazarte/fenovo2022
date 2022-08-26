@@ -28,7 +28,7 @@ class MovimientoRepository extends BaseRepository
             ->join('product_prices', 'product_prices.product_id', '=', 'movement_products.product_id')
             ->where('movement_products.entidad_id', $store_id)
             ->where('movement_products.product_id', $product_id)
-            ->selectRaw('product_prices.plist0neto * movement_products.balance as total')
+            ->selectRaw('movement_products.unit_price * movement_products.balance as total')
             ->where('movement_products.created_at', '<', $date_from)
             ->orderByDesc('movement_products.created_at')
             ->first();
@@ -44,7 +44,7 @@ class MovimientoRepository extends BaseRepository
             ->where('movement_products.entry', '>', 0)
             ->whereBetween('movement_products.created_at', [$date_from, $date_to])
             //->selectRaw('movement_products.entry as total')
-            ->selectRaw('product_prices.plist0neto * movement_products.entry as total')
+            ->selectRaw('movement_products.unit_price * movement_products.entry as total')
             ->get()
             ->sum('total');
     }
@@ -58,7 +58,7 @@ class MovimientoRepository extends BaseRepository
             ->where('movement_products.egress', '>', 0)
             ->whereBetween('movement_products.created_at', [$date_from, $date_to])
             //->selectRaw('movement_products.egress as total')
-            ->selectRaw('product_prices.plist0neto * movement_products.egress as total')
+            ->selectRaw('movement_products.unit_price * movement_products.egress as total')
             ->get()
             ->sum('total');        
     }
