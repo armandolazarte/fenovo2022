@@ -48,7 +48,7 @@ Route::get('ingresos/ajustar/stockDepositos/show/{id}', [IngresosController::cla
 Route::post('ingresos/ajustar/storeDetalle', [IngresosController::class, 'ajustarStockStoreDetalle'])->name('ingresos.ajuste-detalle.store');
 Route::get('ingresos/movimientos/getMovements', [IngresosController::class, 'getMovements'])->name('ingresos.getMovements');
 Route::post('ingresos/check', [IngresosController::class, 'check'])->name('ingresos.check');
-Route::get('ingresos/ajustar/stockDepositos/close', [IngresosController::class, 'ajustarStockDepositosClose'])->name('ingresos.close.ajuste');
+Route::post('ingresos/ajustar/stockDepositos/close', [IngresosController::class, 'ajustarStockDepositosClose'])->name('ingresos.close.ajuste');
 
 // Ajustar Stock de las compras
 Route::post('ingresos/ajustar/item', [IngresosController::class, 'ajustarIngresoItem'])->name('ajustar.ingreso.item');

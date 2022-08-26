@@ -754,6 +754,8 @@ class IngresosController extends Controller
 
                 MovementProductTemp::firstOrCreate(
                     [
+                        'entidad_id'   => $movimiento['tiendaEgreso'],
+                        'entidad_tipo' => 'S',
                         'movement_id'  => $movimiento['movement_id'],
                         'product_id'   => $movimiento['product_id'],
                         'tasiva'       => $product->product_price->tasiva,
@@ -824,7 +826,7 @@ class IngresosController extends Controller
             $data['status']         = 'FINISHED';
             $data['voucher_number'] = $movement_temp->voucher_number;
             $data['flete']          = $movement_temp->flete;
-            $data['observacion']    = 'AJUSTE ENTRE DEPOSITOS. DESDE ' . str_pad($tiendaEgreso, 3, '0', STR_PAD_LEFT) . ' HACIA ' . str_pad($tiendaIngreso, 3, '0', STR_PAD_LEFT);
+            $data['observacion']    = 'Aj. depósitos desde ' . str_pad($tiendaEgreso, 3, '0', STR_PAD_LEFT) . ' hacia ' . str_pad($tiendaIngreso, 3, '0', STR_PAD_LEFT);
             $data['user_id']        = \Auth::user()->id;
             $data['flete_invoice']  = 0;
             $movement_new           = Movement::create($data);
@@ -838,16 +840,28 @@ class IngresosController extends Controller
 
                 // Ajustar tiendaEgreso
                 if ($tiendaEgreso == 1) {
-                    $product = Product::find($movimiento['product_id']);
-                    $latest  = $product->stockReal();
-
-                    // Actualizo el Stock
+                    $product          = Product::find($movimiento['product_id']);
                     $product->stock_f = $product->stock_f - $cantidad;
+                    $latest           = $product->stockReal();
                     $product->save();
                 } else {
-                    $product = ProductStore::whereProductId($movimiento['product_id'])->whereStoreId($tiendaEgreso)->first();
-                    if ($product) {
-                        $latest = ($product->stock_f + $product->stock_r + $product->cyo) - $cantidad;
+                    $product_store = ProductStore::whereProductId($movimiento['product_id'])->whereStoreId($tiendaEgreso)->first();
+
+                    if ($product_store) {
+
+                        // Si la cantidad a devolver es suficiente 
+                        if($product_store->stock_f >= $cantidad){
+                            $product_store->stock_f = $product_store->stock_f - $cantidad;
+                        }else{
+                            $nuevaCantidad = ($cantidad - $product_store->stock_f);
+                            $product_store->stock_f = 0;
+                            if($product_store->stock_r >= $nuevaCantidad){
+                                $product_store->stock_r = $product_store->stock_r - $nuevaCantidad;
+                            }
+                        }
+
+                        $latest                 = $product_store->stock_f;
+                        $product_store->save();
                     } else {
                         $latest                        = 0 - $cantidad;
                         $data_prod_store['product_id'] = $movimiento['product_id'];
@@ -882,13 +896,15 @@ class IngresosController extends Controller
                 // Ajustar tiendaIngreso
                 if ($tiendaIngreso == 1) {
                     $product          = Product::find($movimiento['product_id']);
-                    $latest           = $product->stockReal();
                     $product->stock_f = $product->stock_f + $cantidad;
+                    $latest           = $product->stockReal();
                     $product->save();
                 } else {
-                    $product = ProductStore::whereProductId($movimiento['product_id'])->whereStoreId($tiendaEgreso)->first();
-                    if ($product) {
-                        $latest = ($product->stock_f + $product->stock_r + $product->cyo) + $cantidad;
+                    $product_store = ProductStore::whereProductId($movimiento['product_id'])->whereStoreId($tiendaEgreso)->first();
+                    if ($product_store) {
+                        $product_store->stock_f = $product_store->stock_f + $cantidad;
+                        $latest                 = $product_store->stock_f;
+                        $product_store->save();
                     } else {
                         $latest                        = $cantidad;
                         $data_prod_store['product_id'] = $movimiento['product_id'];
@@ -927,7 +943,9 @@ class IngresosController extends Controller
             DB::commit();
             Schema::enableForeignKeyConstraints();
 
-            return redirect()->route('ingresos.ajustarStockIndex');
+            return new JsonResponse([
+                'type' => 'success',
+            ]);
         } catch (\Exception $e) {
             DB::rollback();
             Schema::enableForeignKeyConstraints();
