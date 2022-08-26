@@ -11,7 +11,7 @@ class MovimientoRepository extends BaseRepository
     {
     }
 
-    public function getSumaActualValorizada($product_id, $store_id)
+    public static function getSumaActualValorizada($product_id, $store_id)
     {
         $registro = DB::table('products_store')
             ->join('product_prices', 'product_prices.product_id', '=', 'products_store.product_id')
@@ -22,7 +22,7 @@ class MovimientoRepository extends BaseRepository
         return ($registro) ? (int)$registro->total : 0;
     }
 
-    public function getSumaInicialValorizada($product_id, $store_id, $date_from)
+    public static function getSumaInicialValorizada($product_id, $store_id, $date_from)
     {
         $registro = DB::table('movement_products')
             ->join('product_prices', 'product_prices.product_id', '=', 'movement_products.product_id')
@@ -35,7 +35,7 @@ class MovimientoRepository extends BaseRepository
         return ($registro) ? (int)$registro->total : 0;
     }
 
-    public function getSumaEntradasValorizada($product_id, $store_id, $date_from, $date_to)
+    public static function getSumaEntradasValorizada($product_id, $store_id, $date_from, $date_to)
     {
         return (int) DB::table('movement_products')
             ->join('product_prices', 'product_prices.product_id', '=', 'movement_products.product_id')
@@ -43,13 +43,12 @@ class MovimientoRepository extends BaseRepository
             ->where('movement_products.product_id', $product_id)
             ->where('movement_products.entry', '>', 0)
             ->whereBetween('movement_products.created_at', [$date_from, $date_to])
-            //->selectRaw('movement_products.entry as total')
             ->selectRaw('movement_products.unit_price * movement_products.entry as total')
             ->get()
             ->sum('total');
     }
 
-    public function getSumaSalidasValorizada($product_id, $store_id, $date_from, $date_to)
+    public static function getSumaSalidasValorizada($product_id, $store_id, $date_from, $date_to)
     {
         return (int) DB::table('movement_products')
             ->join('product_prices', 'product_prices.product_id', '=', 'movement_products.product_id')
@@ -57,13 +56,12 @@ class MovimientoRepository extends BaseRepository
             ->where('movement_products.product_id', $product_id)
             ->where('movement_products.egress', '>', 0)
             ->whereBetween('movement_products.created_at', [$date_from, $date_to])
-            //->selectRaw('movement_products.egress as total')
             ->selectRaw('movement_products.unit_price * movement_products.egress as total')
             ->get()
             ->sum('total');        
     }
 
-    public function getSumaActual($product_id, $store_id)
+    public static function getSumaActual($product_id, $store_id)
     {
         $registro = DB::table('products_store')
             ->join('product_prices', 'product_prices.product_id', '=', 'products_store.product_id')
@@ -75,7 +73,7 @@ class MovimientoRepository extends BaseRepository
         return ($registro) ? $registro->total : 0;
     }
 
-    public function getSumaInicial($product_id, $store_id, $date_from)
+    public static function getSumaInicial($product_id, $store_id, $date_from)
     {
         $registro = DB::table('movement_products')
             ->join('product_prices', 'product_prices.product_id', '=', 'movement_products.product_id')
@@ -88,7 +86,7 @@ class MovimientoRepository extends BaseRepository
         return ($registro) ? $registro->total : 0;
     }
 
-    public function getSumaEntradas($product_id, $store_id, $date_from, $date_to)
+    public static function getSumaEntradas($product_id, $store_id, $date_from, $date_to)
     {
         return DB::table('movement_products')
             ->join('product_prices', 'product_prices.product_id', '=', 'movement_products.product_id')
@@ -96,13 +94,12 @@ class MovimientoRepository extends BaseRepository
             ->where('movement_products.product_id', $product_id)
             ->where('movement_products.entry', '>', 0)
             ->whereBetween('movement_products.created_at', [$date_from, $date_to])
-            //->selectRaw('movement_products.entry as total')
             ->selectRaw('movement_products.entry as total')
             ->get()
             ->sum('total');
     }
 
-    public function getSumaSalidas($product_id, $store_id, $date_from, $date_to)
+    public static function getSumaSalidas($product_id, $store_id, $date_from, $date_to)
     {
         return DB::table('movement_products')
             ->join('product_prices', 'product_prices.product_id', '=', 'movement_products.product_id')
@@ -110,13 +107,12 @@ class MovimientoRepository extends BaseRepository
             ->where('movement_products.product_id', $product_id)
             ->where('movement_products.egress', '>', 0)
             ->whereBetween('movement_products.created_at', [$date_from, $date_to])
-            //->selectRaw('movement_products.egress as total')
             ->selectRaw('movement_products.egress as total')
             ->get()
             ->sum('total');        
     }
 
-    public function getStartAndEndDate($week, $year)
+    public static function getStartAndEndDate($week, $year)
     {
         $dateTime = new DateTime();
         $dateTime->setISODate($year, $week);

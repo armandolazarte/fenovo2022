@@ -1,4 +1,4 @@
-<table class="table table-borderless table-primary mt-5 w-50">
+<table class="table table-borderless mt-5 w-50 fenovo-celeste text-white">
     <tr>
         <td>
             #{{ $store->id }} - <strong> ( {{ $store->cod_fenovo }}) {{ $store->description }} </strong>
@@ -13,15 +13,22 @@
 
 <ul class="nav nav-pills" id="pills-tab1" role="tablist">
     <li class="nav-item mr-2">
-        <a class="nav-link btn-dark active shadow-none" id="valuados-tab-basic" data-toggle="pill" href="#valuados"
+        <a class="nav-link fenovo-celeste text-white-50" id="valuados-tab-basic" data-toggle="pill" href="#valuados"
             role="tab" aria-controls="valuados" aria-selected="true">
             Stocks valuados
         </a>
     </li>
     <li class="nav-item mr-2" id="nav-item-precios">
-        <a class="nav-link btn-dark shadow-none" id="sin-valuar-tab-basic" data-toggle="pill" href="#sin-valuar"
+        <a class="nav-link fenovo-celeste text-white-50" id="sin-valuar-tab-basic" data-toggle="pill" href="#sin-valuar"
             role="tab" aria-controls="sin-valuar" aria-selected="false">
             Stocks
+        </a>
+    </li>
+    <li class="nav-item mr-2 mt-2" id="nav-item-precios">
+        <a class="fenovo-celeste text-white-50" role="tab" aria-selected="false">
+            <a href="javascript:void(0)" onclick="exportar('{{ $store->id }}', '{{ $week }}', '{{ $year }}')">
+                <i class=" fa fa-file-csv"></i> Exportar balance
+            </a>
         </a>
     </li>
 </ul>
@@ -55,16 +62,17 @@
                             <th class=" text-danger">{{ $producto['resultadoValorizada'] }}</th>
                             <th class=" text-success">{{ $producto['actualValorizada'] }}</th>
                             <td>
-                                @if(($producto['resultadoValorizada'] > 0) && ($producto['actualValorizada'] > 0) )
-                                    {{ number_format((($producto['resultadoValorizada'] / $producto['actualValorizada']) - 1) * 100,2) }} 
-                                @else    
+                                @if ($producto['resultadoValorizada'] > 0 && $producto['actualValorizada'] > 0)
+                                    {{ number_format(($producto['resultadoValorizada'] / $producto['actualValorizada'] - 1) * 100, 2) }}
+                                @else
                                     0
                                 @endif
                                 %
                             </td>
                             <td>
-                                @if(($producto['resultadoValorizada'] - $producto['actualValorizada']) > 1)
-                                    <a href="{{ route('product.historial.tienda', ['product_id' => $producto['id'], 'store_id' => $store->id]) }}">
+                                @if ($producto['resultadoValorizada'] - $producto['actualValorizada'] > 1)
+                                    <a
+                                        href="{{ route('product.historial.tienda', ['product_id' => $producto['id'], 'store_id' => $store->id]) }}">
                                         <i class="fa fa-list" aria-hidden="true"></i>
                                     </a>
                                 @endif

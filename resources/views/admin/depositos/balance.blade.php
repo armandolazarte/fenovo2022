@@ -21,21 +21,22 @@
                                     {{ str_pad($store->cod_fenovo, 3, '0', STR_PAD_LEFT) }} - {{ $store->description }}
                                 </option>
                             @endforeach
-                        </select>                        
+                        </select>
                     </div>
                 </div>
                 <div class="row mt-2">
                     <div class="col-6">
                         <fieldset class="input-group form-group mb-3">
-                            <input type="week" id="semana" name="semana" class="form-control input-lg" value="{{ date('Y').'-W'.date('W') }}">
+                            <input type="week" id="semana" name="semana" class="form-control input-lg"
+                                value="{{ date('Y') . '-W' . date('W') }}">
                             <div class="input-group-prepend bg-transparent">
                                 <span class="input-group-text">
-                                    <a href="javascript:void(0)" id="btnBalance" class=" badge badge-light rounded p-1" >
+                                    <a href="javascript:void(0)" id="btnBalance" class=" badge badge-light rounded p-1">
                                         CONSULTAR
                                     </a>
                                 </span>
                             </div>
-                        </fieldset>                        
+                        </fieldset>
                     </div>
                 </div>
 
@@ -55,7 +56,6 @@
 
 @section('js')
     <script>
-
         let route = '{{ route('depositos.balance.detalle') }}';
 
         jQuery(document).ready(function() {
@@ -64,33 +64,35 @@
                 placeholder: 'Seleccione una frioteka / deposito ...',
             })
 
-            if (localStorage.storeIdBalance){
-                jQuery("#storeId").val(localStorage.storeIdBalance).trigger( "change" );
-                jQuery("#semana").val(localStorage.semanaBalance);            
-                jQuery("#btnBalance").trigger( "click" );
+            if (localStorage.storeIdBalance) {
+                jQuery("#storeId").val(localStorage.storeIdBalance).trigger("change");
+                jQuery("#semana").val(localStorage.semanaBalance);
+                jQuery("#btnBalance").trigger("click");
             }
-
         });
-        
 
         jQuery('#btnBalance').on('click', function() {
             let fecha = jQuery("#semana").val().split('-');
 
-            if(jQuery("#storeId").val() == '' || jQuery("#storeId").val() == 'undefined') return;                
-            if(jQuery("#semana").val() == '' || jQuery("#semana").val() == 'undefined') return;                
+            if (jQuery("#storeId").val() == '' || jQuery("#storeId").val() == 'undefined') return;
+            if (jQuery("#semana").val() == '' || jQuery("#semana").val() == 'undefined') return;
 
             // Guardo los datos en el Storage
             localStorage.setItem('storeIdBalance', jQuery("#storeId").val());
             localStorage.setItem('semanaBalance', jQuery("#semana").val());
 
-            let store_id= jQuery("#storeId").val();
-            let anio    = fecha[0];
-            let semana  = fecha[1].slice(1);
+            let store_id = jQuery("#storeId").val();
+            let anio = fecha[0];
+            let semana = fecha[1].slice(1);
 
             jQuery.ajax({
                 url: route,
                 type: 'GET',
-                data: {store_id, anio, semana},
+                data: {
+                    store_id,
+                    anio,
+                    semana
+                },
                 beforeSend: function() {
                     jQuery('#loader').removeClass('hidden');
                 },
@@ -105,6 +107,13 @@
             });
         });
 
+        const exportar = (store_id, week, year) => {
 
+            var url = '{{ route('deposito.balance.exportCSV', [':store_id', ':week', ':year']) }}';
+            url = url.replace(':store_id', store_id);
+            url = url.replace(':week', week);
+            url = url.replace(':year', year);
+            window.open(url, '_blank');
+        }
     </script>
 @endsection
