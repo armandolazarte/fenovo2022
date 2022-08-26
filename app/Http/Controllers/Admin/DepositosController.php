@@ -2,22 +2,27 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\balanceViewExport;
 use App\Models\Product;
 use App\Models\Store;
 
 use App\Repositories\MovimientoRepository;
+use App\Repositories\StoreRepository;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
+use Maatwebsite\Excel\Facades\Excel;
+
 class DepositosController extends StoreController
 {
     private $movimientoRepository;
 
-    public function __construct(MovimientoRepository $movimientoRepository)
+    public function __construct( MovimientoRepository $movimientoRepository, StoreRepository $storeRepository )
     {
         $this->movimientoRepository = $movimientoRepository;
+        $this->storeRepository = $storeRepository;
     }
 
     public function index(Request $request)
@@ -45,7 +50,7 @@ class DepositosController extends StoreController
 
     public function balance(Request $request)
     {
-        $stores = Store::orderBy('description')->get();
+        $stores = Store::where('store_type','B')->orderBy('description')->get();
         return view('admin.depositos.balance', compact('stores'));
     }
 
@@ -100,8 +105,14 @@ class DepositosController extends StoreController
 
         return new JsonResponse([
             'type' => 'success',
-            'html' => view('admin.depositos.balanceDetalle', compact('store', 'fecha_desde', 'fecha_hasta', 'productos'))->render(),
+            'html' => view('admin.depositos.balanceDetalle', 
+            compact('store', 'fecha_desde', 'fecha_hasta', 'productos', 'week', 'year'))->render(),
         ]);
+    }
+
+    public function exportBalance(Request $request)
+    {	
+        return Excel::download(new balanceViewExport($request->store_id, $request->week, $request->year), 'balance.csv', \Maatwebsite\Excel\Excel::CSV, ['Content-Type' => 'text/csv']);
     }
 
     public function add()
