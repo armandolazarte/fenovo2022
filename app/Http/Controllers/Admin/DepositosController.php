@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Store;
 
 use App\Repositories\MovimientoRepository;
+use App\Repositories\StoreRepository;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,9 +16,10 @@ class DepositosController extends StoreController
 {
     private $movimientoRepository;
 
-    public function __construct(MovimientoRepository $movimientoRepository)
+    public function __construct( MovimientoRepository $movimientoRepository, StoreRepository $storeRepository )
     {
         $this->movimientoRepository = $movimientoRepository;
+        $this->storeRepository = $storeRepository;
     }
 
     public function index(Request $request)
