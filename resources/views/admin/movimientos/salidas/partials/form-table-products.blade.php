@@ -13,11 +13,9 @@
                 <td>NroPalet</td>
                 <td>Editar</td>
                 <td>
-                    @if (in_array(Auth::user()->rol(), ['superadmin', 'admin', 'contable']))
                     <a href="javascript:void(0)" onclick="deleteItemSession()" title="Eliminar productos seleccionados " class=" text-white">
                         <i class="fas fa-trash-alt"></i>
                     </a>
-                    @endif
                 </td>
             </tr>
         </thead>
@@ -79,10 +77,7 @@
                             </a>
                         </td>
                         <td>
-
-                            @if (in_array(Auth::user()->rol(), ['superadmin', 'admin', 'contable']))
-                                <input type="checkbox" class="deleteItem" value="{{ $session_product->id }}">                                
-                            @endif
+                            <input type="checkbox" class="deleteItem" value="{{ $session_product->id }}">
                         </td>
                     </tr>
                 @endforeach
