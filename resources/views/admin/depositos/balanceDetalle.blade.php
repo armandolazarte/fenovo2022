@@ -62,12 +62,18 @@
                             <th class=" text-danger">{{ $producto['resultadoValorizada'] }}</th>
                             <th class=" text-success">{{ $producto['actualValorizada'] }}</th>
                             <td>
-                                @if ($producto['resultadoValorizada'] > 0 && $producto['actualValorizada'] > 0)
-                                    {{ number_format(($producto['resultadoValorizada'] / $producto['actualValorizada'] - 1) * 100, 2) }}
+                                @if ($producto['resultadoValorizada'] != 0 && $producto['actualValorizada'] != 0)
+                                    {{ number_format(($producto['resultadoValorizada'] / $producto['actualValorizada'] - 1) * 100, 2) }} %
                                 @else
-                                    0
+
+                                    @if($producto['resultadoValorizada'] > $producto['actualValorizada'])
+                                        {{ $producto['resultadoValorizada'] }}
+                                    @else
+                                        {{ $producto['actualValorizada']}}
+                                    @endif    
+                                    
                                 @endif
-                                %
+                                
                             </td>
                             <td>
                                 @if ($producto['resultadoValorizada'] - $producto['actualValorizada'] > 1)
