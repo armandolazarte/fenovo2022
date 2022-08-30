@@ -66,10 +66,14 @@ class DepositosController extends StoreController
         // Obtener la tienda
         $store = Store::find($request->store_id);
 
-        // Obtener los productos CONGELADOS
-        //$products = Product::whereId(4)->whereActive(1)->select('id', 'cod_fenovo', 'name')->whereCategorieId(1)->get(); // ** Pruebas descomentar **
+        // Set de pruebas ** Pruebas descomentar **
+        $products = Product::whereId(1)->whereActive(1)->select('id', 'cod_fenovo', 'name')->whereCategorieId(1)->get(); 
+        return $this->movimientoRepository->getSumaInicial(1, 11, $fecha_desde);
+        // Fin Set de pruebas
+
         
-        $products = Product::whereActive(1)->select('id', 'cod_fenovo', 'name')->whereCategorieId(1)->get();
+        // Obtener los productos CONGELADOS
+        //$products = Product::whereActive(1)->select('id', 'cod_fenovo', 'name')->whereCategorieId(1)->get();
 
         $productos = [];
         foreach ($products as $producto) {
@@ -77,13 +81,13 @@ class DepositosController extends StoreController
             $inicial  = $this->movimientoRepository->getSumaInicial($producto->id, $store->id, $fecha_desde);
             $entradas = $this->movimientoRepository->getSumaEntradas($producto->id, $store->id, $fecha_desde, $fecha_hasta);
             $salidas  = $this->movimientoRepository->getSumaSalidas($producto->id, $store->id, $fecha_desde, $fecha_hasta);
-            $actual   = $this->movimientoRepository->getSumaActual($producto->id, $store->id);
+            $actual   = $this->movimientoRepository->getSumaActual($producto->id, $store->id, $fecha_desde);
 
             // Valorizacion
             $inicialValorizada  = $this->movimientoRepository->getSumaInicialValorizada($producto->id, $store->id, $fecha_desde);
             $entradasValorizada = $this->movimientoRepository->getSumaEntradasValorizada($producto->id, $store->id, $fecha_desde, $fecha_hasta);
             $salidasValorizada  = $this->movimientoRepository->getSumaSalidasValorizada($producto->id, $store->id, $fecha_desde, $fecha_hasta);
-            $actualValorizada   = $this->movimientoRepository->getSumaActualValorizada($producto->id, $store->id);
+            $actualValorizada   = $this->movimientoRepository->getSumaActualValorizada($producto->id, $store->id, $fecha_desde);
 
             $data['id']         = $producto->id;
             $data['cod_fenovo'] = $producto->cod_fenovo;
