@@ -68,7 +68,7 @@ class DepositosController extends StoreController
 
         // Set de pruebas ** Pruebas descomentar **
         $products = Product::whereId(1)->whereActive(1)->select('id', 'cod_fenovo', 'name')->whereCategorieId(1)->get(); 
-        return $this->movimientoRepository->getSumaInicial(1, 11, $fecha_desde);
+        $this->movimientoRepository->getSumaInicialValorizada(1, 11, $fecha_desde);
         // Fin Set de pruebas
 
         

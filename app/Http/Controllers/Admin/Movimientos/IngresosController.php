@@ -842,8 +842,8 @@ class IngresosController extends Controller
                 if ($tiendaEgreso == 1) {
                     $product          = Product::find($movimiento['product_id']);
                     $product->stock_f = $product->stock_f - $cantidad;
-                    $latest           = $product->stockReal();
                     $product->save();
+                    $latest           = $product->stockReal();
                 } else {
                     $product_store = ProductStore::whereProductId($movimiento['product_id'])->whereStoreId($tiendaEgreso)->first();
 
@@ -860,8 +860,8 @@ class IngresosController extends Controller
                             }
                         }
 
-                        $latest                 = $product_store->stock_f;
                         $product_store->save();
+                        $latest = $product_store->stock_f;
                     } else {
                         $latest                        = 0 - $cantidad;
                         $data_prod_store['product_id'] = $movimiento['product_id'];
@@ -897,18 +897,18 @@ class IngresosController extends Controller
                 if ($tiendaIngreso == 1) {
                     $product          = Product::find($movimiento['product_id']);
                     $product->stock_f = $product->stock_f + $cantidad;
-                    $latest           = $product->stockReal();
                     $product->save();
+                    $latest           = $product->stockReal();
                 } else {
-                    $product_store = ProductStore::whereProductId($movimiento['product_id'])->whereStoreId($tiendaEgreso)->first();
+                    $product_store = ProductStore::whereProductId($movimiento['product_id'])->whereStoreId($tiendaIngreso)->first();
                     if ($product_store) {
                         $product_store->stock_f = $product_store->stock_f + $cantidad;
-                        $latest                 = $product_store->stock_f;
                         $product_store->save();
+                        $latest                 = $product_store->stock_f;
                     } else {
                         $latest                        = $cantidad;
                         $data_prod_store['product_id'] = $movimiento['product_id'];
-                        $data_prod_store['store_id']   = $tiendaEgreso;
+                        $data_prod_store['store_id']   = $$tiendaIngreso;
                         $data_prod_store['stock_f']    = $latest;
                         $data_prod_store['stock_r']    = 0;
                         $data_prod_store['stock_cyo']  = 0;
