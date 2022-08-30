@@ -2,7 +2,9 @@
 
 namespace App\Repositories;
 
+use App\Models\ProductStore;
 use DateTime;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class MovimientoRepository extends BaseRepository
@@ -17,7 +19,8 @@ class MovimientoRepository extends BaseRepository
             ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
             ->where('detalle.entidad_id', $store_id)
             ->where('detalle.product_id', $product_id)
-            ->selectRaw('detalle.balance as total')
+            ->select('detalle.id')
+            ->selectRaw('detalle.balance as total')                         // Obtiene el total
             ->where('detalle.created_at', '<', $date_from)
             ->orderByDesc('detalle.created_at')
             ->first();
@@ -26,94 +29,119 @@ class MovimientoRepository extends BaseRepository
 
     public static function getSumaInicialValorizada($product_id, $store_id, $date_from)
     {
-        $registro = DB::table('movement_products')
-            ->join('product_prices', 'product_prices.product_id', '=', 'movement_products.product_id')
-            ->where('movement_products.entidad_id', $store_id)
-            ->where('movement_products.product_id', $product_id)
-            ->selectRaw('movement_products.unit_price * movement_products.balance as total')
-            ->where('movement_products.created_at', '<', $date_from)
-            ->orderByDesc('movement_products.created_at')
-            ->first();
-        return ($registro) ? (int)$registro->total : 0;
-    }
-    
-
-    public static function getSumaActualValorizada($product_id, $store_id, $date_from)
-    {
         $registro = DB::table('movements as mov')
             ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
             ->where('detalle.entidad_id', $store_id)
             ->where('detalle.product_id', $product_id)
-            ->selectRaw('detalle.unit_price * detalle.balance as total')
             ->where('detalle.created_at', '<', $date_from)
+            ->select('detalle.id')
+            ->selectRaw('detalle.balance * detalle.unit_price as total')  // Obtiene la multiplicacion del total x precio
             ->orderByDesc('detalle.created_at')
             ->first();
         return ($registro) ? (int)$registro->total : 0;
     }
 
-    public static function getSumaEntradasValorizada($product_id, $store_id, $date_from, $date_to)
-    {
-        return (int) DB::table('movement_products')
-            ->join('product_prices', 'product_prices.product_id', '=', 'movement_products.product_id')
-            ->where('movement_products.entidad_id', $store_id)
-            ->where('movement_products.product_id', $product_id)
-            ->where('movement_products.entry', '>', 0)
-            ->whereBetween('movement_products.created_at', [$date_from, $date_to])
-            ->selectRaw('movement_products.unit_price * movement_products.entry as total')
-            ->get()
-            ->sum('total');
-    }
-
-    public static function getSumaSalidasValorizada($product_id, $store_id, $date_from, $date_to)
-    {
-        return (int) DB::table('movement_products')
-            ->join('product_prices', 'product_prices.product_id', '=', 'movement_products.product_id')
-            ->where('movement_products.entidad_id', $store_id)
-            ->where('movement_products.product_id', $product_id)
-            ->where('movement_products.egress', '>', 0)
-            ->whereBetween('movement_products.created_at', [$date_from, $date_to])
-            ->selectRaw('movement_products.unit_price * movement_products.egress as total')
-            ->get()
-            ->sum('total');        
-    }
-
-    public static function getSumaActual($product_id, $store_id, $date_from)
-    {
-        $registro = DB::table('movement_products')
-            ->join('product_prices', 'product_prices.product_id', '=', 'movement_products.product_id')
-            ->where('movement_products.entidad_id', $store_id)
-            ->where('movement_products.product_id', $product_id)
-            ->selectRaw('movement_products.balance as total')
-            ->where('movement_products.created_at', '<', $date_from)
-            ->orderByDesc('movement_products.created_at')
-            ->first();
-        return ($registro) ? $registro->total : 0;
-    }
-
     public static function getSumaEntradas($product_id, $store_id, $date_from, $date_to)
     {
-        return DB::table('movement_products')
-            ->join('product_prices', 'product_prices.product_id', '=', 'movement_products.product_id')
-            ->where('movement_products.entidad_id', $store_id)
-            ->where('movement_products.product_id', $product_id)
-            ->where('movement_products.entry', '>', 0)
-            ->whereBetween('movement_products.created_at', [$date_from, $date_to])
-            ->selectRaw('movement_products.entry as total')
-            ->get()
-            ->sum('total');
+        $registro = DB::table('movements as mov')
+            ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
+            ->where('detalle.entidad_id', $store_id)
+            ->where('detalle.product_id', $product_id)
+            ->where('detalle.entry', '>', 0)
+            ->whereBetween('detalle.created_at', [$date_from, $date_to])
+            ->selectRaw('detalle.entry as total')
+            ->get();
+
+        return ($registro) ? $registro->sum('total') : 0;
+    }
+
+    public static function getSumaEntradasValorizada($product_id, $store_id, $date_from, $date_to)
+    {
+        $registro = DB::table('movements as mov')
+            ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
+            ->where('detalle.entidad_id', $store_id)
+            ->where('detalle.product_id', $product_id)
+            ->where('detalle.entry', '>', 0)
+            ->whereBetween('detalle.created_at', [$date_from, $date_to])
+            ->selectRaw('detalle.entry * detalle.unit_price as total')
+            ->get();
+        return ($registro) ? $registro->sum('total') : 0;
     }
 
     public static function getSumaSalidas($product_id, $store_id, $date_from, $date_to)
     {
-        return DB::table('movement_products')
-            ->join('product_prices', 'product_prices.product_id', '=', 'movement_products.product_id')
-            ->where('movement_products.entidad_id', $store_id)
-            ->where('movement_products.product_id', $product_id)
-            ->where('movement_products.egress', '>', 0)
-            ->whereBetween('movement_products.created_at', [$date_from, $date_to])
-            ->selectRaw('movement_products.egress as total')
-            ->get()
-            ->sum('total');        
+        $registro = DB::table('movements as mov')
+            ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
+            ->where('detalle.entidad_id', $store_id)
+            ->where('detalle.product_id', $product_id)
+            ->where('detalle.egress', '>', 0)
+            ->whereBetween('detalle.created_at', [$date_from, $date_to])
+            ->selectRaw('detalle.egress as total')
+            ->get();
+
+        return ($registro) ? $registro->sum('total') : 0;
+    }
+
+    public static function getSumaSalidasValorizada($product_id, $store_id, $date_from, $date_to)
+    {
+        $registro = DB::table('movements as mov')
+            ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
+            ->leftJoin('invoices', 'invoices.movement_id', '=', 'mov.id')
+            ->leftJoin('panamas', 'panamas.movement_id', '=', 'mov.id')
+            ->where('detalle.entidad_id', $store_id)
+            ->where('detalle.product_id', $product_id)
+            ->where('detalle.egress', '>', 0)
+            ->whereBetween('mov.created_at', [$date_from, $date_to])
+            ->selectRaw('detalle.egress * detalle.unit_price as total')
+            //->selectRaw('(invoices.imp_neto + panamas.neto105 + panamas.neto21) as total')
+            ->get();
+
+        return ($registro) ? $registro->sum('total') : 0;
+    }
+
+    public static function getSumaActual($product_id, $store_id, $date_from, $date_to)
+    {
+        if ((Carbon::now() >= $date_from ) && ($date_to > Carbon::now())) {
+            $registro = ProductStore::whereProductId($product_id)->whereStoreId($store_id)->first();
+            return ($registro) ? $registro->stock_f + $registro->stock_r + $registro->stock_cyo : 0;
+        }
+
+        $registro = DB::table('movements as mov')
+            ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
+            ->where('detalle.entidad_id', $store_id)
+            ->where('detalle.product_id', $product_id)
+            ->select('detalle.id')
+            ->selectRaw('detalle.balance as total')
+            ->whereBetween('detalle.created_at', [$date_from, $date_to])
+            ->orderByDesc('detalle.created_at')
+            ->first();
+        return ($registro) ? $registro->total : 0;
+    }
+
+    public static function getSumaActualValorizada($product_id, $store_id, $date_from, $date_to)
+    {
+        if ((Carbon::now() >= $date_from) && ($date_to > Carbon::now())) {
+
+            $registro = DB::table('products_store')
+            ->join('product_prices as precios', 'precios.product_id', '=', 'products_store.product_id') 
+            ->where('products_store.product_id',$product_id)
+            ->where('products_store.store_id',$store_id)
+            ->selectRaw('precios.plist0Neto * (products_store.stock_f + products_store.stock_r + products_store.stock_cyo) as total')
+            ->first();
+
+            return ($registro) ? $registro->total : 0;
+        }
+
+        $registro = DB::table('movements as mov')
+            ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
+            ->where('detalle.entidad_id', $store_id)
+            ->where('detalle.product_id', $product_id)
+            ->select('detalle.id')
+            ->selectRaw('detalle.unit_price * detalle.balance as total')
+            ->whereBetween('detalle.created_at', [$date_from, $date_to])
+            ->orderByDesc('detalle.created_at')
+            ->first();
+        return ($registro) ? (int)$registro->total : 0;
     }
 
     public static function getStartAndEndDate($week, $year)
