@@ -86,8 +86,8 @@ class MovimientoRepository extends BaseRepository
     {
         $registro = DB::table('movements as mov')
             ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
-            ->leftJoin('invoices', 'invoices.movement_id', '=', 'mov.id')
-            ->leftJoin('panamas', 'panamas.movement_id', '=', 'mov.id')
+            ->join('invoices', 'invoices.movement_id', '=', 'mov.id')
+            ->join('panamas', 'panamas.movement_id', '=', 'mov.id')
             ->where('detalle.entidad_id', $store_id)
             ->where('detalle.product_id', $product_id)
             ->where('detalle.egress', '>', 0)
