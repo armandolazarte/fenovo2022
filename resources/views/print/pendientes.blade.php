@@ -51,16 +51,16 @@
     </tr>
 </table>
 
-<table class="table table-condensed table-sm">
+<table class="table table-condensed text-center table-sm">
     <tr class="">
-        <th class="text-center">Bultos</th>
-        <th class="text-center">Cantidad</th>
-        <th style=" width: 30%; " class="text-center">Nombre</th>
-        <th class="text-center">Proveedor</th>
-        <th class="text-center">Presentación</th>
-        <th class="text-center">Peso_U</th>
-        <th class="text-center">Unidad</th>
-        <th class="text-center">Palet</th>
+        <th>Bultos</th>
+        <th>Cantidad</th>
+        <th>Nombre</th>
+        <th>Present_solicitada</th>
+        <th>Present_despachada</th>
+        <th>Peso_U</th>
+        <th>Unidad</th>
+        <th>Palet</th>
     </tr>    
 
     @php
@@ -74,14 +74,22 @@
     @endphp
 
     <tr>
-        <td class="text-center">{{ (int)$session_product->quantity}}</td>
-        <td class="text-center"> .............. </td>
-        <td>{{$session_product->cod_fenovo}} {{$session_product->name}}</td>
-        <td>{{$session_product->cod_proveedor }}</td>
-        <td class="text-center">{{$session_product->unit_package}}</td>
-        <td class="text-center">{{$session_product->unit_weight }}</td>
-        <td class="text-center">{{$session_product->unit_type}}</td>
-        <td class="text-center"> ...... </td>
+        <td>{{ (int)$session_product->quantity}}</td>
+        <td> ........ </td>
+        <td class=" text-left">{{$session_product->cod_fenovo}} {{$session_product->name}}</td>
+        <td>{{ (int) $session_product->unit_package }}</td>
+        <td>
+            @if(count(explode('|', $session_product->presentacion)) > 1 )
+
+                @foreach (explode('|', $session_product->presentacion) as $item)
+                    <i class=" fa fa-check "> </i> {{ $item }} &nbsp;
+                @endforeach
+            
+            @endif
+        </td>
+        <td>{{$session_product->unit_weight }}</td>
+        <td>{{$session_product->unit_type}}</td>
+        <td> ...... </td>
     </tr>
     @endforeach
 
@@ -91,7 +99,7 @@
     <tr class=" bg-info text-white">
         <th>{{ number_format($session_products->sum('quantity'),2) }} </th>
         <th>{{ $total_kgrs }} Kgrs</th>
-        <th></th>
+        <th> </th>
         <th> </th>
         <th> </th>
         <th> </th>

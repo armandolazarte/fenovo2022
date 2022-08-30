@@ -11,16 +11,33 @@ class MovimientoRepository extends BaseRepository
     {
     }
 
-    public static function getSumaActualValorizada($product_id, $store_id)
+    public static function getSumaInicial($product_id, $store_id, $date_from)
     {
-        $registro = DB::table('products_store')
-            ->join('product_prices', 'product_prices.product_id', '=', 'products_store.product_id')
-            ->where('products_store.store_id', $store_id)
-            ->where('products_store.product_id', $product_id)
-            ->selectRaw('(product_prices.plist0neto * (products_store.stock_f + products_store.stock_r + products_store.stock_cyo)) as total')
+        return $registro = DB::table('movements as mov')
+            ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
+            ->where('detalle.entidad_id', $store_id)
+            ->where('detalle.product_id', $product_id)
+            ->selectRaw('detalle.balance as total')
+            ->where('detalle.created_at', '<', $date_from)
+            ->orderByDesc('detalle.created_at')
+            ->get();
+        return ($registro) ? $registro->total : 0;
+    }
+
+    public static function getSumaActualValorizada($product_id, $store_id, $date_from)
+    {
+        $registro = DB::table('movements as mov')
+            ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
+            ->where('detalle.entidad_id', $store_id)
+            ->where('detalle.product_id', $product_id)
+            ->selectRaw('detalle.unit_price * detalle.balance as total')
+            ->where('detalle.created_at', '<', $date_from)
+            ->orderByDesc('detalle.created_at')
             ->first();
         return ($registro) ? (int)$registro->total : 0;
     }
+
+
 
     public static function getSumaInicialValorizada($product_id, $store_id, $date_from)
     {
@@ -61,19 +78,7 @@ class MovimientoRepository extends BaseRepository
             ->sum('total');        
     }
 
-    public static function getSumaActual($product_id, $store_id)
-    {
-        $registro = DB::table('products_store')
-            ->join('product_prices', 'product_prices.product_id', '=', 'products_store.product_id')
-            ->where('products_store.store_id', $store_id)
-            ->where('products_store.product_id', $product_id)
-            //->selectRaw('((products_store.stock_f + products_store.stock_r + products_store.stock_cyo)) as total')
-            ->selectRaw('((products_store.stock_f + products_store.stock_r + products_store.stock_cyo)) as total')
-            ->first();
-        return ($registro) ? $registro->total : 0;
-    }
-
-    public static function getSumaInicial($product_id, $store_id, $date_from)
+    public static function getSumaActual($product_id, $store_id, $date_from)
     {
         $registro = DB::table('movement_products')
             ->join('product_prices', 'product_prices.product_id', '=', 'movement_products.product_id')
