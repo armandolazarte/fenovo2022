@@ -13,31 +13,16 @@ class MovimientoRepository extends BaseRepository
 
     public static function getSumaInicial($product_id, $store_id, $date_from)
     {
-        return $registro = DB::table('movements as mov')
+        $registro = DB::table('movements as mov')
             ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
             ->where('detalle.entidad_id', $store_id)
             ->where('detalle.product_id', $product_id)
             ->selectRaw('detalle.balance as total')
             ->where('detalle.created_at', '<', $date_from)
             ->orderByDesc('detalle.created_at')
-            ->get();
+            ->first();
         return ($registro) ? $registro->total : 0;
     }
-
-    public static function getSumaActualValorizada($product_id, $store_id, $date_from)
-    {
-        $registro = DB::table('movements as mov')
-            ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
-            ->where('detalle.entidad_id', $store_id)
-            ->where('detalle.product_id', $product_id)
-            ->selectRaw('detalle.unit_price * detalle.balance as total')
-            ->where('detalle.created_at', '<', $date_from)
-            ->orderByDesc('detalle.created_at')
-            ->first();
-        return ($registro) ? (int)$registro->total : 0;
-    }
-
-
 
     public static function getSumaInicialValorizada($product_id, $store_id, $date_from)
     {
@@ -48,6 +33,20 @@ class MovimientoRepository extends BaseRepository
             ->selectRaw('movement_products.unit_price * movement_products.balance as total')
             ->where('movement_products.created_at', '<', $date_from)
             ->orderByDesc('movement_products.created_at')
+            ->first();
+        return ($registro) ? (int)$registro->total : 0;
+    }
+    
+
+    public static function getSumaActualValorizada($product_id, $store_id, $date_from)
+    {
+        $registro = DB::table('movements as mov')
+            ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
+            ->where('detalle.entidad_id', $store_id)
+            ->where('detalle.product_id', $product_id)
+            ->selectRaw('detalle.unit_price * detalle.balance as total')
+            ->where('detalle.created_at', '<', $date_from)
+            ->orderByDesc('detalle.created_at')
             ->first();
         return ($registro) ? (int)$registro->total : 0;
     }
