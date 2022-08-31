@@ -85,7 +85,7 @@
         <td class=" text-center">{{ (int)$session_product->quantity}}</td>
         <td class=" text-center">{{ (float)$session_product->unit_weight * (float)$session_product->unit_package * (float)$session_product->quantity }} </td>
         <td class=" text-center">{{ $session_product->unit_package * $session_product->quantity }} </td>
-        <td class=" text-left">{{$session_product->name}}</td>
+        <td class=" text-left">{{$session_product->name}} @if($session_product->cod_proveedor) ({{$session_product->cod_proveedor}}) @endif</td>
         <td class=" text-center">{{$session_product->unit_package}}</td>
         <td class=" text-center">{{$session_product->unit_type}}</td>
         <td class=" text-center">{{$session_product->palet}}</td>
