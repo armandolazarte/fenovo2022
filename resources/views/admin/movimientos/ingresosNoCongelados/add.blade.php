@@ -28,19 +28,10 @@
                             </div>
 
                             <div class="row mb-3">
-                                <div class="col-5">
+                                <div class="col-6">
                                     <div id="divProveedores">
                                         @include('admin.movimientos.ingresosNoCongelados.proveedores')
                                     </div>
-                                </div>
-
-                                <div class="col-1 text-center">
-                                    <label class="text-body">Agregar</label>
-                                    <fieldset class="form-group mt-2">
-                                        <a href="javascript:void(0)" onclick="agregarProveedor()">
-                                            <i class="fa fa-plus"></i>
-                                        </a>
-                                    </fieldset>
                                 </div>
 
                                 <div class="col-2">
@@ -128,8 +119,7 @@
 
             const agregarProveedor = () => {          
                 jQuery("#name").focus()
-                jQuery('.editpopup').addClass('offcanvas-on');                            
-
+                jQuery('.editpopup').addClass('offcanvas-on');
             }
 
             const checkComprobante = () => {

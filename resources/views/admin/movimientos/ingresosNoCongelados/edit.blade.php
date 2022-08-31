@@ -23,10 +23,8 @@
                         <input type="hidden" id="voucher_number" name="voucher_number" value="{{ $movement->voucher_number }}">
 
                         <div class="col-6">
-                            <label class="text-body">Proveedor</label>
-                            <fieldset class="form-group">
-                                <input type="text" name="from" value="{{ $proveedor->name }}" class="form-control " disabled>
-                            </fieldset>
+                            <label class="text-body">Proveedor</label>                            
+                            <input type="text"  id="from" name="from" value="{{ $proveedor->name }}" class="form-control " disabled>                            
                         </div>
                         <div class="col-2">
                             <label class="text-body">Tipo compra</label>
@@ -78,14 +76,21 @@
 
                     <div class="row">
                         <div class="col-4">
-                            <div class="row font-weight-bold">
-                                <div class="col-12"> Producto</div>
+                            <div class="row mb-2">
+                                <div class="col-12"> 
+                                    Producto 
+                                    <a href="javascript:void(0)" onclick="agregarProducto()">
+                                        ( crear <i class="fa fa-plus text-danger "></i> )
+                                    </a>
+                                </div>
                             </div>
                             <div class="row">
                                 <div class="col-12">
-                                    {{ Form::select('product_id', $productos, null, ['id' => 'product_id', 'class' => 'js-example-basic-single form-control bg-transparent', 'placeholder' => 'Seleccione productos ...']) }}
+                                    <div id="divProductos">
+                                        @include('admin.movimientos.ingresosNoCongelados.productos')
+                                    </div>
                                 </div>
-                            </div>
+                            </div>                           
 
                         </div>
                         <div class="col-8">
@@ -113,11 +118,20 @@
         </div>
     </div>
 
+    @include('admin.movimientos.ingresosNoCongelados.modalProducto')
     @include('admin.movimientos.ingresosNoCongelados.modal')
+
 @endsection
 
 @section('js')
     <script>
+
+        const agregarProducto = () => {          
+            jQuery("#name").focus()
+            jQuery('.addProducto').addClass('offcanvas-on');
+        }
+
+
         jQuery(document).ready(function() {
             jQuery("#unit_package").select2({
                 tags: true

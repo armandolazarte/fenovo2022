@@ -51,9 +51,14 @@ class Proveedor extends Model
         'punto_venta'
 	];
 
-	public function products()
+	public function setNameAttribute($value)
+    {
+        $this->attributes['name'] = strtoupper(trim($value));
+    }
+
+	public function productos()
 	{
-		return $this->hasMany(Product::class);
+		return $this->hasMany(ProductProveedor::class);
 	}
 
 	public function displayName()

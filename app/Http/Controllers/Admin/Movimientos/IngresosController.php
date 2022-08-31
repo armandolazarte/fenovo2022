@@ -16,7 +16,10 @@ use App\Models\ProductStore;
 use App\Models\Proveedor;
 use App\Models\SessionOferta;
 use App\Models\Store;
+
+use App\Repositories\DescuentoRepository;
 use App\Repositories\EnumRepository;
+use App\Repositories\ProductCategoryRepository;
 use App\Repositories\ProductRepository;
 use App\Repositories\ProveedorRepository;
 
@@ -31,13 +34,23 @@ use Yajra\DataTables\Facades\DataTables;
 class IngresosController extends Controller
 {
     private $proveedorRepository;
+    private $productRepository;
+    private $productCategoryRepository;
     private $enumRepository;
+    private $descuentoRepository;
 
-    public function __construct(ProveedorRepository $proveedorRepository, ProductRepository $productRepository, EnumRepository $enumRepository)
-    {
-        $this->proveedorRepository = $proveedorRepository;
-        $this->productRepository   = $productRepository;
-        $this->enumRepository      = $enumRepository;
+    public function __construct(
+        ProveedorRepository $proveedorRepository,
+        ProductRepository $productRepository,
+        ProductCategoryRepository $productCategoryRepository,
+        EnumRepository $enumRepository,
+        DescuentoRepository $descuentoRepository
+    ) {
+        $this->proveedorRepository       = $proveedorRepository;
+        $this->productRepository         = $productRepository;
+        $this->productCategoryRepository = $productCategoryRepository;
+        $this->enumRepository            = $enumRepository;
+        $this->descuentoRepository       = $descuentoRepository;
     }
 
     public function index(Request $request)
@@ -801,6 +814,7 @@ class IngresosController extends Controller
             return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
         }
     }
+
     public function ajustarStockDepositosClose(Request $request)
     {
         try {
@@ -843,19 +857,18 @@ class IngresosController extends Controller
                     $product          = Product::find($movimiento['product_id']);
                     $product->stock_f = $product->stock_f - $cantidad;
                     $product->save();
-                    $latest           = $product->stockReal();
+                    $latest = $product->stockReal();
                 } else {
                     $product_store = ProductStore::whereProductId($movimiento['product_id'])->whereStoreId($tiendaEgreso)->first();
 
                     if ($product_store) {
-
-                        // Si la cantidad a devolver es suficiente 
-                        if($product_store->stock_f >= $cantidad){
+                        // Si la cantidad a devolver es suficiente
+                        if ($product_store->stock_f >= $cantidad) {
                             $product_store->stock_f = $product_store->stock_f - $cantidad;
-                        }else{
-                            $nuevaCantidad = ($cantidad - $product_store->stock_f);
+                        } else {
+                            $nuevaCantidad          = ($cantidad - $product_store->stock_f);
                             $product_store->stock_f = 0;
-                            if($product_store->stock_r >= $nuevaCantidad){
+                            if ($product_store->stock_r >= $nuevaCantidad) {
                                 $product_store->stock_r = $product_store->stock_r - $nuevaCantidad;
                             }
                         }
@@ -898,17 +911,17 @@ class IngresosController extends Controller
                     $product          = Product::find($movimiento['product_id']);
                     $product->stock_f = $product->stock_f + $cantidad;
                     $product->save();
-                    $latest           = $product->stockReal();
+                    $latest = $product->stockReal();
                 } else {
                     $product_store = ProductStore::whereProductId($movimiento['product_id'])->whereStoreId($tiendaIngreso)->first();
                     if ($product_store) {
                         $product_store->stock_f = $product_store->stock_f + $cantidad;
                         $product_store->save();
-                        $latest                 = $product_store->stock_f;
+                        $latest = $product_store->stock_f;
                     } else {
                         $latest                        = $cantidad;
                         $data_prod_store['product_id'] = $movimiento['product_id'];
-                        $data_prod_store['store_id']   = $$tiendaIngreso;
+                        $data_prod_store['store_id']   = ${$tiendaIngreso};
                         $data_prod_store['stock_f']    = $latest;
                         $data_prod_store['stock_r']    = 0;
                         $data_prod_store['stock_cyo']  = 0;
@@ -1047,11 +1060,11 @@ class IngresosController extends Controller
         return new JsonResponse(['msj' => 'Compra no registrada ...', 'type' => 'error']);
     }
     public function addNoCongelados()
-    {   
+    {
         $proveedores = Proveedor::orderBy('name')->pluck('name', 'id');
         $depositos   = Store::orderBy('cod_fenovo', 'asc')->where('active', 1)->where('store_type', 'D')->get();
-        $states    = $this->enumRepository->getType('state');
-        $ivaType   = $this->enumRepository->getType('iva');
+        $states      = $this->enumRepository->getType('state');
+        $ivaType     = $this->enumRepository->getType('iva');
 
         return view('admin.movimientos.ingresosNoCongelados.add', compact('proveedores', 'depositos', 'states', 'ivaType'));
     }
@@ -1069,7 +1082,12 @@ class IngresosController extends Controller
         $proveedor   = Proveedor::find($movement->from);
         $movimientos = MovementProductTemp::where('movement_id', $request->id)->orderBy('created_at', 'asc')->get();
         $depositos   = Store::orderBy('cod_fenovo', 'asc')->where('active', 1)->where('store_type', 'D')->get();
-        return view('admin.movimientos.ingresosNoCongelados.edit', compact('movement', 'proveedor', 'productos', 'movimientos', 'depositos'));
+        $categories  = $this->productCategoryRepository->getActives('name', 'ASC');
+        $descuentos  = $this->descuentoRepository->getActives('descripcion', 'ASC');
+        return view(
+            'admin.movimientos.ingresosNoCongelados.edit',
+            compact('movement', 'proveedor', 'productos', 'movimientos', 'depositos', 'categories', 'descuentos')
+        );
     }
     public function checkNoCongelados(Request $request)
     {

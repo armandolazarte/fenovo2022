@@ -284,4 +284,9 @@ class Product extends Model
     {
         return $this->hasMany(ProductStore::class,'product_id','id');
     }
+
+    public function proveedores()
+	{
+		return $this->hasMany(ProductProveedor::class);
+	}
 }
