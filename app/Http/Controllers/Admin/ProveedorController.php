@@ -54,14 +54,24 @@ class ProveedorController extends Controller
         return  view('admin.proveedors.form', compact('proveedor', 'ivaType', 'states'));
     }
 
+    public function getProveedoresHtml()
+    {	
+        $proveedores = Proveedor::orderBy('name')->pluck('name', 'id');
+        return new JsonResponse([
+            'html'  => view('admin.movimientos.ingresosNoCongelados.proveedores', compact('proveedores'))->render(),
+            'type' => 'success',
+        ]);
+    }
+
     public function store(EditRequest $request)
     {
         try {
             $data           = $request->except(['_token']);
             $data['active'] = 1;
-            $this->proveedorRepository->create($data);
+            $proveedor = $this->proveedorRepository->create($data);
             return new JsonResponse([
-                'msj'  => 'Actualización correcta !',
+                'proveedor' => $proveedor,
+                'msj'  => 'Guardado correctamente !',
                 'type' => 'success',
             ]);
         } catch (\Exception $e) {

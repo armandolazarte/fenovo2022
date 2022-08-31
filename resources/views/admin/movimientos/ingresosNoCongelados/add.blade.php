@@ -28,12 +28,21 @@
                             </div>
 
                             <div class="row mb-3">
-                                <div class="col-6">
-                                    <label class="text-body">Proveedor</label>
-                                    <fieldset class="form-group mb-3">
-                                        {{ Form::select('from', $proveedores, null, ['id' => 'from', 'class' => 'js-example-basic-single form-control bg-transparent proveedor', 'placeholder' => 'seleccione ...', 'required' => 'true']) }}
+                                <div class="col-5">
+                                    <div id="divProveedores">
+                                        @include('admin.movimientos.ingresosNoCongelados.proveedores')
+                                    </div>
+                                </div>
+
+                                <div class="col-1 text-center">
+                                    <label class="text-body">Agregar</label>
+                                    <fieldset class="form-group mt-2">
+                                        <a href="javascript:void(0)" onclick="agregarProveedor()">
+                                            <i class="fa fa-plus"></i>
+                                        </a>
                                     </fieldset>
                                 </div>
+
                                 <div class="col-2">
                                     <label class="text-body">Tipo compra</label>
                                     <select class="form-control" name="subtype" id="subtype">
@@ -59,7 +68,7 @@
                                 <div class="col-md-1 text-center">
                                     <label class="text-dark">Guardar</label>
                                     <fieldset class="form-group">
-                                        <button type="submit" class="btn btn-outline-dark">
+                                        <button type="submit" id="btnGuardar" class="btn btn-outline-dark" disabled="true">
                                             <i class="fa fa-save"></i>
                                         </button>
                                     </fieldset>
@@ -81,7 +90,7 @@
                                                 {{ $deposito->description }}</option>
                                         @endforeach
                                     </select>
-                                </div>                               
+                                </div>            
 
                             </div>
 
@@ -102,19 +111,25 @@
 
             </div>
         </div>
+
+        @include('admin.movimientos.ingresosNoCongelados.modalProveedor')
+
     @endsection
 
     @section('js')
         <script>
-            jQuery(document).ready(function() {
-
-            });
 
             const numerico = (longitud, objeto) => {
                 if (objeto.value.length > longitud) {
                     objeto.value = objeto.value.substring(0, objeto.value.length - 1);
                     return
                 };
+            }
+
+            const agregarProveedor = () => {          
+                jQuery("#name").focus()
+                jQuery('.editpopup').addClass('offcanvas-on');                            
+
             }
 
             const checkComprobante = () => {
@@ -141,10 +156,67 @@
                         if (data['type'] == 'success') {
                             jQuery("#puntoVenta").select()
                             toastr.error(data['msj'], 'Verifique');
+                            jQuery("#btnGuardar").prop('disabled', true)
+                        }else{
+                            jQuery("#btnGuardar").prop('disabled', false)
                         }
                     }
                 });
             }
+
+            const storeProveedor = (route) => {
+                var elements = document.querySelectorAll('.is-invalid');
+                var form = jQuery('#formData').serialize();
+                jQuery.ajax({
+                    url: route,
+                    type: 'POST',
+                    data: form,
+                    beforeSend: function () {
+                        for (var i = 0; i < elements.length; i++) {
+                            elements[i].classList.remove('is-invalid');
+                        }
+                        jQuery('#loader').removeClass('hidden');
+                    },
+                    success: function (data) {
+                        jQuery('#loader').addClass('hidden');
+                        if (data['type'] == 'success') {
+                            let proveedor = data['proveedor'];
+                            document.getElementById("formData").reset();
+                            jQuery('.editpopup').removeClass('offcanvas-on');   
+
+                            // Recargar los proveedores
+                            jQuery.ajax({
+                                url: '{{ route('proveedors.getProveedoresHtml') }}',
+                                type: 'GET',
+                                success:function(data){
+                                    if (data['type'] == 'success') {
+                                        jQuery("#divProveedores").html(data['html']);
+                                        jQuery("#from").val(proveedor.id).trigger('change');
+                                    }
+                                }
+                            })
+
+                        } else {
+                            toastr.error(data['msj'], 'Verifique');
+                        }
+                    },
+                    error: function (data) {
+                        var lista_errores = "";
+                        var data = data.responseJSON;
+                        jQuery.each(data.errors, function (index, value) {
+                            lista_errores += value + '<br />';
+                            jQuery('#' + index).addClass('is-invalid');
+                            jQuery('#' + index).next().find('.select2-selection').addClass('is-invalid');
+                        });
+                        toastr.error(lista_errores, 'Verifique');
+                    },
+                    complete: function () {
+                        jQuery('#loader').addClass('hidden');
+                    }
+                });
+            };
+
+
 
         </script>
     @endsection
