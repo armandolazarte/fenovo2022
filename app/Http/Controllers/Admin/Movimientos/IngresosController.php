@@ -1047,11 +1047,13 @@ class IngresosController extends Controller
         return new JsonResponse(['msj' => 'Compra no registrada ...', 'type' => 'error']);
     }
     public function addNoCongelados()
-    {   // Obtengo los proveedores a los productos no congelados
-        $productos   = Product::where('categorie_id', '!=', 1)->where('proveedor_id', '>', 0)->pluck('proveedor_id');
-        $proveedores = Proveedor::orderBy('name')->whereIn('id', $productos)->pluck('name', 'id');
+    {   
+        $proveedores = Proveedor::orderBy('name')->pluck('name', 'id');
         $depositos   = Store::orderBy('cod_fenovo', 'asc')->where('active', 1)->where('store_type', 'D')->get();
-        return view('admin.movimientos.ingresosNoCongelados.add', compact('proveedores', 'depositos'));
+        $states    = $this->enumRepository->getType('state');
+        $ivaType   = $this->enumRepository->getType('iva');
+
+        return view('admin.movimientos.ingresosNoCongelados.add', compact('proveedores', 'depositos', 'states', 'ivaType'));
     }
     public function storeNoCongelados(Request $request)
     {

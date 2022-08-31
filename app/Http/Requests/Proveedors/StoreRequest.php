@@ -17,17 +17,17 @@ class StoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'cuit' => 'required|string|min:11|max:11|cuil|unique:proveedors',
             'name' => 'required',
+            'cuit' => 'required|string|min:11|max:11|cuil|unique:proveedors',
         ];
     }
 
     public function messages()
     {
         return [
+            'name.required' => 'Razon social es requerida',
             'cuit.required' => 'El cuit es requerido!',
             'cuil.cuil'     => 'El nro de cuit no es válido !',
-            'name.required' => 'Razon social es requerida',
         ];
     }
 }
