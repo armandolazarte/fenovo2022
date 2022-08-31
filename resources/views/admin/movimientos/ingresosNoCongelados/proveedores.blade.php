@@ -1,0 +1,2 @@
+<label class="text-body">Proveedor</label>
+{{ Form::select('from', $proveedores, null, ['id' => 'from', 'class' => 'js-example-basic-single form-control bg-transparent proveedor', 'placeholder' => 'seleccione ...', 'required' => 'true']) }}
