@@ -344,6 +344,7 @@ class SalidasController extends Controller
                 $objProduct->cod_fenovo   = $movimiento->product->cod_fenovo;
                 $objProduct->name         = $movimiento->product->name;
                 $objProduct->unit_weight  = $movimiento->product->unit_weight;
+                $objProduct->cod_proveedor  = $movimiento->product->cod_proveedor;
                 $objProduct->unit_type    = $movimiento->unit_type;
                 $objProduct->unit_package = $movimiento->unit_package;
                 $objProduct->quantity     = $movimiento->bultos;
@@ -950,7 +951,7 @@ class SalidasController extends Controller
                     if($customer->listprice_associate == 'L0'){
                         $insert_data['neto'] = $insert_data['unit_price'];
                     }else{
-                        $insert_data['neto']       = $insert_data['unit_price'] / (1 + ($prices->tasiva / 100)); //Este valor se toma cuando no se factura
+                        $insert_data['neto'] = $insert_data['unit_price'] / (1 + ($prices->tasiva / 100)); //Este valor se toma cuando no se factura
                     }
                     break;
             }
@@ -1128,7 +1129,7 @@ class SalidasController extends Controller
             $insert_data['categoria']      = $categoria;
             $insert_data['status']         = 'FINISHED';
             $insert_data['voucher_number'] = $request->input('voucher_number');
-            $insert_data['flete']          = $request->flete;
+            $insert_data['flete']          = (isset($request->flete)) ? $request->flete : 0;
             $insert_data['observacion']    = $request->observacion;
             $insert_data['user_id']        = \Auth::user()->id;
             $insert_data['flete_invoice']  = (isset($request->factura_flete)) ? 1 : 0;
