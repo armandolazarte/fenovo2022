@@ -1405,14 +1405,16 @@ class SalidasController extends Controller
             $mp          = MovementProduct::where('id', $id)->where('product_id', $request->input('product_id'))->first();
             $m           = Movement::where('id',$mp->movement_id)->first();
 
-            $destino = $this->origenData($m->type, $m->to, true);
-            $lista = $destino->listprice_associate;
+            if($m->type == 'VENTACLIENTE'){
+                $destino = $this->origenData($m->type, $m->to, true);
+                $lista = $destino->listprice_associate;
 
-            if($lista != 'L0'){
-                if($mp->invoice){
-                    $mp->unit_price  = $mp->unit_price / (1 + ($mp->tasiva / 100));
-                }else{
-                    $mp->unit_price  = $mp->unit_price * (1 + ($mp->tasiva / 100));
+                if($lista != 'L0'){
+                    if($mp->invoice){
+                        $mp->unit_price  = $mp->unit_price / (1 + ($mp->tasiva / 100));
+                    }else{
+                        $mp->unit_price  = $mp->unit_price * (1 + ($mp->tasiva / 100));
+                    }
                 }
             }
             $mp->invoice = !$mp->invoice;
