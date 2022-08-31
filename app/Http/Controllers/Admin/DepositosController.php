@@ -2,22 +2,27 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\balanceViewExport;
 use App\Models\Product;
 use App\Models\Store;
 
 use App\Repositories\MovimientoRepository;
+use App\Repositories\StoreRepository;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
+use Maatwebsite\Excel\Facades\Excel;
+
 class DepositosController extends StoreController
 {
     private $movimientoRepository;
 
-    public function __construct(MovimientoRepository $movimientoRepository)
+    public function __construct( MovimientoRepository $movimientoRepository, StoreRepository $storeRepository )
     {
         $this->movimientoRepository = $movimientoRepository;
+        $this->storeRepository = $storeRepository;
     }
 
     public function index(Request $request)
@@ -45,7 +50,7 @@ class DepositosController extends StoreController
 
     public function balance(Request $request)
     {
-        $stores = Store::orderBy('description')->get();
+        $stores = Store::where('store_type','B')->orderBy('description')->get();
         return view('admin.depositos.balance', compact('stores'));
     }
 
@@ -61,9 +66,17 @@ class DepositosController extends StoreController
         // Obtener la tienda
         $store = Store::find($request->store_id);
 
-        // Obtener los productos CONGELADOS
-        //$products = Product::whereId(4)->whereActive(1)->select('id', 'cod_fenovo', 'name')->whereCategorieId(1)->get(); // ** Pruebas descomentar **
+        // Set de pruebas ** Pruebas descomentar **
         
+        /*
+        $products = Product::whereId(19)->whereActive(1)->select('id', 'cod_fenovo', 'name')->whereCategorieId(1)->get(); 
+        return $this->movimientoRepository->getSumaActual(19, 11, $fecha_desde, $fecha_hasta);
+        */
+        
+        // Fin Set de pruebas
+
+        
+        // Obtener los productos CONGELADOS
         $products = Product::whereActive(1)->select('id', 'cod_fenovo', 'name')->whereCategorieId(1)->get();
 
         $productos = [];
@@ -72,13 +85,13 @@ class DepositosController extends StoreController
             $inicial  = $this->movimientoRepository->getSumaInicial($producto->id, $store->id, $fecha_desde);
             $entradas = $this->movimientoRepository->getSumaEntradas($producto->id, $store->id, $fecha_desde, $fecha_hasta);
             $salidas  = $this->movimientoRepository->getSumaSalidas($producto->id, $store->id, $fecha_desde, $fecha_hasta);
-            $actual   = $this->movimientoRepository->getSumaActual($producto->id, $store->id);
+            $actual   = $this->movimientoRepository->getSumaActual($producto->id, $store->id, $fecha_desde, $fecha_hasta);
 
             // Valorizacion
             $inicialValorizada  = $this->movimientoRepository->getSumaInicialValorizada($producto->id, $store->id, $fecha_desde);
             $entradasValorizada = $this->movimientoRepository->getSumaEntradasValorizada($producto->id, $store->id, $fecha_desde, $fecha_hasta);
             $salidasValorizada  = $this->movimientoRepository->getSumaSalidasValorizada($producto->id, $store->id, $fecha_desde, $fecha_hasta);
-            $actualValorizada   = $this->movimientoRepository->getSumaActualValorizada($producto->id, $store->id);
+            $actualValorizada   = $this->movimientoRepository->getSumaActualValorizada($producto->id, $store->id, $fecha_desde, $fecha_hasta);
 
             $data['id']         = $producto->id;
             $data['cod_fenovo'] = $producto->cod_fenovo;
@@ -100,8 +113,14 @@ class DepositosController extends StoreController
 
         return new JsonResponse([
             'type' => 'success',
-            'html' => view('admin.depositos.balanceDetalle', compact('store', 'fecha_desde', 'fecha_hasta', 'productos'))->render(),
+            'html' => view('admin.depositos.balanceDetalle', 
+            compact('store', 'fecha_desde', 'fecha_hasta', 'productos', 'week', 'year'))->render(),
         ]);
+    }
+
+    public function exportBalance(Request $request)
+    {	
+        return Excel::download(new balanceViewExport($request->store_id, $request->week, $request->year), 'balance.csv', \Maatwebsite\Excel\Excel::CSV, ['Content-Type' => 'text/csv']);
     }
 
     public function add()

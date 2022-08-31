@@ -88,45 +88,125 @@ class IngresosController extends Controller
 
     public function indexCerradas(Request $request)
     {
-        if ($request->ajax()) {
+        // if ($request->ajax()) {
+        //     if (\Auth::user()->rol() == 'superadmin' || \Auth::user()->rol() == 'admin') {
+        //         $movement = Movement::where('type', 'COMPRA')
+        //             ->whereStatus('FINISHED')
+        //             ->with('movement_ingreso_products')
+        //             ->orderBy('date', 'DESC')
+        //             ->orderBy('id', 'DESC')
+        //             ->get();
+        //     } else {
+        //         $movement = Movement::where('type', 'COMPRA')
+        //             ->where('user_id', Auth::user()->id)
+        //             ->whereStatus('FINISHED')
+        //             ->with('movement_ingreso_products')
+        //             ->orderBy('date', 'DESC')
+        //             ->orderBy('id', 'DESC')
+        //             ->get();
+        //     }
+
+        //     return Datatables::of($movement)
+        //         ->addIndexColumn()
+        //         ->addColumn('origen', function ($movement) {
+        //             return $movement->origenData($movement->type);
+        //         })
+        //         ->editColumn('date', function ($movement) {
+        //             return date('d-m-Y', strtotime($movement->date));
+        //         })
+        //         ->addColumn('items', function ($movement) {
+        //             return '<span class="badge badge-primary">' . $movement->cantidad_ingresos() . '</span>';
+        //         })
+        //         ->addColumn('voucher', function ($movement) {
+        //             return  $movement->voucher_number;
+        //         })
+        //         ->addColumn('show', function ($movement) {
+        //             return '<a href="' . route('ingresos.show', ['id' => $movement->id, 'is_cerrada' => true]) . '"> <i class="fa fa-eye"></i> </a>';
+        //         })
+        //         ->rawColumns(['origen', 'date', 'items', 'voucher', 'show'])
+        //         ->make(true);
+        // }
+        return view('admin.movimientos.ingresos.indexCerradas');
+    }
+
+    public function getCompras(Request $request)
+    {
+        $totalFilteredRecord = $totalDataRecord = $draw = '';
+
+        $totalDataRecord = Movement::where('type', 'COMPRA')
+            ->whereStatus('FINISHED')
+            ->with('movement_ingreso_products')
+            ->orderBy('date', 'DESC')
+            ->orderBy('id', 'DESC')
+            ->count();
+        $totalFilteredRecord = $totalDataRecord;
+
+        $start_val = ($request->input('start')) ? $request->input('start') : 0;
+        $limit_val = ($request->input('length')) ? $request->input('length') : 10;
+
+        if (empty($request->input('search.value'))) {
             if (\Auth::user()->rol() == 'superadmin' || \Auth::user()->rol() == 'admin') {
-                $movement = Movement::where('type', 'COMPRA')
+                $movimientos = Movement::where('type', 'COMPRA')
                     ->whereStatus('FINISHED')
-                    ->with('movement_ingreso_products')
+                    ->offset($start_val)
+                    ->limit($limit_val)
                     ->orderBy('date', 'DESC')
                     ->orderBy('id', 'DESC')
                     ->get();
             } else {
-                $movement = Movement::where('type', 'COMPRA')
+                $movimientos = Movement::where('type', 'COMPRA')
                     ->where('user_id', Auth::user()->id)
                     ->whereStatus('FINISHED')
-                    ->with('movement_ingreso_products')
+                    ->offset($start_val)
+                    ->limit($limit_val)
                     ->orderBy('date', 'DESC')
                     ->orderBy('id', 'DESC')
                     ->get();
             }
+        } else {
+            $search_text = $request->input('search.value');
 
-            return Datatables::of($movement)
-                ->addIndexColumn()
-                ->addColumn('origen', function ($movement) {
-                    return $movement->origenData($movement->type);
-                })
-                ->editColumn('date', function ($movement) {
-                    return date('d-m-Y', strtotime($movement->date));
-                })
-                ->addColumn('items', function ($movement) {
-                    return '<span class="badge badge-primary">' . $movement->cantidad_ingresos() . '</span>';
-                })
-                ->addColumn('voucher', function ($movement) {
-                    return  $movement->voucher_number;
-                })
-                ->addColumn('show', function ($movement) {
-                    return '<a href="' . route('ingresos.show', ['id' => $movement->id, 'is_cerrada' => true]) . '"> <i class="fa fa-eye"></i> </a>';
-                })
-                ->rawColumns(['origen', 'date', 'items', 'voucher', 'show'])
-                ->make(true);
+            $movimientos = Movement::where('type', 'COMPRA')->whereStatus('FINISHED')
+                ->join('proveedors', 'movements.from', '=', 'proveedors.id')
+                ->select('movements.*')
+                ->selectRaw('CONCAT(movements.id," ", movements.subtype," ", proveedors.name) as txtMovimiento')
+                ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
+                ->offset($start_val)
+                ->limit($limit_val)
+                ->orderBy('date', 'desc')
+                ->orderBy('movements.id', 'DESC')
+                ->get();
+
+            $totalFilteredRecord = Movement::where('type', 'COMPRA')->whereStatus('FINISHED')
+                ->join('proveedors', 'movements.from', '=', 'proveedors.id')
+                ->select('movements.*')
+                ->selectRaw('CONCAT(movements.id," ", movements.subtype," ", proveedors.name) as txtMovimiento')
+                ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
+                ->count();
         }
-        return view('admin.movimientos.ingresos.indexCerradas');
+
+        $data = [];
+        if (!empty($movimientos)) {
+            foreach ($movimientos as $movement) {
+                $dataIngreso['id']      = str_pad($movement->id, 6, '0', STR_PAD_LEFT);
+                $dataIngreso['origen']  = $movement->origenData($movement->type);
+                $dataIngreso['subtype'] = $movement->subtype;
+                $dataIngreso['date']    = date('d-m-Y', strtotime($movement->date));
+                $dataIngreso['items']   = '<span class="badge badge-primary">' . $movement->cantidad_ingresos() . '</span>';
+                $dataIngreso['voucher'] = $movement->voucher_number;
+                $dataIngreso['show']    = '<a href="' . route('ingresos.show', ['id' => $movement->id, 'is_cerrada' => true]) . '"> <i class="fa fa-eye"></i> </a>';
+                $data[]                 = $dataIngreso;
+            }
+        }
+        $draw          = $request->input('draw');
+        $get_json_data = [
+            'draw'            => intval($draw),
+            'recordsTotal'    => intval($totalDataRecord),
+            'recordsFiltered' => intval($totalFilteredRecord),
+            'data'            => $data,
+        ];
+
+        print json_encode($get_json_data);
     }
 
     public function indexChequeadas(Request $request)
@@ -659,7 +739,7 @@ class IngresosController extends Controller
                     $movement_temp->save();
                 }
 
-                $product      = Product::find($movimiento['product_id']);
+                $product = Product::find($movimiento['product_id']);
 
                 // Buscar si el producto tiene oferta del proveedor
                 $oferta = DB::table('products as t1')
@@ -674,6 +754,8 @@ class IngresosController extends Controller
 
                 MovementProductTemp::firstOrCreate(
                     [
+                        'entidad_id'   => $movimiento['tiendaEgreso'],
+                        'entidad_tipo' => 'S',
                         'movement_id'  => $movimiento['movement_id'],
                         'product_id'   => $movimiento['product_id'],
                         'tasiva'       => $product->product_price->tasiva,
@@ -744,7 +826,7 @@ class IngresosController extends Controller
             $data['status']         = 'FINISHED';
             $data['voucher_number'] = $movement_temp->voucher_number;
             $data['flete']          = $movement_temp->flete;
-            $data['observacion']    = 'AJUSTE ENTRE DEPOSITOS. DESDE ' . str_pad($tiendaEgreso, 3, '0', STR_PAD_LEFT) . ' HACIA ' . str_pad($tiendaIngreso, 3, '0', STR_PAD_LEFT);
+            $data['observacion']    = 'Aj. depósitos desde ' . str_pad($tiendaEgreso, 3, '0', STR_PAD_LEFT) . ' hacia ' . str_pad($tiendaIngreso, 3, '0', STR_PAD_LEFT);
             $data['user_id']        = \Auth::user()->id;
             $data['flete_invoice']  = 0;
             $movement_new           = Movement::create($data);
@@ -758,18 +840,30 @@ class IngresosController extends Controller
 
                 // Ajustar tiendaEgreso
                 if ($tiendaEgreso == 1) {
-                    $product = Product::find($movimiento['product_id']);
-                    $latest  = $product->stockReal();
-                    
-                    // Actualizo el Stock
+                    $product          = Product::find($movimiento['product_id']);
                     $product->stock_f = $product->stock_f - $cantidad;
                     $product->save();
+                    $latest           = $product->stockReal();
                 } else {
-                    $product = ProductStore::whereProductId($movimiento['product_id'])->whereStoreId($tiendaEgreso)->first();
-                    if ($product) {
-                        $latest  =  ($product->stock_f + $product->stock_r + $product->cyo)-$cantidad;
+                    $product_store = ProductStore::whereProductId($movimiento['product_id'])->whereStoreId($tiendaEgreso)->first();
+
+                    if ($product_store) {
+
+                        // Si la cantidad a devolver es suficiente 
+                        if($product_store->stock_f >= $cantidad){
+                            $product_store->stock_f = $product_store->stock_f - $cantidad;
+                        }else{
+                            $nuevaCantidad = ($cantidad - $product_store->stock_f);
+                            $product_store->stock_f = 0;
+                            if($product_store->stock_r >= $nuevaCantidad){
+                                $product_store->stock_r = $product_store->stock_r - $nuevaCantidad;
+                            }
+                        }
+
+                        $product_store->save();
+                        $latest = $product_store->stock_f;
                     } else {
-                        $latest  = 0-$cantidad;
+                        $latest                        = 0 - $cantidad;
                         $data_prod_store['product_id'] = $movimiento['product_id'];
                         $data_prod_store['store_id']   = $tiendaEgreso;
                         $data_prod_store['stock_f']    = $latest;
@@ -801,24 +895,26 @@ class IngresosController extends Controller
 
                 // Ajustar tiendaIngreso
                 if ($tiendaIngreso == 1) {
-                    $product = Product::find($movimiento['product_id']);
-                    $latest  = $product->stockReal();
+                    $product          = Product::find($movimiento['product_id']);
                     $product->stock_f = $product->stock_f + $cantidad;
                     $product->save();
+                    $latest           = $product->stockReal();
                 } else {
-                    $product = ProductStore::whereProductId($movimiento['product_id'])->whereStoreId($tiendaEgreso)->first();
-                    if ($product) {
-                        $latest  =  ($product->stock_f + $product->stock_r + $product->cyo ) + $cantidad;
+                    $product_store = ProductStore::whereProductId($movimiento['product_id'])->whereStoreId($tiendaIngreso)->first();
+                    if ($product_store) {
+                        $product_store->stock_f = $product_store->stock_f + $cantidad;
+                        $product_store->save();
+                        $latest                 = $product_store->stock_f;
                     } else {
-                        $latest  = $cantidad;
+                        $latest                        = $cantidad;
                         $data_prod_store['product_id'] = $movimiento['product_id'];
-                        $data_prod_store['store_id']   = $tiendaEgreso;
+                        $data_prod_store['store_id']   = $$tiendaIngreso;
                         $data_prod_store['stock_f']    = $latest;
                         $data_prod_store['stock_r']    = 0;
                         $data_prod_store['stock_cyo']  = 0;
                         ProductStore::create($data_prod_store);
                     }
-                }                
+                }
 
                 MovementProduct::create([
                     'entidad_id'   => $tiendaIngreso,
@@ -847,7 +943,9 @@ class IngresosController extends Controller
             DB::commit();
             Schema::enableForeignKeyConstraints();
 
-            return redirect()->route('ingresos.ajustarStockIndex');
+            return new JsonResponse([
+                'type' => 'success',
+            ]);
         } catch (\Exception $e) {
             DB::rollback();
             Schema::enableForeignKeyConstraints();

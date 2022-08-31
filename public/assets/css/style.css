@@ -10,6 +10,13 @@
     display: block;
 }
 
+.fenovo-celeste{
+    background-color: #16B4DF;
+}
+
+.fenovo-azul{
+    background-color: #232E67;
+}
 /* DataTable style */
 
 div.dataTables_wrapper div.dataTables_processing {
