@@ -21,6 +21,7 @@ use App\Models\ProductStore;
 use App\Models\SessionOferta;
 use App\Models\SessionProduct;
 use App\Models\Store;
+use App\Models\ProductoStoreHistorial;
 use App\Repositories\CustomerRepository;
 use App\Repositories\EnumRepository;
 
@@ -1170,6 +1171,15 @@ class SalidasController extends Controller
 
                 $cant_total_cyo = $cant_total_f = $cant_total_r = $diff_sf = $diff_sfr = 0;
 
+                $product_id     = $product->producto->id;
+                $movement_id    = $movement->id;
+                $cant           = $cantidad;
+                $movement_type  = $movement->type;
+                $cod_fenovo     = $product->producto->cod_fenovo;
+                $prev_stock_f   = $product->producto->stock_f;
+                $prev_stock_r   = $product->producto->stock_r;
+                $prev_stock_cyo = $product->producto->stock_cyo;
+
                 if (isset($quantities[0])) {
                     $cant_total_f = ($unit_type == 'K') ? ($unit_weight * $unit_package * $quantities[0]['cant']) : ($unit_package * $quantities[0]['cant']);
                     //$product->producto->stock_f -= $cant_total_f;
@@ -1225,6 +1235,11 @@ class SalidasController extends Controller
                         if (isset($quantities[2])) {
                             ($deposito) ? $prod_store->stock_cyo -= $cant_total_cyo : $prod_store->stock_cyo += $cant_total_cyo;
                         }
+
+                        $pos_stock_f   = $prod_store->stock_f;
+                        $pos_stock_r   = $prod_store->stock_r;
+                        $pos_stock_cyo = $prod_store->stock_cyo;
+
                         $prod_store->save();
                     } else {
                         $data_prod_store['product_id'] = $product->product_id;
@@ -1238,6 +1253,10 @@ class SalidasController extends Controller
                         if (isset($quantities[2])) {
                             $data_prod_store['stock_cyo'] = $cant_total_cyo;
                         }
+                        $pos_stock_f   = $cant_total_f;
+                        $pos_stock_r   = $cant_total_r;
+                        $pos_stock_cyo = $cant_total_cyo;
+
                         ProductStore::create($data_prod_store);
                     }
 
