@@ -950,7 +950,7 @@ class SalidasController extends Controller
                     if($customer->listprice_associate == 'L0'){
                         $insert_data['neto'] = $insert_data['unit_price'];
                     }else{
-                        $insert_data['neto']       = $insert_data['unit_price'] / (1 + ($prices->tasiva / 100)); //Este valor se toma cuando no se factura
+                        $insert_data['neto'] = $insert_data['unit_price'] / (1 + ($prices->tasiva / 100)); //Este valor se toma cuando no se factura
                     }
                     break;
             }
