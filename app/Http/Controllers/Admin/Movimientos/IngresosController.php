@@ -1078,15 +1078,17 @@ class IngresosController extends Controller
     public function editNoCongelados(Request $request)
     {
         $movement    = MovementTemp::find($request->id);
-        $productos   = $this->productRepository->getByProveedorIdPluck($movement->from);
         $proveedor   = Proveedor::find($movement->from);
         $movimientos = MovementProductTemp::where('movement_id', $request->id)->orderBy('created_at', 'asc')->get();
         $depositos   = Store::orderBy('cod_fenovo', 'asc')->where('active', 1)->where('store_type', 'D')->get();
+
+        $productos   = Product::where('proveedor_id', '=', $movement->from)->orderBy('name')->get();
+        $proximo      = (int)Product::where('categorie_id', '!=', 1)->max('cod_fenovo')+1;
         $categories  = $this->productCategoryRepository->getActives('name', 'ASC');
         $descuentos  = $this->descuentoRepository->getActives('descripcion', 'ASC');
-        return view(
-            'admin.movimientos.ingresosNoCongelados.edit',
-            compact('movement', 'proveedor', 'productos', 'movimientos', 'depositos', 'categories', 'descuentos')
+
+        return view('admin.movimientos.ingresosNoCongelados.edit',
+            compact('movement', 'proveedor', 'productos', 'movimientos', 'depositos', 'categories', 'descuentos', 'proximo')
         );
     }
     public function checkNoCongelados(Request $request)

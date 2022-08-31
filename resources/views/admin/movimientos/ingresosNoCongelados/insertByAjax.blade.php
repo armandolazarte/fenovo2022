@@ -7,7 +7,7 @@
 </div>
 
 <div class="form-group">
-    <p class=" font-weight-bold">{{ $product->name }}</p>
+    <p class=" font-weight-bold">{{ $product->cod_fenovo }} - {{ $product->name }}</p>
 </div>
 
 <div class="form-group">

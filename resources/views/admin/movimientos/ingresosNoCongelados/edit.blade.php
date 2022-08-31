@@ -20,31 +20,42 @@
 
                     <div class="row">
                         <input type="hidden" name="movement_id" id="movement_id" value={{ $movement->id }} />
-                        <input type="hidden" id="voucher_number" name="voucher_number" value="{{ $movement->voucher_number }}">
+                        <input type="hidden" id="voucher_number" name="voucher_number"
+                            value="{{ $movement->voucher_number }}">
+                        <input type="hidden" id="from" name="from" value="{{ $movement->from }}">
 
                         <div class="col-6">
-                            <label class="text-body">Proveedor</label>                            
-                            <input type="text"  id="from" name="from" value="{{ $proveedor->name }}" class="form-control " disabled>                            
+                            <label class="text-body">Proveedor</label>
+                            <input type="text" id="destino" name="destino" value="{{ $proveedor->name }}"
+                                class="form-control " disabled>
                         </div>
                         <div class="col-2">
                             <label class="text-body">Tipo compra</label>
                             <select class="form-control" name="subtype" id="subtype" disabled>
-                                <option value="FA" @if ($movement->subtype == 'FA') selected @endif>FACTURA - A</option>
-                                <option value="FB" @if ($movement->subtype == 'FB') selected @endif>FACTURA - B</option>
-                                <option value="FC" @if ($movement->subtype == 'FC') selected @endif>FACTURA - C</option>
-                                <option value="FM" @if ($movement->subtype == 'FM') selected @endif>FACTURA - M</option>
-                                <option value="CYO" @if ($movement->subtype == 'CYO') selected @endif >CYO</option>
+                                <option value="FA" @if ($movement->subtype == 'FA') selected @endif>FACTURA - A
+                                </option>
+                                <option value="FB" @if ($movement->subtype == 'FB') selected @endif>FACTURA - B
+                                </option>
+                                <option value="FC" @if ($movement->subtype == 'FC') selected @endif>FACTURA - C
+                                </option>
+                                <option value="FM" @if ($movement->subtype == 'FM') selected @endif>FACTURA - M
+                                </option>
+                                <option value="CYO" @if ($movement->subtype == 'CYO') selected @endif>CYO</option>
                                 <option value="REMITO" @if ($movement->subtype == 'REMITO') selected @endif>R</option>
                             </select>
                         </div>
                         <div class="col-1">
                             <label class="text-dark">Punto Vta</label>
-                            <input type="number" id="puntoVenta" name="puntoVenta" value="{{ substr($movement->voucher_number, 0, -8) }}" class="form-control text-center" disabled>
+                            <input type="number" id="puntoVenta" name="puntoVenta"
+                                value="{{ substr($movement->voucher_number, 0, -8) }}" class="form-control text-center"
+                                disabled>
                         </div>
                         <div class="col-2">
                             <label class="text-dark">Comprobante</label>
-                            <input type="number" id="comprobanteNro" name="comprobanteNro" value="{{ substr($movement->voucher_number,-8) }}" class="form-control text-center" disabled>
-                        </div> 
+                            <input type="number" id="comprobanteNro" name="comprobanteNro"
+                                value="{{ substr($movement->voucher_number, -8) }}" class="form-control text-center"
+                                disabled>
+                        </div>
                         <div class="col-1 text-center">
                             <label class="text-dark font-size-bold">Cerrar</label>
                             <fieldset class="form-group">
@@ -76,21 +87,21 @@
 
                     <div class="row">
                         <div class="col-4">
-                            <div class="row mb-2">
-                                <div class="col-12"> 
-                                    Producto 
-                                    <a href="javascript:void(0)" onclick="agregarProducto()">
-                                        ( crear <i class="fa fa-plus text-danger "></i> )
-                                    </a>
-                                </div>
-                            </div>
                             <div class="row">
                                 <div class="col-12">
-                                    <div id="divProductos">
-                                        @include('admin.movimientos.ingresosNoCongelados.productos')
-                                    </div>
+                                    <label class="text-body">
+                                        Producto
+                                        <a href="javascript:void(0)" onclick="agregarProducto()">
+                                            ( crear <i class="fa fa-plus text-danger "></i> )
+                                        </a>
+                                    </label>
+                                    <select id="product_id" name="product_id" class="js-example-basic-single form-control bg-transparent" placeholder = 'Seleccione productos ...'>
+                                        <div id="divProductos">
+                                            @include('admin.movimientos.ingresosNoCongelados.productos')
+                                        </div>
+                                    </select>                                    
                                 </div>
-                            </div>                           
+                            </div>
 
                         </div>
                         <div class="col-8">
@@ -118,28 +129,79 @@
         </div>
     </div>
 
-    @include('admin.movimientos.ingresosNoCongelados.modalProducto')
-    @include('admin.movimientos.ingresosNoCongelados.modal')
-
+    @include('admin.movimientos.ingresosNoCongelados.modalAddProducto')
+    @include('admin.movimientos.ingresosNoCongelados.modalEditProducto')
 @endsection
 
 @section('js')
     <script>
+        
+        const storeProducto = (route) => {
+            var elements = document.querySelectorAll('.is-invalid');
+            var form = jQuery('#formDataAdd').serialize();
+            jQuery.ajax({
+                url: route,
+                type: 'POST',
+                data: form,
+                beforeSend: function() {
+                    for (var i = 0; i < elements.length; i++) {
+                        elements[i].classList.remove('is-invalid');
+                    }
+                    jQuery('#loader').removeClass('hidden');
+                },
+                success: function(data) {
+                    jQuery('#loader').addClass('hidden');
+                    if (data['type'] == 'success') {
+                        let producto = data['producto'];
+                        document.getElementById("formDataAdd").reset();
+                        jQuery('.addProducto').removeClass('offcanvas-on');
+                        refresh_div(producto.id);
+                    } else {
+                        toastr.error(data['msj'], 'Verifique');
+                    }
+                },
+                error: function(data) {
+                    var lista_errores = "";
+                    var data = data.responseJSON;
+                    jQuery.each(data.errors, function(index, value) {
+                        lista_errores += value + '<br />';
+                        jQuery('#' + index).addClass('is-invalid');
+                        jQuery('#' + index).next().find('.select2-selection').addClass(
+                        'is-invalid');
+                    });
+                    toastr.error(lista_errores, 'Verifique');
+                },
+                complete: function() {
+                    jQuery('#loader').addClass('hidden');
+                }
+            });
+        };
 
-        const agregarProducto = () => {          
+        const refresh_div =(id)=>{
+            // Recargar los productos
+            let from = jQuery('#from').val()
+            jQuery.ajax({
+                url: '{{ route('products.getProductosHtml') }}',
+                type: 'GET',
+                data: {from},
+                success: function(data) {
+                    if (data['type'] == 'success') {
+                        
+                        jQuery("#product_id").val(id).trigger('change');
+                        jQuery("#divProductos").html(data['html']);
+                        jQuery("#cod_fenovo").val(data['proximo'])
+                    }
+                }
+            })
+        }
+
+        const agregarProducto = () => {
             jQuery("#name").focus()
             jQuery('.addProducto').addClass('offcanvas-on');
         }
 
-
-        jQuery(document).ready(function() {
-            jQuery("#unit_package").select2({
-                tags: true
-            })
-        });
-
         jQuery("#product_id").on('change', function() {
-            const productId = jQuery("#product_id").val();
+            const productId = jQuery("#product_id").val();            
             jQuery.ajax({
                 url: '{{ route('detalle-ingresos.check.noCongelado') }}',
                 type: 'POST',
@@ -158,6 +220,13 @@
             });
         })
 
+
+        jQuery(document).ready(function() {
+            jQuery("#unit_package").select2({
+                tags: true
+            })
+        });
+
         const editarProducto = (id) => {
             var elements = document.querySelectorAll('.is-invalid');
             jQuery.ajax({
@@ -172,7 +241,7 @@
                         jQuery("#unit_package").select2({
                             tags: true
                         })
-                        jQuery('.editpopup').addClass('offcanvas-on');
+                        jQuery('.editProducto').addClass('offcanvas-on');
                         jQuery("#plistproveedor").select();
                     } else {
                         toastr.error(data['html'], 'Verifique');
@@ -204,7 +273,6 @@
             var costfenovo = jQuery("#costfenovo").val();
             var contribution_fund = jQuery("#contribution_fund").val();
             var product_id = jQuery("#product_id").val();
-
             jQuery.ajax({
                 url: "{{ route('calculate.product.prices') }}",
                 type: 'GET',
@@ -247,7 +315,7 @@
                 success: function(data) {
                     if (data['type'] == 'success') {
                         toastr.info('Actualizado', 'Registro');
-                        jQuery('.editpopup').removeClass('offcanvas-on');
+                        jQuery('.editProducto').removeClass('offcanvas-on');
                         jQuery("#dataTemp").html('');
                         jQuery("#product_id").val(product_id).trigger('change');
                     } else {
@@ -298,7 +366,8 @@
             let circuito = 'R';
 
             // Definir subtype
-            if (jQuery("#subtype").val() == 'FA' || jQuery("#subtype").val() == 'FB' || jQuery("#subtype").val() == 'FC' || jQuery("#subtype").val() == 'FM') {
+            if (jQuery("#subtype").val() == 'FA' || jQuery("#subtype").val() == 'FB' || jQuery("#subtype").val() ==
+                'FC' || jQuery("#subtype").val() == 'FM') {
                 invoice = 1;
                 circuito = 'F';
             } else {
@@ -456,5 +525,10 @@
                 }
             });
         };
+
+        function cerrar_modal(){
+            jQuery('.addProducto').removeClass('offcanvas-on');
+            jQuery('.editProducto').removeClass('offcanvas-on');
+        }
     </script>
 @endsection

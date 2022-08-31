@@ -1,12 +1,14 @@
 <div id="addProducto" class="addProducto offcanvas offcanvas-right kt-color-panel p-5">
-    <form id="formData">
+    <form id="formDataAdd">
         @csrf
 
         <input type="hidden" id="proveedor_id" name="proveedor_id" value="{{ $proveedor->id }}">
+        <input type="hidden" id="unit_type" name="unit_type" value="U">
+        <input type="hidden" id="unit_weight" name="unit_weight" value="1">
             
-        <div class="row mb-2">
+        <div class="row mt-3 mb-5">
             <div class="col-12">
-                <label class="text-dark">Nombre del nuevo producto </label>
+                <h4>Nuevo producto </h4>
                 <input type="text" id="name" name="name" class="form-control" required>
             </div>
         </div>
@@ -36,12 +38,6 @@
                 <input type="text" class="form-control border-dark" value="0" name="mupfenovo" id="mupfenovo" onkeyup="calcularPrecios()" onchange="calcularPrecios()">
             </div>
         </div>
-        <div class="row mb-2">
-            <div class="col-6">% F.Contribución </div>
-            <div class="col-6">
-                <input type="text" class="form-control border-dark" value="" name="contribution_fund" id="contribution_fund" onkeyup="calcularPrecios()" onchange="calcularPrecios()">
-            </div>
-        </div>
         <div class="row mb-5">
             <div class="col-6">Precio neto</div>
             <div class="col-6">
@@ -51,55 +47,37 @@
             
 
         <div class="row mb-2">
-            <div class="col-4">
-                <label class="text-body">Cod.fenovo</label>            
-                <input type="number" name="cod_fenovo" id="cod_fenovo" class="form-control">            
-            </div>       
-
-            <div class="col-8">
-                <label class="text-body">Cod.barras</label>
-                <input type="text" class="form-control border-dark" name="barcode" id="barcode" class="form-control">            
+            <div class="col-6">
+                <label class="text-body">Codigo fenovo</label>            
+                <input type="number" name="cod_fenovo" id="cod_fenovo" value="{{ $proximo }}" class="form-control">            
             </div>
         </div>
 
-        <div class="row mb-2">
-            <div class="col-6">
-                <label class="text-body">Descuento</label>
-                <select class="js-example-basic-single js-states form-control bg-transparent" name="cod_descuento"
-                    id="cod_descuento">
-                    <option value="">Seleccione ... </option>
-                    @foreach ($descuentos as $descuento)
-                        <option value="{{ $descuento->codigo }}" @if (isset($product) && $product->cod_descuento == $descuento->codigo) selected @endif>
-                            {{ $descuento->descripcion }}
-                        </option>
-                    @endforeach
-                </select>            
-            </div>
-            <div class="col-6">
+        <div class="row mt-5 mb-5">
+            <div class="col-4">
+                <label class="text-dark">Tipo Iva</label>
+                <select id="tasiva" name="tasiva" class="rounded form-control bg-transparent" >                    
+                    <option value="0">00.00</option>
+                    <option value="0.105">10.50</option>
+                    <option value="0.21" selected>21.00</option>
+                    <option value="0.27">27.00</option>                    
+                </select>                
+            </div>   
+            <div class="col-8">
                 <label class="text-body">Categoría</label>            
                 <select class="js-example-basic-single js-states form-control bg-transparent" name="categorie_id" id="categorie_id">
                     @foreach ($categories as $category)
                         <option value="{{ $category->id }}">{{ $category->name }}</option>
                     @endforeach
                 </select>
-            </div>
-        </div>
-
-        <div class="row mt-5 mb-5">
-            <div class="col-6">
-                <label class="text-dark">Tipo Iva</label>
-                <select id="tasiva" name="tasiva" class="rounded form-control bg-transparent" >                    
-                    <option value="0">0</option>
-                    <option value="10.5">10.5</option>
-                    <option value="21" selected>21</option>
-                    <option value="27">27</option>                    
-                </select>                
-            </div>      
+            </div>   
         </div>
 
         <div class="row mt-5 text-center">
             <div class="col-6">
-                <button type="reset" class="btn btn-outline-primary close_modal"><i class="fa fa-times"></i> Cerrar</button>
+                <a href="javascript:void(0)" class="btn btn-outline-primary" onclick="cerrar_modal()">
+                    <i class="fa fa-times"></i> Cancelar
+                </a>
             </div>            
             <div class="col-6">
                 <button type="button" class="btn btn-primary btn-guardar" onclick="storeProducto('{{ route('product.store') }}')">

@@ -266,6 +266,11 @@ class Product extends Model
         return ($this->stockInicioSemana())? round($this->stockInicioSemana()->balance + $this->ingresoSemana() - $this->salidaSemana(),2):null;
     }
 
+    public function setNameAttribute($value)
+    {
+        $this->attributes['name'] = strtoupper(trim($value));
+    }
+
     public function scopeName($query, $name)
     {
         if ($name) {

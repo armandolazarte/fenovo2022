@@ -158,6 +158,18 @@ class ProductController extends Controller
         return view('admin.products.index');
     }
 
+    public function getProductosHtml(Request $request)
+    {
+        $productos = Product::where('proveedor_id', '=', $request->from)->orderBy('name')->get();
+        $proximo   = (int)Product::where('categorie_id', '!=', 1)->max('cod_fenovo') + 1;
+
+        return new JsonResponse([
+            'html'    => view('admin.movimientos.ingresosNoCongelados.productos', compact('productos'))->render(),
+            'proximo' => $proximo,
+            'type'    => 'success',
+        ]);
+    }
+
     public function historial(Request $request)
     {
         $producto = Product::where('id', $request->id)->with('productos_store')->first();
@@ -320,18 +332,22 @@ class ProductController extends Controller
     {
         try {
             $data                   = $request->all();
-            $data['unit_package']   = implode('|', $data['unit_package']);
+            $data['unit_package']   = isset($request->unit_package) ? implode('|', $data['unit_package']) : 1;
             $data['online_sale']    = isset($request->online_sale) ? 1 : 0;
             $data['iibb']           = isset($request->iibb) ? 1 : 0;
-            $data['active']         = isset($request->active) ? 1 : 0;
+            $data['active']         = 1;
             $data['factura_aparte'] = isset($request->factura_aparte) ? 1 : 0;
-            $preciosCalculados    = $this->calcularPrecios($request);
-            $data                 = array_merge($data, $preciosCalculados);
-            $producto_nuevo       = $this->productRepository->create($data);
-            $data['product_id']   = $producto_nuevo->id;
+            $preciosCalculados      = $this->calcularPrecios($request);
+            $data                   = array_merge($data, $preciosCalculados);
+            $producto_nuevo         = $this->productRepository->create($data);
+            $data['product_id']     = $producto_nuevo->id;
             $this->productPriceRepository->create($data);
 
-            return new JsonResponse(['type' => 'success', 'msj' => 'Producto agregado correctamente!']);
+            return new JsonResponse([
+                'producto' => $producto_nuevo,
+                'type'     => 'success',
+                'msj'      => 'Producto agregado correctamente!',
+            ]);
         } catch (\Exception $e) {
             return new JsonResponse(['type' => 'error', 'msj' => $e->getMessage()]);
         }
@@ -550,7 +566,6 @@ class ProductController extends Controller
             $product = Product::find($primer_registro['product_id']);
 
             foreach ($request->datos as $registro) {
-
                 // Ajusto STOCK DE NAVE
                 switch ($registro['circuito']) {
                     case 'F':
@@ -774,14 +789,14 @@ class ProductController extends Controller
     public function update(CalculatePrices $request)
     {
         try {
-            $data                 = $request->except('_token');
-            $data['online_sale']  = isset($request->online_sale) ? 1 : 0;
-            $data['iibb']         = isset($request->iibb) ? 1 : 0;
-            $data['active']       = isset($request->active) ? 1 : 0;
+            $data                   = $request->except('_token');
+            $data['online_sale']    = isset($request->online_sale) ? 1 : 0;
+            $data['iibb']           = isset($request->iibb) ? 1 : 0;
+            $data['active']         = isset($request->active) ? 1 : 0;
             $data['factura_aparte'] = isset($request->factura_aparte) ? 1 : 0;
-            $product_id           = $data['product_id'];
-            $data['unit_package'] = implode('|', $data['unit_package']);
-            $producto_actualizado = $this->productRepository->fill($product_id, $data);
+            $product_id             = $data['product_id'];
+            $data['unit_package']   = implode('|', $data['unit_package']);
+            $producto_actualizado   = $this->productRepository->fill($product_id, $data);
 
             $cod_descuento = $request->input('cod_descuento');
             $desc          = ProductDescuento::where('codigo', $cod_descuento)->first();
@@ -810,12 +825,11 @@ class ProductController extends Controller
                 $this->productPriceRepository->fill($producto->product_price->id, $data);
                 $tipo = 'actual';
             } else {
-
                 // Actualizacion de Ofertas
 
                 if (isset($data['fecha_desde'], $data['fecha_hasta'])) {
                     $data['p2tienda'] = $data['p1tienda'];
-                    $data['descp1']   = $data['descp2']   = 0;
+                    $data['descp1']   = $data['descp2'] = 0;
 
                     if ($data['oferta_id'] > 0) {
                         SessionOferta::updateOrCreate(['product_id' => $data['product_id']], $data);
@@ -869,7 +883,7 @@ class ProductController extends Controller
             $preciosCalculados = $this->calcularPrecios($request);
             $data              = array_merge($data, $preciosCalculados);
             $data['p2tienda']  = $data['p1tienda'];
-            $data['descp1']    = $data['descp2']    = 0;
+            $data['descp1']    = $data['descp2'] = 0;
             $oferta            = SessionOferta::updateOrCreate(['product_id' => $data['product_id']], $data);
 
             return new JsonResponse([
@@ -1165,9 +1179,16 @@ class ProductController extends Controller
             $productos = Product::where('products.active', '=', 1)->where('categorie_id', 1)
                 ->join('store_compra_semanal', 'products.id', '=', 'store_compra_semanal.product_id')
                 ->join('proveedors', 'products.proveedor_id', '=', 'proveedors.id')
-                ->select('products.name as producto', 'products.cod_fenovo', 'products.unit_package', 'products.unit_type',
+                ->select(
+                    'products.name as producto',
+                    'products.cod_fenovo',
+                    'products.unit_package',
+                    'products.unit_type',
                     'proveedors.name as proveedor',
-                    'store_compra_semanal.inicio', 'store_compra_semanal.compras', 'store_compra_semanal.salidas', 'store_compra_semanal.actual',
+                    'store_compra_semanal.inicio',
+                    'store_compra_semanal.compras',
+                    'store_compra_semanal.salidas',
+                    'store_compra_semanal.actual',
                     'store_compra_semanal.costo',
                 )
                 ->offset($start_val)
@@ -1179,9 +1200,16 @@ class ProductController extends Controller
             $productos   = Product::where('products.active', '=', 1)->where('categorie_id', 1)
                 ->join('store_compra_semanal', 'products.id', '=', 'store_compra_semanal.product_id')
                 ->join('proveedors', 'products.proveedor_id', '=', 'proveedors.id')
-                ->select('products.name as producto', 'products.cod_fenovo', 'products.unit_package', 'products.unit_type',
+                ->select(
+                    'products.name as producto',
+                    'products.cod_fenovo',
+                    'products.unit_package',
+                    'products.unit_type',
                     'proveedors.name as proveedor',
-                    'store_compra_semanal.inicio', 'store_compra_semanal.compras', 'store_compra_semanal.salidas', 'store_compra_semanal.actual',
+                    'store_compra_semanal.inicio',
+                    'store_compra_semanal.compras',
+                    'store_compra_semanal.salidas',
+                    'store_compra_semanal.actual',
                     'store_compra_semanal.costo',
                 )
                 ->selectRaw('CONCAT(products.cod_fenovo," ", products.name," ", proveedors.name) as txtMovimiento')
@@ -1194,9 +1222,16 @@ class ProductController extends Controller
             $totalFilteredRecord = Product::where('products.active', '=', 1)->where('categorie_id', 1)
                 ->join('store_compra_semanal', 'products.id', '=', 'store_compra_semanal.product_id')
                 ->join('proveedors', 'products.proveedor_id', '=', 'proveedors.id')
-                ->select('products.name as producto', 'products.cod_fenovo', 'products.unit_package', 'products.unit_type',
+                ->select(
+                    'products.name as producto',
+                    'products.cod_fenovo',
+                    'products.unit_package',
+                    'products.unit_type',
                     'proveedors.name as proveedor',
-                    'store_compra_semanal.inicio', 'store_compra_semanal.compras', 'store_compra_semanal.salidas', 'store_compra_semanal.actual',
+                    'store_compra_semanal.inicio',
+                    'store_compra_semanal.compras',
+                    'store_compra_semanal.salidas',
+                    'store_compra_semanal.actual',
                     'store_compra_semanal.costo',
                 )
                 ->selectRaw('CONCAT(products.cod_fenovo," ", products.name," ", proveedors.name) as txtMovimiento')
@@ -1213,12 +1248,12 @@ class ProductController extends Controller
                 $movement['cod_fenovo']        = $producto->cod_fenovo;
                 $movement['unit_package']      = $producto->unit_package;
                 $movement['unit_type']         = $producto->unit_type;
-                $movement['proveedor']         = mb_substr($producto->proveedor,0,15);
+                $movement['proveedor']         = mb_substr($producto->proveedor, 0, 15);
                 $movement['stockInicioSemana'] = $producto->inicio;
                 $movement['ingresoSemana']     = $producto->compras;
                 $movement['salidaSemana']      = $producto->salidas;
                 $movement['stock']             = $producto->actual;
-                $data[] = $movement;
+                $data[]                        = $movement;
             }
         }
         $draw          = $request->input('draw');
@@ -1415,7 +1450,6 @@ class ProductController extends Controller
         $parametros = Coeficiente::all();
 
         foreach ($parametros as $parametro) {
-
             // Obtengo el Cod fenovo
             $product = Product::find($parametro->id);
 

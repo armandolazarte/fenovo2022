@@ -1,1 +1,5 @@
-{{ Form::select('product_id', $productos, null, ['id' => 'product_id', 'class' => 'js-example-basic-single form-control bg-transparent', 'placeholder' => 'Seleccione productos ...']) }}
+@foreach ($productos as $producto)
+    <option value="{{ $producto->id }}">
+        {{ $producto->cod_fenovo }} {{ $producto->name }}
+    </option>
+@endforeach
