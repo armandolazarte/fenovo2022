@@ -61,7 +61,7 @@
         <th>Peso_U</th>
         <th>Unidad</th>
         <th>Palet</th>
-    </tr>    
+    </tr>
 
     @php
     $total_kgrs = 0;
@@ -76,7 +76,7 @@
     <tr>
         <td>{{ (int)$session_product->quantity}}</td>
         <td> ........ </td>
-        <td class=" text-left">{{$session_product->cod_fenovo}} {{$session_product->name}}</td>
+        <td class=" text-left">{{$session_product->cod_fenovo}} {{$session_product->name}}  @if($session_product->cod_proveedor) ({{$session_product->cod_proveedor}}) @endif</td>
         <td>{{ (int) $session_product->unit_package }}</td>
         <td>
             @if(count(explode('|', $session_product->presentacion)) > 1 )
@@ -84,7 +84,7 @@
                 @foreach (explode('|', $session_product->presentacion) as $item)
                     <i class=" fa fa-check "> </i> {{ $item }} &nbsp;
                 @endforeach
-            
+
             @endif
         </td>
         <td>{{$session_product->unit_weight }}</td>
