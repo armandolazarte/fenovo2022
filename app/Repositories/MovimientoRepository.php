@@ -23,6 +23,7 @@ class MovimientoRepository extends BaseRepository
             ->selectRaw('detalle.balance as total')                         // Obtiene el total
             ->where('detalle.created_at', '<', $date_from)
             ->orderByDesc('detalle.created_at')
+            ->orderByDesc('detalle.id')
             ->first();
         return ($registro) ? $registro->total : 0;
     }
@@ -37,6 +38,7 @@ class MovimientoRepository extends BaseRepository
             ->select('detalle.id')
             ->selectRaw('detalle.balance * detalle.unit_price as total')  // Obtiene la multiplicacion del total x precio
             ->orderByDesc('detalle.created_at')
+            ->orderByDesc('detalle.id')
             ->first();
         return ($registro) ? (int)$registro->total : 0;
     }
@@ -84,24 +86,22 @@ class MovimientoRepository extends BaseRepository
 
     public static function getSumaSalidasValorizada($product_id, $store_id, $date_from, $date_to)
     {
-        $registro = DB::table('movements as mov')
+        $registros = DB::table('movements as mov')
             ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
-            ->join('invoices', 'invoices.movement_id', '=', 'mov.id')
-            ->join('panamas', 'panamas.movement_id', '=', 'mov.id')
             ->where('detalle.entidad_id', $store_id)
             ->where('detalle.product_id', $product_id)
             ->where('detalle.egress', '>', 0)
             ->whereBetween('mov.created_at', [$date_from, $date_to])
-            ->selectRaw('detalle.egress * detalle.unit_price as total')
-            //->selectRaw('(invoices.imp_neto + panamas.neto105 + panamas.neto21) as total')
+            ->selectRaw('(detalle.egress * detalle.unit_price) as total')
             ->get();
 
-        return ($registro) ? $registro->sum('total') : 0;
+        return ($registros) ? $registros->sum('total') : 0;
+
     }
 
     public static function getSumaActual($product_id, $store_id, $date_from, $date_to)
     {
-        if ((Carbon::now() >= $date_from ) && ($date_to > Carbon::now())) {
+        if ((Carbon::now() >= $date_from) && ($date_to > Carbon::now())) {
             $registro = ProductStore::whereProductId($product_id)->whereStoreId($store_id)->first();
             return ($registro) ? $registro->stock_f + $registro->stock_r + $registro->stock_cyo : 0;
         }
@@ -114,6 +114,7 @@ class MovimientoRepository extends BaseRepository
             ->selectRaw('detalle.balance as total')
             ->whereBetween('detalle.created_at', [$date_from, $date_to])
             ->orderByDesc('detalle.created_at')
+            ->orderByDesc('detalle.id')
             ->first();
         return ($registro) ? $registro->total : 0;
     }
@@ -121,11 +122,10 @@ class MovimientoRepository extends BaseRepository
     public static function getSumaActualValorizada($product_id, $store_id, $date_from, $date_to)
     {
         if ((Carbon::now() >= $date_from) && ($date_to > Carbon::now())) {
-
             $registro = DB::table('products_store')
-            ->join('product_prices as precios', 'precios.product_id', '=', 'products_store.product_id') 
-            ->where('products_store.product_id',$product_id)
-            ->where('products_store.store_id',$store_id)
+            ->join('product_prices as precios', 'precios.product_id', '=', 'products_store.product_id')
+            ->where('products_store.product_id', $product_id)
+            ->where('products_store.store_id', $store_id)
             ->selectRaw('precios.plist0Neto * (products_store.stock_f + products_store.stock_r + products_store.stock_cyo) as total')
             ->first();
 
@@ -140,6 +140,7 @@ class MovimientoRepository extends BaseRepository
             ->selectRaw('detalle.unit_price * detalle.balance as total')
             ->whereBetween('detalle.created_at', [$date_from, $date_to])
             ->orderByDesc('detalle.created_at')
+            ->orderByDesc('detalle.id')
             ->first();
         return ($registro) ? (int)$registro->total : 0;
     }
