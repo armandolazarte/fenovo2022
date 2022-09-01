@@ -9,22 +9,15 @@
             </div>
         </div>
             
-        <div class="row mb-2">
+        <div class="row mb-5">
             <div class="col-12">
                 <label class="text-dark">Razon social </label>
                 <input type="text" id="name" name="name" class="form-control" required>
             </div>
         </div>
 
-        <div class="row mb-2">
-            <div class="col-12">
-                <label class="text-dark">Nombre del contacto</label>
-                <input type="text" id="responsable" name="responsable" class="form-control">
-            </div>
-        </div>
-
-        <div class="row mb-4">
-            <div class="col-3">
+        <div class="row mb-5">
+            <div class="col-4">
                 <label class="text-dark">Tipo Iva</label>
                 <select class="rounded form-control bg-transparent" name="iva_type">
                     @foreach ($ivaType as $iva)
@@ -34,7 +27,7 @@
                     @endforeach
                 </select>                
             </div>
-            <div class="col-6">
+            <div class="col-8">
                 <label class="text-dark">Cuit</label>
                 <input type="text" id="cuit" name="cuit" class="form-control">
             </div>        
