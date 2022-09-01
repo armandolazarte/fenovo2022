@@ -28,32 +28,13 @@
                             </div>
 
                             <div class="row mb-3">
-                                <div class="col-5">
+
+                                <div class="col-6">
                                     <div id="divProveedores">
                                         @include('admin.movimientos.ingresosNoCongelados.proveedores')
                                     </div>
                                 </div>
 
-                                <div class="col-1 text-center">
-                                    <label class="text-body">Agregar</label>
-                                    <fieldset class="form-group mt-2">
-                                        <a href="javascript:void(0)" onclick="agregarProveedor()">
-                                            <i class="fa fa-plus"></i>
-                                        </a>
-                                    </fieldset>
-                                </div>
-
-                                <div class="col-2">
-                                    <label class="text-body">Tipo compra</label>
-                                    <select class="form-control" name="subtype" id="subtype">
-                                        <option value="FA" selected>FACTURA - A</option>
-                                        <option value="FB">FACTURA - B</option>
-                                        <option value="FC">FACTURA - C</option>
-                                        <option value="FM">FACTURA - M</option>
-                                        <option value="CYO">CYO</option>
-                                        <option value="REMITO">R</option>
-                                    </select>
-                                </div>
                                 <div class="col-1">
                                     <label class="text-dark">Punto Vta</label>
                                     <input type="number" id="puntoVenta" name="puntoVenta" value=""
@@ -62,8 +43,19 @@
                                 <div class="col-2">
                                     <label class="text-dark">Comprobante</label>
                                     <input type="number" id="comprobanteNro" name="comprobanteNro" value=""
-                                        onkeyup="numerico(8, this)" class="form-control text-center" required="true"
-                                        onblur="checkComprobante()">
+                                        onkeyup="numerico(8, this)" class="form-control text-center" required="true">
+                                </div>
+                                <div class="col-2">
+                                    <label class="text-body">Tipo compra</label>
+                                    <select class="form-control" name="subtype" id="subtype" onchange="checkComprobante()">
+                                        <option value="" selected disabled>Seleccione ...</option>
+                                        <option value="FA">FACTURA - A</option>
+                                        <option value="FB">FACTURA - B</option>
+                                        <option value="FC">FACTURA - C</option>
+                                        <option value="FM">FACTURA - M</option>
+                                        <option value="CYO">CYO</option>
+                                        <option value="REMITO">R</option>
+                                    </select>
                                 </div>
                                 <div class="col-md-1 text-center">
                                     <label class="text-dark">Guardar</label>
@@ -128,8 +120,7 @@
 
             const agregarProveedor = () => {          
                 jQuery("#name").focus()
-                jQuery('.editpopup').addClass('offcanvas-on');                            
-
+                jQuery('.editpopup').addClass('offcanvas-on');
             }
 
             const checkComprobante = () => {
@@ -215,8 +206,6 @@
                     }
                 });
             };
-
-
 
         </script>
     @endsection
