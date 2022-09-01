@@ -1171,14 +1171,14 @@ class SalidasController extends Controller
 
                 $cant_total_cyo = $cant_total_f = $cant_total_r = $diff_sf = $diff_sfr = 0;
 
-                $product_id     = $product->producto->id;
+               /*  $product_id     = $product->producto->id;
                 $movement_id    = $movement->id;
                 $cant           = $cantidad;
                 $movement_type  = $movement->type;
                 $cod_fenovo     = $product->producto->cod_fenovo;
                 $prev_stock_f   = $product->producto->stock_f;
                 $prev_stock_r   = $product->producto->stock_r;
-                $prev_stock_cyo = $product->producto->stock_cyo;
+                $prev_stock_cyo = $product->producto->stock_cyo; */
 
                 if (isset($quantities[0])) {
                     $cant_total_f = ($unit_type == 'K') ? ($unit_weight * $unit_package * $quantities[0]['cant']) : ($unit_package * $quantities[0]['cant']);
@@ -1236,9 +1236,9 @@ class SalidasController extends Controller
                             ($deposito) ? $prod_store->stock_cyo -= $cant_total_cyo : $prod_store->stock_cyo += $cant_total_cyo;
                         }
 
-                        $pos_stock_f   = $prod_store->stock_f;
+                       /*  $pos_stock_f   = $prod_store->stock_f;
                         $pos_stock_r   = $prod_store->stock_r;
-                        $pos_stock_cyo = $prod_store->stock_cyo;
+                        $pos_stock_cyo = $prod_store->stock_cyo; */
 
                         $prod_store->save();
                     } else {
