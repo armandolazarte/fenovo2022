@@ -1203,8 +1203,8 @@ class SalidasController extends Controller
                 if (isset($quantities[2])) {
                     $cant_total_cyo = ($unit_type == 'K') ? ($unit_weight * $unit_package * $quantities[2]['cant']) : ($unit_package * $quantities[2]['cant']);
                     $product->producto->stock_cyo -= $cant_total_cyo;
-                   /*  $punto_venta = $product->producto->proveedor->punto_venta;
-                    if (($product->producto->stock_cyo - $cant_total_cyo - $diff_sfr) > 0 || ($product->producto->stock_cyo - $cant_total_cyo - $diff_sfr) == 0) {
+                    $punto_venta = $product->producto->proveedor->punto_venta;
+                    /*  if (($product->producto->stock_cyo - $cant_total_cyo - $diff_sfr) > 0 || ($product->producto->stock_cyo - $cant_total_cyo - $diff_sfr) == 0) {
                         $product->producto->stock_cyo -= ($cant_total_cyo + $diff_sfr);
                     } else {
                         $product->producto->stock_cyo = 0;
