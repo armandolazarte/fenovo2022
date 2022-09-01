@@ -1072,7 +1072,7 @@ class SalidasController extends Controller
             } elseif ($cant_total <= ($ST + $SCYO)) {
                 $qty_f   = $total_f;
                 $qty_r   = $total_r;
-                $qty_cyo = $quantity - $qty_f - $qty_r;
+                $qty_cyo =  (int)($quantity - $qty_f - $qty_r);
             } elseif (($ST + $SCYO) > 0) {
                 $qty_r   = $total_r;
                 $qty_cyo = $total_cyo;
@@ -1182,33 +1182,33 @@ class SalidasController extends Controller
 
                 if (isset($quantities[0])) {
                     $cant_total_f = ($unit_type == 'K') ? ($unit_weight * $unit_package * $quantities[0]['cant']) : ($unit_package * $quantities[0]['cant']);
-                    //$product->producto->stock_f -= $cant_total_f;
-                    if (($product->producto->stock_f - $cant_total_f) > 0 || ($product->producto->stock_f - $cant_total_f) == 0) {
+                    $product->producto->stock_f -= $cant_total_f;
+                    /* if (($product->producto->stock_f - $cant_total_f) > 0 || ($product->producto->stock_f - $cant_total_f) == 0) {
                         $product->producto->stock_f -= $cant_total_f;
                     } else {
                         $diff_sf                    = $cant_total_f - $product->producto->stock_f;
                         $product->producto->stock_f = 0;
-                    }
+                    } */
                 }
                 if (isset($quantities[1])) {
                     $cant_total_r = ($unit_type == 'K') ? ($unit_weight * $unit_package * $quantities[1]['cant']) : ($unit_package * $quantities[1]['cant']);
-                    //$product->producto->stock_r -= $cant_total_r;
-                    if (($product->producto->stock_r - $cant_total_r - $diff_sf) > 0 || ($product->producto->stock_r - $cant_total_r - $diff_sf) == 0) {
+                    $product->producto->stock_r -= $cant_total_r;
+                   /*  if (($product->producto->stock_r - $cant_total_r - $diff_sf) > 0 || ($product->producto->stock_r - $cant_total_r - $diff_sf) == 0) {
                         $product->producto->stock_r -= ($cant_total_r + $diff_sf);
                     } else {
                         $diff_sfr                   = ($cant_total_r + $diff_sf) - $product->producto->stock_r;
                         $product->producto->stock_r = 0;
-                    }
+                    } */
                 }
                 if (isset($quantities[2])) {
                     $cant_total_cyo = ($unit_type == 'K') ? ($unit_weight * $unit_package * $quantities[2]['cant']) : ($unit_package * $quantities[2]['cant']);
-                    //$product->producto->stock_cyo -= $cant_total_cyo;
-                    $punto_venta = $product->producto->proveedor->punto_venta;
+                    $product->producto->stock_cyo -= $cant_total_cyo;
+                   /*  $punto_venta = $product->producto->proveedor->punto_venta;
                     if (($product->producto->stock_cyo - $cant_total_cyo - $diff_sfr) > 0 || ($product->producto->stock_cyo - $cant_total_cyo - $diff_sfr) == 0) {
                         $product->producto->stock_cyo -= ($cant_total_cyo + $diff_sfr);
                     } else {
                         $product->producto->stock_cyo = 0;
-                    }
+                    } */
                 }
 
                 $cant_total = $cant_total_f + $cant_total_r + $cant_total_cyo;
