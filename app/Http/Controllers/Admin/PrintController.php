@@ -20,6 +20,7 @@ use Barryvdh\DomPDF\Facade as PDF;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\RegistrosMovimientosExport;
 use stdClass;
 
 class PrintController extends Controller
@@ -195,5 +196,9 @@ class PrintController extends Controller
         $store = Store::find($request->id);
         $archivo = str_pad($store->cod_fenovo, 3, '0', STR_PAD_LEFT).'_stock.csv';
         return Excel::download(new StoreViewStocks($request->id), $archivo, \Maatwebsite\Excel\Excel::CSV, ['Content-Type' => 'text/csv']);
+    }
+
+    public function exportarMovimientos(){
+        return Excel::download(new RegistrosMovimientosExport(), 'registros-' . date('d-m-Y') . '.xlsx');
     }
 }
