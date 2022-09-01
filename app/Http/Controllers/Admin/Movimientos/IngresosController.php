@@ -1108,10 +1108,9 @@ class IngresosController extends Controller
     {
         try {
             $product      = Product::find($request->id);
-            $unit_package = explode('|', $product->unit_package);
             return new JsonResponse([
                 'type' => 'success',
-                'html' => view('admin.movimientos.ingresosNoCongelados.insertByAjax', compact('product', 'unit_package'))->render(),
+                'html' => view('admin.movimientos.ingresosNoCongelados.modalEditProducto', compact('product'))->render(),
             ]);
         } catch (\Exception $e) {
             return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
@@ -1120,15 +1119,11 @@ class IngresosController extends Controller
     public function updateProductNoCongelados(Request $request)
     {
         try {
-            $data['unit_package'] = implode('|', $request->unit_package);
-            $data['unit_weight']  = $request->unit_weight;
-            Product::find($request->product_id)->update($data);
 
             $dataprice['plistproveedor']    = $request->plistproveedor;
             $dataprice['descproveedor']     = $request->descproveedor;
             $dataprice['costfenovo']        = $request->costfenovo;
             $dataprice['mupfenovo']         = $request->mupfenovo;
-            $dataprice['contribution_fund'] = $request->contribution_fund;
             $dataprice['plist0neto']        = $request->plist0neto;
             ProductPrice::whereProductId($request->product_id)->update($dataprice);
 

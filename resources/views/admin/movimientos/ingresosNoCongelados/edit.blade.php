@@ -29,6 +29,21 @@
                             <input type="text" id="destino" name="destino" value="{{ $proveedor->name }}"
                                 class="form-control " disabled>
                         </div>
+
+                        <div class="col-2">
+                            <label class="text-dark">Comprobante</label>
+                            <input type="number" id="comprobanteNro" name="comprobanteNro"
+                                value="{{ substr($movement->voucher_number, -8) }}" class="form-control text-center"
+                                disabled>
+                        </div>
+
+                        <div class="col-1">
+                            <label class="text-dark">Punto Vta</label>
+                            <input type="number" id="puntoVenta" name="puntoVenta"
+                                value="{{ substr($movement->voucher_number, 0, -8) }}" class="form-control text-center"
+                                disabled>
+                        </div>
+
                         <div class="col-2">
                             <label class="text-body">Tipo compra</label>
                             <select class="form-control" name="subtype" id="subtype" disabled>
@@ -44,18 +59,7 @@
                                 <option value="REMITO" @if ($movement->subtype == 'REMITO') selected @endif>R</option>
                             </select>
                         </div>
-                        <div class="col-1">
-                            <label class="text-dark">Punto Vta</label>
-                            <input type="number" id="puntoVenta" name="puntoVenta"
-                                value="{{ substr($movement->voucher_number, 0, -8) }}" class="form-control text-center"
-                                disabled>
-                        </div>
-                        <div class="col-2">
-                            <label class="text-dark">Comprobante</label>
-                            <input type="number" id="comprobanteNro" name="comprobanteNro"
-                                value="{{ substr($movement->voucher_number, -8) }}" class="form-control text-center"
-                                disabled>
-                        </div>
+
                         <div class="col-1 text-center">
                             <label class="text-dark font-size-bold">Cerrar</label>
                             <fieldset class="form-group">
@@ -95,11 +99,13 @@
                                             ( crear <i class="fa fa-plus text-danger "></i> )
                                         </a>
                                     </label>
-                                    <select id="product_id" name="product_id" class="js-example-basic-single form-control bg-transparent" placeholder = 'Seleccione productos ...'>
+                                    <select id="product_id" name="product_id"
+                                        class="js-example-basic-single form-control bg-transparent"
+                                        placeholder='Seleccione productos ...'>
                                         <div id="divProductos">
                                             @include('admin.movimientos.ingresosNoCongelados.productos')
                                         </div>
-                                    </select>                                    
+                                    </select>
                                 </div>
                             </div>
 
@@ -130,78 +136,17 @@
     </div>
 
     @include('admin.movimientos.ingresosNoCongelados.modalAddProducto')
-    @include('admin.movimientos.ingresosNoCongelados.modalEditProducto')
+
+    <div id="editProducto" class="editProducto offcanvas offcanvas-right kt-color-panel p-5">
+        @include('admin.movimientos.ingresosNoCongelados.modalEditProducto')
+    </div>
 @endsection
 
 @section('js')
     <script>
-        
-        const storeProducto = (route) => {
-            var elements = document.querySelectorAll('.is-invalid');
-            var form = jQuery('#formDataAdd').serialize();
-            jQuery.ajax({
-                url: route,
-                type: 'POST',
-                data: form,
-                beforeSend: function() {
-                    for (var i = 0; i < elements.length; i++) {
-                        elements[i].classList.remove('is-invalid');
-                    }
-                    jQuery('#loader').removeClass('hidden');
-                },
-                success: function(data) {
-                    jQuery('#loader').addClass('hidden');
-                    if (data['type'] == 'success') {
-                        let producto = data['producto'];
-                        document.getElementById("formDataAdd").reset();
-                        jQuery('.addProducto').removeClass('offcanvas-on');
-                        refresh_div(producto.id);
-                    } else {
-                        toastr.error(data['msj'], 'Verifique');
-                    }
-                },
-                error: function(data) {
-                    var lista_errores = "";
-                    var data = data.responseJSON;
-                    jQuery.each(data.errors, function(index, value) {
-                        lista_errores += value + '<br />';
-                        jQuery('#' + index).addClass('is-invalid');
-                        jQuery('#' + index).next().find('.select2-selection').addClass(
-                        'is-invalid');
-                    });
-                    toastr.error(lista_errores, 'Verifique');
-                },
-                complete: function() {
-                    jQuery('#loader').addClass('hidden');
-                }
-            });
-        };
-
-        const refresh_div =(id)=>{
-            // Recargar los productos
-            let from = jQuery('#from').val()
-            jQuery.ajax({
-                url: '{{ route('products.getProductosHtml') }}',
-                type: 'GET',
-                data: {from},
-                success: function(data) {
-                    if (data['type'] == 'success') {
-                        
-                        jQuery("#product_id").val(id).trigger('change');
-                        jQuery("#divProductos").html(data['html']);
-                        jQuery("#cod_fenovo").val(data['proximo'])
-                    }
-                }
-            })
-        }
-
-        const agregarProducto = () => {
-            jQuery("#name").focus()
-            jQuery('.addProducto').addClass('offcanvas-on');
-        }
 
         jQuery("#product_id").on('change', function() {
-            const productId = jQuery("#product_id").val();            
+            const productId = jQuery("#product_id").val();
             jQuery.ajax({
                 url: '{{ route('detalle-ingresos.check.noCongelado') }}',
                 type: 'POST',
@@ -220,12 +165,119 @@
             });
         })
 
+        const storeProducto = (route) => {
 
-        jQuery(document).ready(function() {
-            jQuery("#unit_package").select2({
-                tags: true
+            jQuery('#loader').removeClass('hidden');
+            // Detalles del nuevo producto
+            let name = jQuery("#nameAdd").val();
+            let proveedor_id = jQuery("#proveedor_idAdd").val();
+            let unit_type = jQuery("#unit_typeAdd").val();
+            let unit_weight = jQuery("#unit_weightAdd").val();
+            let cod_fenovo = jQuery("#cod_fenovoAdd").val();
+            let tasiva = jQuery("#tasivaAdd").val();
+            let categorie_id = jQuery("#categorie_idAdd").val();
+
+            // Precios del nuevo producto
+            let plistproveedor = jQuery("#plistproveedorAdd").val();
+            let descproveedor = jQuery("#descproveedorAdd").val();
+            let costfenovo = jQuery("#costfenovoAdd").val();
+            let mupfenovo = jQuery("#mupfenovoAdd").val();
+            let plist0neto = jQuery("#plist0netoAdd").val();
+            
+            jQuery.ajax({
+                url: route,
+                type: 'POST',
+                data: {name, cod_fenovo, proveedor_id, unit_type, unit_weight, tasiva, categorie_id, 
+                    plistproveedor, descproveedor, costfenovo, mupfenovo, plist0neto },                
+                success: function(data) {
+
+                    jQuery('#loader').addClass('hidden');
+
+                    if (data['type'] == 'success') {
+                        let producto = data['producto'];
+                        document.getElementById("formDataAdd").reset();
+                        jQuery('.addProducto').removeClass('offcanvas-on');
+                        refresh_div(producto.id);
+                    } else {
+                        toastr.error(data['msj'], 'Verifique');
+                    }
+                },
+            });
+        };
+
+        const refresh_div = (id) => {
+            // Limpio zona donde muestro el producto
+            jQuery("#dataTemp").html('');
+            
+            // Recargar los productos
+            let from = jQuery('#from').val()
+            jQuery.ajax({
+                url: '{{ route('products.getProductosHtml') }}',
+                type: 'GET',
+                data: { from },
+                success: function(data) {
+                    if (data['type'] == 'success') {
+
+                        jQuery("#product_id").val(id).trigger('change');
+                        jQuery("#divProductos").html(data['html']);
+                        jQuery("#cod_fenovoAdd").val(data['proximo'])
+                    }
+                }
             })
-        });
+        }
+
+        const agregarProducto = () => {
+            jQuery("#name").focus()
+            jQuery('.addProducto').addClass('offcanvas-on');
+        }
+
+        function calcularPreciosAdd() {
+
+            var plistproveedor = jQuery("#plistproveedorAdd").val();
+
+            if (plistproveedor == 0) {
+                jQuery("#plistproveedorAdd").addClass('bg-danger')
+                return
+            } 
+            
+            jQuery("#plistproveedorAdd").removeClass('bg-danger')
+
+            var descproveedor = jQuery("#descproveedorAdd").val();
+            var mupfenovo = jQuery("#mupfenovoAdd").val();
+            var costfenovo = jQuery("#costfenovoAdd").val();
+            var contribution_fund = jQuery("#contribution_fundAdd").val();
+            var product_id = jQuery("#product_idAdd").val();
+
+            jQuery.ajax({
+                url: "{{ route('calculate.product.prices') }}",
+                type: 'GET',
+                data: {
+                    plistproveedor,
+                    descproveedor,
+                    mupfenovo,
+                    costfenovo,
+                    contribution_fund,
+                    product_id
+                },
+                success: function(data) {
+                    if (data['type'] == 'success') {
+                        jQuery("#costfenovoAdd").val(data['costfenovo']);
+                        jQuery("#plist0netoAdd").val(data['plist0neto']);
+                    } else {
+                        toastr.error(data['msj'], 'ERROR!');
+                    }
+                },
+                error: function(data) {
+                    var lista_errores = "";
+                    var data = data.responseJSON;
+                    jQuery.each(data.errors, function(index, value) {
+                        lista_errores += value + '<br />';
+                        jQuery('#' + index).addClass('is-invalid');
+                    });
+                    toastr.error(lista_errores, 'ERROR!');
+                },
+            });
+        }
 
         const editarProducto = (id) => {
             var elements = document.querySelectorAll('.is-invalid');
@@ -237,10 +289,7 @@
                 },
                 success: function(data) {
                     if (data['type'] == 'success') {
-                        jQuery("#insertByAjax").html(data['html']);
-                        jQuery("#unit_package").select2({
-                            tags: true
-                        })
+                        jQuery("#editProducto").html(data['html']);
                         jQuery('.editProducto').addClass('offcanvas-on');
                         jQuery("#plistproveedor").select();
                     } else {
@@ -250,34 +299,33 @@
             });
         }
 
-        const calcularPrecios = () => {
-            let validate = 0;
-            let plistproveedor = jQuery("#plistproveedor").val();
+        const calcularPreciosEdit = () => {
+            let plistproveedor = jQuery("#plistproveedorEdit").val();
 
             if (plistproveedor == 0) {
-                jQuery("#plistproveedor").addClass('bg-danger')
+                jQuery("#plistproveedorEdit").addClass('bg-danger')
             } else {
-                jQuery("#plistproveedor").removeClass('bg-danger')
+                jQuery("#plistproveedorEdit").removeClass('bg-danger')
             }
 
             if (plistproveedor > 0) {
-                calculatePrices(validate)
+                calculatePricesEdit()
             }
         };
 
-        function calculatePrices(validate = 1) {
+        function calculatePricesEdit() {
 
-            var plistproveedor = jQuery("#plistproveedor").val();
-            var descproveedor = jQuery("#descproveedor").val();
-            var mupfenovo = jQuery("#mupfenovo").val();
-            var costfenovo = jQuery("#costfenovo").val();
-            var contribution_fund = jQuery("#contribution_fund").val();
-            var product_id = jQuery("#product_id").val();
+            var plistproveedor = jQuery("#plistproveedorEdit").val();
+            var descproveedor = jQuery("#descproveedorEdit").val();
+            var mupfenovo = jQuery("#mupfenovoEdit").val();
+            var costfenovo = jQuery("#costfenovoEdit").val();
+            var contribution_fund = jQuery("#contribution_fundEdit").val();
+            var product_id = jQuery("#product_idEdit").val();
+
             jQuery.ajax({
                 url: "{{ route('calculate.product.prices') }}",
                 type: 'GET',
                 data: {
-                    validate,
                     plistproveedor,
                     descproveedor,
                     mupfenovo,
@@ -287,8 +335,8 @@
                 },
                 success: function(data) {
                     if (data['type'] == 'success') {
-                        jQuery("#costfenovo").val(data['costfenovo']);
-                        jQuery("#plist0neto").val(data['plist0neto']);
+                        jQuery("#costfenovoEdit").val(data['costfenovo']);
+                        jQuery("#plist0netoEdit").val(data['plist0neto']);
                     } else {
                         toastr.error(data['msj'], 'ERROR!');
                     }
@@ -306,12 +354,18 @@
         }
 
         const actualizarProductoNoCongelado = () => {
-            var product_id = jQuery("#product_id").val();
-            var form = jQuery('#formData').serialize();
+
+            let product_id = jQuery("#product_idEdit").val();
+            let plistproveedor = jQuery("#plistproveedorEdit").val();
+            let descproveedor = jQuery("#descproveedorEdit").val();
+            let costfenovo = jQuery("#costfenovoEdit").val();
+            let mupfenovo = jQuery("#mupfenovoEdit").val();
+            let plist0neto = jQuery("#plist0netoEdit").val();
+
             jQuery.ajax({
                 url: '{{ route('ingresos.updateProduct.noCongelado') }}',
                 type: 'POST',
-                data: form,
+                data: {product_id, plistproveedor, descproveedor, costfenovo, mupfenovo, plist0neto },
                 success: function(data) {
                     if (data['type'] == 'success') {
                         toastr.info('Actualizado', 'Registro');
@@ -526,7 +580,7 @@
             });
         };
 
-        function cerrar_modal(){
+        function cerrar_modal() {
             jQuery('.addProducto').removeClass('offcanvas-on');
             jQuery('.editProducto').removeClass('offcanvas-on');
         }
