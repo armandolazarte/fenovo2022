@@ -90,6 +90,12 @@
                     </div>
 
                     <div class="row">
+                        <div class="col-12">                            
+                            <input id="productoNuevo" name="productoNuevo" type="hidden" value="0">
+                        </div>
+                    </div>
+
+                    <div class="row">
                         <div class="col-4">
                             <div class="row">
                                 <div class="col-12">
@@ -99,13 +105,11 @@
                                             ( crear <i class="fa fa-plus text-danger "></i> )
                                         </a>
                                     </label>
-                                    <select id="product_id" name="product_id"
-                                        class="js-example-basic-single form-control bg-transparent"
-                                        placeholder='Seleccione productos ...'>
-                                        <div id="divProductos">
-                                            @include('admin.movimientos.ingresosNoCongelados.productos')
-                                        </div>
-                                    </select>
+                                    
+                                    <div id="divProductos">
+                                        @include('admin.movimientos.ingresosNoCongelados.productos')
+                                    </div>                                    
+
                                 </div>
                             </div>
 
@@ -140,19 +144,18 @@
     <div id="editProducto" class="editProducto offcanvas offcanvas-right kt-color-panel p-5">
         @include('admin.movimientos.ingresosNoCongelados.modalEditProducto')
     </div>
+
 @endsection
 
 @section('js')
     <script>
 
-        jQuery("#product_id").on('change', function() {
+        const cargarDetalle = () => {
             const productId = jQuery("#product_id").val();
             jQuery.ajax({
                 url: '{{ route('detalle-ingresos.check.noCongelado') }}',
                 type: 'POST',
-                data: {
-                    productId
-                },
+                data: {productId},
                 success: function(data) {
                     if (data['type'] == 'success') {
                         jQuery("#dataTemp").html(data['html']);
@@ -163,9 +166,9 @@
                     }
                 },
             });
-        })
+        }
 
-        const storeProducto = (route) => {
+        const storeProducto = async (route) => {
 
             jQuery('#loader').removeClass('hidden');
             // Detalles del nuevo producto
@@ -184,7 +187,8 @@
             let mupfenovo = jQuery("#mupfenovoAdd").val();
             let plist0neto = jQuery("#plist0netoAdd").val();
             
-            jQuery.ajax({
+            // Agregar el producto
+            let result = await jQuery.ajax({
                 url: route,
                 type: 'POST',
                 data: {name, cod_fenovo, proveedor_id, unit_type, unit_weight, tasiva, categorie_id, 
@@ -194,37 +198,49 @@
                     jQuery('#loader').addClass('hidden');
 
                     if (data['type'] == 'success') {
+
                         let producto = data['producto'];
+                        jQuery('#productoNuevo').val(producto.id);
+
                         document.getElementById("formDataAdd").reset();
                         jQuery('.addProducto').removeClass('offcanvas-on');
-                        refresh_div(producto.id);
+                        
+                        // Limpio zona donde muestro el producto
+                        jQuery("#dataTemp").html('');
+
                     } else {
                         toastr.error(data['msj'], 'Verifique');
                     }
                 },
             });
+
+            renovar();
+
         };
 
-        const refresh_div = (id) => {
-            // Limpio zona donde muestro el producto
-            jQuery("#dataTemp").html('');
-            
-            // Recargar los productos
-            let from = jQuery('#from').val()
-            jQuery.ajax({
+        const renovar = async () =>{
+
+            // Recargar el select con los productos nuevos
+            let id = jQuery("#productoNuevo").val();
+            let from = jQuery('#from').val();
+
+            let result = await jQuery.ajax({
                 url: '{{ route('products.getProductosHtml') }}',
                 type: 'GET',
                 data: { from },
                 success: function(data) {
                     if (data['type'] == 'success') {
-
-                        jQuery("#product_id").val(id).trigger('change');
                         jQuery("#divProductos").html(data['html']);
+                        jQuery("#product_id").val(id).trigger('change');
                         jQuery("#cod_fenovoAdd").val(data['proximo'])
                     }
                 }
             })
+
+            return result;
         }
+
+        
 
         const agregarProducto = () => {
             jQuery("#name").focus()

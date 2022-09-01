@@ -160,11 +160,12 @@ class ProductController extends Controller
 
     public function getProductosHtml(Request $request)
     {
-        $productos = Product::where('proveedor_id', '=', $request->from)->orderBy('name')->get();
-        $proximo   = (int)Product::where('categorie_id', '!=', 1)->max('cod_fenovo') + 1;
+        $productos  = Product::where('proveedor_id', '=', $request->from)->orderBy('name')->get();
+        $html       = view('admin.movimientos.ingresosNoCongelados.productos', compact('productos'))->render();
+        $proximo    = (int)Product::where('categorie_id', '!=', 1)->max('cod_fenovo') + 1;
 
         return new JsonResponse([
-            'html'    => view('admin.movimientos.ingresosNoCongelados.productos', compact('productos'))->render(),
+            'html'    => $html,
             'proximo' => $proximo,
             'type'    => 'success',
         ]);
