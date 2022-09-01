@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\ProductController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('productos', [ProductController::class, 'list'])->name('products.list');
+Route::get('productos/getProductos/html', [ProductController::class, 'getProductosHtml'])->name('products.getProductosHtml');
 
 Route::get('productos/index', [ProductController::class, 'index'])->name('products.index');
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Proveedors\EditRequest;
+use App\Models\Product;
 use App\Models\Proveedor;
 
 use App\Repositories\EnumRepository;
@@ -25,7 +26,7 @@ class ProveedorController extends Controller
     }
 
     public function index(Request $request)
-    {
+    {       
         if ($request->ajax()) {
             $proveedor = Proveedor::orderBy('name')->whereActive(1)->get();
             return Datatables::of($proveedor)
