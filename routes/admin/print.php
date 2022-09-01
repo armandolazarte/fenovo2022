@@ -11,5 +11,5 @@ Route::get('store-export/stocks/exportCSV/{id}', [PrintController::class, 'expor
 
 Route::get('balance/exportar/{store_id}/{week}/{year}', [DepositosController::class, 'exportBalance'])->name('deposito.balance.exportCSV');
 
-
+Route::get('exportar-movimientos', [PrintController::class, 'exportarMovimientos'])->name('exportar.movimientos');
 

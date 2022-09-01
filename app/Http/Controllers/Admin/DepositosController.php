@@ -69,7 +69,7 @@ class DepositosController extends StoreController
         // Set de pruebas ** Pruebas descomentar **
         
         /*
-        $products = Product::whereId(19)->whereActive(1)->select('id', 'cod_fenovo', 'name')->whereCategorieId(1)->get(); 
+        $products = Product::whereId(224)->whereActive(1)->select('id', 'cod_fenovo', 'name')->whereCategorieId(1)->get(); 
         return $this->movimientoRepository->getSumaActual(19, 11, $fecha_desde, $fecha_hasta);
         */
         
