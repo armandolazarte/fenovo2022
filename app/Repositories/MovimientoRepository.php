@@ -84,9 +84,8 @@ class MovimientoRepository extends BaseRepository
 
     public static function getSumaSalidasValorizada($product_id, $store_id, $date_from, $date_to)
     {
-        $invoices = DB::table('movements as mov')
+        $registros = DB::table('movements as mov')
             ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
-            ->where('detalle.invoice', 1)
             ->where('detalle.entidad_id', $store_id)
             ->where('detalle.product_id', $product_id)
             ->where('detalle.egress', '>', 0)
@@ -94,22 +93,8 @@ class MovimientoRepository extends BaseRepository
             ->selectRaw('(detalle.egress * detalle.unit_price) as total')
             ->get();
 
-        $subInvoice = ($invoices) ? $invoices->sum('total') : 0;
+        return ($registros) ? $registros->sum('total') : 0;
 
-        $panamas = DB::table('movements as mov')
-            ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
-            ->where('detalle.invoice', 0)
-            ->where('detalle.entidad_id', $store_id)
-            ->where('detalle.product_id', $product_id)
-            ->where('detalle.egress', '>', 0)
-            ->whereBetween('mov.created_at', [$date_from, $date_to])
-            ->selectRaw('(detalle.egress * detalle.unit_price) as total')
-            ->get();
-        
-        $subPanama = ($panamas) ? $panamas->sum('total') : 0;
-
-
-        return $subInvoice + $subPanama;
     }
 
     public static function getSumaActual($product_id, $store_id, $date_from, $date_to)
