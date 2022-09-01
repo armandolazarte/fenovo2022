@@ -64,24 +64,38 @@
                             <td>
                                 @if ($producto['resultadoValorizada'] != 0 && $producto['actualValorizada'] != 0)
 
+                                    @php
+                                        $resultado  = round((($producto['resultadoValorizada'] / $producto['actualValorizada']) - 1) * 100,2) 
+                                    @endphp
                                     
-                                    {{ round((($producto['resultadoValorizada'] / $producto['actualValorizada']) - 1) * 100,2) }} %
-                                    
+                                    @if ( $resultado > - 0.5 && $resultado < 0.5 )
+                                        0
+                                    @else
+                                        {{ $resultado }}                             
+                                    @endif
+                                        %                                    
                                 @else
 
-                                    @if($producto['resultadoValorizada'] > $producto['actualValorizada'])
-                                        {{ $producto['resultadoValorizada'] }}
+                                    @if ($producto['resultadoValorizada'] == 0 && $producto['actualValorizada'] == 0)
+                                        0 %
                                     @else
-                                        {{ $producto['actualValorizada']}}
-                                    @endif    
+                                        @if($producto['resultadoValorizada'] > $producto['actualValorizada'])
+                                            {{ $producto['resultadoValorizada'] }}
+                                        @else
+                                            {{ $producto['actualValorizada']}}
+                                        @endif 
+                                    @endif                                       
                                     
                                 @endif
                                 
                             </td>
                             <td>
-                                @if ($producto['resultadoValorizada'] - $producto['actualValorizada'] > 1)
-                                    <a
-                                        href="{{ route('product.historial.tienda', ['product_id' => $producto['id'], 'store_id' => $store->id]) }}">
+                                @php
+                                    $diferencia = $producto['resultadoValorizada'] - $producto['actualValorizada']
+                                @endphp
+
+                                @if ($diferencia > 0 )
+                                    <a href="{{ route('product.historial.tienda', ['product_id' => $producto['id'], 'store_id' => $store->id]) }}">
                                         <i class="fa fa-list" aria-hidden="true"></i>
                                     </a>
                                 @endif
@@ -106,7 +120,8 @@
                         <td>Salidas</td>
                         <td>Resultado</td>
                         <td>Actual</td>
-                        <td>Revisar</td>
+                        <td>Dif</td>
+                        <td>Accion</td>
                     </tr>
                 </thead>
                 <tbody>
@@ -120,14 +135,47 @@
                             <th class=" text-danger">{{ $producto['resultado'] }}</th>
                             <th class=" text-success">{{ $producto['actual'] }}</th>
                             <td>
-                                @if ($producto['resultado'] != $producto['actual'])
+
+                                @if ($producto['resultado'] != 0 && $producto['actual'] != 0)
+
+                                    @php
+                                        $resultado = round((($producto['resultado'] / $producto['actual']) - 1) * 100,2) 
+                                    @endphp
+                                    
+                                    @if ( $resultado > - 0.5 && $resultado < 0.5 )
+                                        0
+                                    @else
+                                        {{ $resultado }}                             
+                                    @endif
+                                        %                                    
+                                @else
+
+                                    @if ($producto['resultado'] == 0 && $producto['actual'] == 0)
+                                        0 %
+                                    @else
+                                        @if($producto['resultado'] > $producto['actual'])
+                                            {{ $producto['resultado'] }}
+                                        @else
+                                            {{ $producto['actual']}}
+                                        @endif 
+                                    @endif                                       
+                                    
+                                @endif
+                                
+                            </td>
+                            <td>
+                                @php
+                                    $diferencia = $producto['resultado'] - $producto['actual']
+                                @endphp
+
+                                @if ($diferencia != 0 )
                                     <a
                                         href="{{ route('product.historial.tienda', ['product_id' => $producto['id'], 'store_id' => $store->id]) }}">
                                         <i class="fa fa-list" aria-hidden="true"></i>
                                     </a>
                                 @endif
                             </td>
-                        </tr>
+                        </tr>                        
                     @endforeach
                 </tbody>
             </table>
@@ -137,17 +185,19 @@
 
 
 <script>
+
     var dataTable = jQuery("#tabla-valores").DataTable({
-        scrollY: 300,
+        scrollY: 600,
         paging: false,
         ordering: false,
         iDisplayLength: -1,
     });
 
     var dataTable = jQuery("#tabla-sin-valuar").DataTable({
-        scrollY: 300,
+        scrollY: 600,
         paging: false,
         ordering: false,
         iDisplayLength: -1,
     });
+    
 </script>

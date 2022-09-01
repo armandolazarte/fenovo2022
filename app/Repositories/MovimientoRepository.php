@@ -23,6 +23,7 @@ class MovimientoRepository extends BaseRepository
             ->selectRaw('detalle.balance as total')                         // Obtiene el total
             ->where('detalle.created_at', '<', $date_from)
             ->orderByDesc('detalle.created_at')
+            ->orderByDesc('detalle.id')
             ->first();
         return ($registro) ? $registro->total : 0;
     }
@@ -37,6 +38,7 @@ class MovimientoRepository extends BaseRepository
             ->select('detalle.id')
             ->selectRaw('detalle.balance * detalle.unit_price as total')  // Obtiene la multiplicacion del total x precio
             ->orderByDesc('detalle.created_at')
+            ->orderByDesc('detalle.id')
             ->first();
         return ($registro) ? (int)$registro->total : 0;
     }
@@ -112,6 +114,7 @@ class MovimientoRepository extends BaseRepository
             ->selectRaw('detalle.balance as total')
             ->whereBetween('detalle.created_at', [$date_from, $date_to])
             ->orderByDesc('detalle.created_at')
+            ->orderByDesc('detalle.id')
             ->first();
         return ($registro) ? $registro->total : 0;
     }
@@ -137,6 +140,7 @@ class MovimientoRepository extends BaseRepository
             ->selectRaw('detalle.unit_price * detalle.balance as total')
             ->whereBetween('detalle.created_at', [$date_from, $date_to])
             ->orderByDesc('detalle.created_at')
+            ->orderByDesc('detalle.id')
             ->first();
         return ($registro) ? (int)$registro->total : 0;
     }
