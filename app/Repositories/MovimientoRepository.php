@@ -17,6 +17,7 @@ class MovimientoRepository extends BaseRepository
     {
         $registro = DB::table('movements as mov')
             ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
+            ->where('detalle.entidad_tipo', 'S')
             ->where('detalle.entidad_id', $store_id)
             ->where('detalle.product_id', $product_id)
             ->select('detalle.id')
@@ -32,6 +33,7 @@ class MovimientoRepository extends BaseRepository
     {
         $registro = DB::table('movements as mov')
             ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
+            ->where('detalle.entidad_tipo', 'S')
             ->where('detalle.entidad_id', $store_id)
             ->where('detalle.product_id', $product_id)
             ->where('detalle.created_at', '<', $date_from)
@@ -47,6 +49,7 @@ class MovimientoRepository extends BaseRepository
     {
         $registro = DB::table('movements as mov')
             ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
+            ->where('detalle.entidad_tipo', 'S')
             ->where('detalle.entidad_id', $store_id)
             ->where('detalle.product_id', $product_id)
             ->where('detalle.entry', '>', 0)
@@ -61,6 +64,7 @@ class MovimientoRepository extends BaseRepository
     {
         $registro = DB::table('movements as mov')
             ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
+            ->where('detalle.entidad_tipo', 'S')
             ->where('detalle.entidad_id', $store_id)
             ->where('detalle.product_id', $product_id)
             ->where('detalle.entry', '>', 0)
@@ -74,6 +78,7 @@ class MovimientoRepository extends BaseRepository
     {
         $registro = DB::table('movements as mov')
             ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
+            ->where('detalle.entidad_tipo', 'S')
             ->where('detalle.entidad_id', $store_id)
             ->where('detalle.product_id', $product_id)
             ->where('detalle.egress', '>', 0)
@@ -88,6 +93,7 @@ class MovimientoRepository extends BaseRepository
     {
         $registros = DB::table('movements as mov')
             ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
+            ->where('detalle.entidad_tipo', 'S')
             ->where('detalle.entidad_id', $store_id)
             ->where('detalle.product_id', $product_id)
             ->where('detalle.egress', '>', 0)
@@ -108,6 +114,7 @@ class MovimientoRepository extends BaseRepository
 
         $registro = DB::table('movements as mov')
             ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
+            ->where('detalle.entidad_tipo', 'S')
             ->where('detalle.entidad_id', $store_id)
             ->where('detalle.product_id', $product_id)
             ->select('detalle.id')
@@ -134,6 +141,7 @@ class MovimientoRepository extends BaseRepository
 
         $registro = DB::table('movements as mov')
             ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
+            ->where('detalle.entidad_tipo', 'S')
             ->where('detalle.entidad_id', $store_id)
             ->where('detalle.product_id', $product_id)
             ->select('detalle.id')
