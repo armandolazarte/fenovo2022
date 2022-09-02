@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Models\Product;
 use App\Models\ProductStore;
 use DateTime;
 use Illuminate\Support\Carbon;
@@ -102,13 +103,17 @@ class MovimientoRepository extends BaseRepository
             ->get();
 
         return ($registros) ? $registros->sum('total') : 0;
-
     }
 
     public static function getSumaActual($product_id, $store_id, $date_from, $date_to)
     {
         if ((Carbon::now() >= $date_from) && ($date_to > Carbon::now())) {
-            $registro = ProductStore::whereProductId($product_id)->whereStoreId($store_id)->first();
+            // Si la Tienda no es FENOVO SA - NAVE
+            if ($store_id != 1) {
+                $registro = ProductStore::whereProductId($product_id)->whereStoreId($store_id)->first();
+            } else {
+                $registro = Product::find($product_id);
+            }
             return ($registro) ? $registro->stock_f + $registro->stock_r + $registro->stock_cyo : 0;
         }
 
@@ -129,13 +134,21 @@ class MovimientoRepository extends BaseRepository
     public static function getSumaActualValorizada($product_id, $store_id, $date_from, $date_to)
     {
         if ((Carbon::now() >= $date_from) && ($date_to > Carbon::now())) {
-            $registro = DB::table('products_store')
-            ->join('product_prices as precios', 'precios.product_id', '=', 'products_store.product_id')
-            ->where('products_store.product_id', $product_id)
-            ->where('products_store.store_id', $store_id)
-            ->selectRaw('precios.plist0Neto * (products_store.stock_f + products_store.stock_r + products_store.stock_cyo) as total')
-            ->first();
-
+            // Si la Tienda no es FENOVO SA - NAVE
+            if ($store_id != 1) {
+                $registro = DB::table('products_store')
+                    ->join('product_prices as precios', 'precios.product_id', '=', 'products_store.product_id')
+                    ->where('products_store.product_id', $product_id)
+                    ->where('products_store.store_id', $store_id)
+                    ->selectRaw('precios.plist0Neto * (products_store.stock_f + products_store.stock_r + products_store.stock_cyo) as total')
+                    ->first();
+            } else {
+                $registro = DB::table('products')
+                    ->join('product_prices', 'product_prices.product_id', '=', 'products.id')
+                    ->where('products.id', $product_id)
+                    ->selectRaw('product_prices.plist0Neto * (products.stock_f + products.stock_r + products.stock_cyo) as total')
+                    ->first();
+            }
             return ($registro) ? $registro->total : 0;
         }
 
