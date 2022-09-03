@@ -122,8 +122,8 @@
 
             <div class="col-md-4">
                 <label class="text-body">Unidad de medida *</label>
-                <select class="js-example-basic-single js-states form-control bg-transparent" name="unit_type"
-                    id="unit_type">
+                <select class="js-example-basic-single js-states form-control bg-transparent" name="unit_type" id="unit_type">
+                    <option value="" selected disabled>Seleccione </option>
                     <option value="K" @if (isset($product) && $product->unit_type == 'K') selected @endif>Pesable</option>
                     <option value="U" @if (isset($product) && $product->unit_type == 'U') selected @endif>Unidad</option>
                 </select>
@@ -133,7 +133,16 @@
                 <label class="text-body">Peso por unidad *</label>
                 <fieldset class="input-group form-group mb-3">
                     <input type="text" class="form-control border-dark"
-                        @if (isset($product)) value="{{ $product->unit_weight }}" @else value="" @endif
+                        @if (isset($product)) 
+                            value="{{ $product->unit_weight }}" 
+
+                            @if($product->unit_type == 'K'  )
+                                value="1"
+                                disabled = "true"
+                            @endif                            
+                        @else                         
+                            value=""
+                        @endif
                         name="unit_weight" id="unit_weight">
                     <div class="input-group-prepend">
                         <span class="input-group-text">Kg.</span>
