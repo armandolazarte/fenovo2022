@@ -65,7 +65,9 @@
                                 @if ($producto['resultadoValorizada'] != 0 && $producto['actualValorizada'] != 0)
 
                                     @php
-                                        $resultado  = round((($producto['resultadoValorizada'] / $producto['actualValorizada']) - 1) * 100,2) 
+                                        $resultado  = 
+                                        round((((float)$producto['resultadoValorizada'] / 
+                                        (float)$producto['actualValorizada']) - 1) * 100,2) 
                                     @endphp
                                     
                                     @if ( $resultado > - 0.5 && $resultado < 0.5 )
@@ -79,7 +81,8 @@
                                     @if ($producto['resultadoValorizada'] == 0 && $producto['actualValorizada'] == 0)
                                         0 %
                                     @else
-                                        @if($producto['resultadoValorizada'] > $producto['actualValorizada'])
+                                        @if(
+                                            (float) $producto['resultadoValorizada'] > (float)$producto['actualValorizada'])
                                             {{ $producto['resultadoValorizada'] }}
                                         @else
                                             {{ $producto['actualValorizada']}}
@@ -91,7 +94,7 @@
                             </td>
                             <td>
                                 @php
-                                    $diferencia = $producto['resultadoValorizada'] - $producto['actualValorizada']
+                                    $diferencia = (float)$producto['resultadoValorizada'] - (float)$producto['actualValorizada']
                                 @endphp
 
                                 @if ($diferencia > 0 )
@@ -165,7 +168,7 @@
                             </td>
                             <td>
                                 @php
-                                    $diferencia = $producto['resultado'] - $producto['actual']
+                                    $diferencia = (float)$producto['resultado'] - (float)$producto['actual']
                                 @endphp
 
                                 @if ($diferencia != 0 )
