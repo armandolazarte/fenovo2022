@@ -11,6 +11,7 @@ use App\Repositories\StoreRepository;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 
 use Maatwebsite\Excel\Facades\Excel;
@@ -50,7 +51,7 @@ class DepositosController extends StoreController
 
     public function balance(Request $request)
     {
-        $stores = Store::where('store_type','B')->orderBy('description')->get();
+        $stores = Store::whereIn('store_type',['N', 'B'])->orderBy('description')->get();
         return view('admin.depositos.balance', compact('stores'));
     }
 
@@ -63,21 +64,22 @@ class DepositosController extends StoreController
         $fecha_desde = date($dates['start_date']);
         $fecha_hasta = date($dates['end_date']);
 
-        // Obtener la tienda
-        $store = Store::find($request->store_id);
 
-        // Set de pruebas ** Pruebas descomentar **
-        
-        /*
-        $products = Product::whereId(224)->whereActive(1)->select('id', 'cod_fenovo', 'name')->whereCategorieId(1)->get(); 
+        // Obtener la tienda
+        $store = Store::find($request->store_id);          
+
+        /* Set de pruebas ** Pruebas descomentar **
+        $products = Product::whereIn('id', [1,2,3,4,5,6,7,8,9,10])->whereActive(1)->select('id', 'cod_fenovo', 'name')->whereCategorieId(1)->get(); 
         return $this->movimientoRepository->getSumaActual(19, 11, $fecha_desde, $fecha_hasta);
         */
-        
         // Fin Set de pruebas
 
-        
         // Obtener los productos CONGELADOS
-        $products = Product::whereActive(1)->select('id', 'cod_fenovo', 'name')->whereCategorieId(1)->get();
+        $products = Product::whereActive(1)
+            ->select('id', 'cod_fenovo', 'name')
+            ->where('id', '<', 180)
+            ->whereCategorieId(1)
+            ->get();
 
         $productos = [];
         foreach ($products as $producto) {

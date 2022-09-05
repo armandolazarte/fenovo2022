@@ -142,6 +142,14 @@
             validateBtn();
         });
 
+        jQuery("#unit_type").on('change', function() {
+            if (jQuery("#unit_type").val() == 'K') {
+                jQuery("#unit_weight").val(1).prop('disabled', true);
+            }else{
+                jQuery("#unit_weight").prop('disabled', false);
+            }
+        })
+
         function updateProduct(route) {
             var text = '';
             var fecha_actualizacion = jQuery("#fecha_actualizacion_activa").val();
@@ -357,9 +365,11 @@
                     jQuery.ajax({
                         url: '{{ route('oferta.destroy') }}',
                         type: 'POST',
-                        data: {id},
+                        data: {
+                            id
+                        },
                         success: function(response) {
-                            window.location = '{{ route('product.edit') }}?id='+product_id;
+                            window.location = '{{ route('product.edit') }}?id=' + product_id;
                         }
                     });
                 }
