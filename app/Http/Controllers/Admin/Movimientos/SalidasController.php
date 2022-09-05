@@ -1549,7 +1549,7 @@ class SalidasController extends Controller
             // Obtengo los movimientos
             $movements_products = MovementProduct::where('movement_id', '>', 1200)
                 ->where('product_id', $p->id)
-                ->where('entidad_id', 1)
+                ->where('entidad_id', Auth::user()->store_active)
                 ->orderBy('id', 'ASC')
                 ->get();
 
@@ -1586,21 +1586,50 @@ class SalidasController extends Controller
             }
 
             // Obtengo el Stock de los movimientos
-            $produ = MovementProduct::whereEntidadId(1)->whereProductId($p->id)->orderBy('id', 'DESC')->limit(1)->first();
+            $produ = MovementProduct::whereEntidadId(Auth::user()->store_active)->whereProductId($p->id)->orderBy('id', 'DESC')->limit(1)->first();
             $stock = ($produ) ? $produ->balance : 0;
 
             // Obtengo el coeficiente de Stock
             $parametro = Coeficiente::find($p->id);
 
             // Reviso los stocks y actualizo
-            $producto          = Product::find($p->id);
-            $producto->stock_f = $stock          * ($parametro->coeficiente / 100);
-            $producto->stock_r = $stock - $stock * ($parametro->coeficiente / 100);
-            $producto->save();
+
+            // Actualizo Nave
+            if(Auth::user()->store_active == 1){
+                $p->stock_f = $stock          * ($parametro->coeficiente / 100);
+                $p->stock_r = $stock - $stock * ($parametro->coeficiente / 100);
+                $p->save();
+            }{
+                // Actualizo Otro deposito
+                $product_store = ProductStore::whereStoreId(Auth::user()->store_active)->whereProductId($p->id)->first();
+
+                if(!$product_store){
+                    $product_store = ProductStore::create([
+                        'store_id' => Auth::user()->store_active,
+                        'product_id' => $p->id,
+                    ]);
+                }
+
+                $product_store->stock_f = $stock          * ($parametro->coeficiente / 100);
+                $product_store->stock_r = $stock - $stock * ($parametro->coeficiente / 100);
+                $product_store->save();
+            }
+
+
         }
 
         if ($code) {
-            return  new JsonResponse(['msj' => 'Stock actualizado, Cod_Fenovo ' . $code]);
+
+            $store = Store::find(Auth::user()->store_active);
+            $producto = Product::where('cod_fenovo', $code)->first();
+
+            return  new JsonResponse([
+                'Mensaje ' => 'Stock actualizado ',
+                'Frioteka' =>  str_pad($store->cod_fenovo, 4, '0', STR_PAD_LEFT).' - '.$store->description,
+                'Id produ' => $producto->id,
+                'Producto' => $code,
+                'Stock   ' => $producto->stockReal(),
+            ]);
         }
 
         return  new JsonResponse(['msj' => 'Stocks actualizados ']);
