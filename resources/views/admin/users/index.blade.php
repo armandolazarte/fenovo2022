@@ -68,6 +68,9 @@
 @section('js')
 
 <script>
+
+    jQuery('#store_active').select2();
+
     var table = jQuery('.yajra-datatable').DataTable({
         @include('partials.table.setting'),
         ajax: "{{ route('users.index') }}",

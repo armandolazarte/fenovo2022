@@ -47,7 +47,7 @@
 <div class="form-group mb-3">
     <label class="text-dark">Tienda asociada</label>
     <fieldset class="form-group">
-        <select class="rounded form-control bg-transparent" name="store_active" required>
+        <select class="form-control bg-transparent select2" id="store_active" name="store_active" required>
             <option value="">Seleccione ...</option>
             @foreach ($stores as $store)
             <option value="{{$store->id}}" @if(isset($user) && ($user->store_active == $store->id)) selected @endif>
@@ -57,7 +57,6 @@
         </select>
     </fieldset>
 </div>
-
 
 <div class="form-group mb-5">
     @if (isset($user))
@@ -70,3 +69,11 @@
     <input type="hidden" name="user_id" value="{{$user->id}}" />
     @endif
 </div>
+
+
+@section('js')
+@parent
+<script>
+    jQuery('#store_active').select2();
+</script>
+@endsection
