@@ -18,8 +18,8 @@ class RegistrosMovimientosExport implements FromView
 
     public function view(): View
     {
-        $movimientos = MovementProduct::with('movement')->orderBy('created_at','DESC')->get();
+        $movimientos_productos = MovementProduct::where('movement_id', '>', 611)->with(['movement','product'])->orderBy('created_at','ASC')->get();
 
-        return view('exports.registrosMoviemientosProductos', compact('movimientos'));
+        return view('exports.registrosMoviemientosProductos', compact('movimientos_productos'));
     }
 }
