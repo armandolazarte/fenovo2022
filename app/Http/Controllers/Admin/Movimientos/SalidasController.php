@@ -1599,7 +1599,7 @@ class SalidasController extends Controller
                 $p->stock_f = $stock          * ($parametro->coeficiente / 100);
                 $p->stock_r = $stock - $stock * ($parametro->coeficiente / 100);
                 $p->save();
-            }{
+            }else{
                 // Actualizo Otro deposito
                 $product_store = ProductStore::whereStoreId(Auth::user()->store_active)->whereProductId($p->id)->first();
 
