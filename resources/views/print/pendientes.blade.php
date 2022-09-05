@@ -53,14 +53,14 @@
 
 <table class="table table-condensed text-center table-sm">
     <tr class="">
-        <th>Bultos</th>
-        <th>Cantidad</th>
-        <th>Nombre</th>
-        <th>Present_solicitada</th>
-        <th>Present_despachada</th>
-        <th>Peso_U</th>
-        <th>Unidad</th>
-        <th>Palet</th>
+        <td>Bultos</td>
+        <td>Cantidad</td>
+        <td>Nombre del producto </td>
+        <td>Present_solicitada</td>
+        <td>Present_despachada</td>
+        <td>Peso_U</td>
+        <td>Unidad</td>
+        <td>Palet</td>
     </tr>
 
     @php
@@ -76,8 +76,12 @@
     <tr>
         <td>{{ (int)$session_product->quantity}}</td>
         <td> ........ </td>
-        <td class=" text-left">{{$session_product->cod_fenovo}} {{$session_product->name}}  @if($session_product->cod_proveedor) ({{$session_product->cod_proveedor}}) @endif</td>
-        <td>{{ (int) $session_product->unit_package }}</td>
+        <td style=" text-align: left">
+            {{$session_product->cod_fenovo}} {{$session_product->name}}  @if($session_product->cod_proveedor) ({{$session_product->cod_proveedor}}) @endif
+        </td>
+        <td>
+            {{ (int) $session_product->unit_package }}
+        </td>
         <td>
             @if(count(explode('|', $session_product->presentacion)) > 1 )
 
@@ -89,7 +93,7 @@
         </td>
         <td>{{$session_product->unit_weight }}</td>
         <td>{{$session_product->unit_type}}</td>
-        <td> ...... </td>
+        <td>{{$session_product->palet}} ... </td>
     </tr>
     @endforeach
 
