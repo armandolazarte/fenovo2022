@@ -62,4 +62,9 @@ class MovementProduct extends Model
         return $this->belongsTo(Store::class, 'entidad_id');
     }
 
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class, 'entidad_id');
+    }
+
 }
