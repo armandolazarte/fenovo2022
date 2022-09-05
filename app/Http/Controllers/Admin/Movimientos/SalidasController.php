@@ -306,7 +306,9 @@ class SalidasController extends Controller
 
         $session_products = DB::table('session_products as t1')
             ->join('products as t2', 't1.product_id', '=', 't2.id')
-            ->select('t1.id', 't2.cod_fenovo', 't2.name', 't2.cod_proveedor', 't1.quantity', 't2.unit_weight', 't1.unit_package', 't2.unit_type', 't2.unit_package as presentacion')
+            ->select(
+                't1.id', 't1.quantity', 't1.unit_package', 't2.palet',
+                't2.cod_fenovo', 't2.name', 't2.cod_proveedor', 't2.unit_weight', 't2.unit_type', 't2.unit_package as presentacion')
             ->where('t1.list_id', '=', $list_id)
             ->whereNull('pausado')
             ->orderBy('t2.cod_fenovo')
