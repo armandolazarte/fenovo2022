@@ -82,7 +82,7 @@ class ProductController extends Controller
         if ($request->ajax()) {
             $categorieIdBetween = [1, 3];
             $productos          = DB::table('products as t1')
-                            ->where('t1.active', 1)
+                            /* ->where('t1.active', 1) */
                             ->whereBetween('t1.categorie_id', $categorieIdBetween)
                             ->join('product_prices as t2', 't1.id', '=', 't2.product_id')
                             ->join('proveedors as t3', 't3.id', '=', 't1.proveedor_id')

@@ -21,6 +21,7 @@ use App\Models\ProductStore;
 use App\Models\SessionOferta;
 use App\Models\SessionProduct;
 use App\Models\Store;
+use App\Models\ProductoStoreHistorial;
 use App\Repositories\CustomerRepository;
 use App\Repositories\EnumRepository;
 
@@ -344,6 +345,7 @@ class SalidasController extends Controller
                 $objProduct->cod_fenovo   = $movimiento->product->cod_fenovo;
                 $objProduct->name         = $movimiento->product->name;
                 $objProduct->unit_weight  = $movimiento->product->unit_weight;
+                $objProduct->cod_proveedor  = $movimiento->product->cod_proveedor;
                 $objProduct->unit_type    = $movimiento->unit_type;
                 $objProduct->unit_package = $movimiento->unit_package;
                 $objProduct->quantity     = $movimiento->bultos;
@@ -950,7 +952,7 @@ class SalidasController extends Controller
                     if($customer->listprice_associate == 'L0'){
                         $insert_data['neto'] = $insert_data['unit_price'];
                     }else{
-                        $insert_data['neto']       = $insert_data['unit_price'] / (1 + ($prices->tasiva / 100)); //Este valor se toma cuando no se factura
+                        $insert_data['neto'] = $insert_data['unit_price'] / (1 + ($prices->tasiva / 100)); //Este valor se toma cuando no se factura
                     }
                     break;
             }
@@ -1070,7 +1072,7 @@ class SalidasController extends Controller
             } elseif ($cant_total <= ($ST + $SCYO)) {
                 $qty_f   = $total_f;
                 $qty_r   = $total_r;
-                $qty_cyo = $quantity - $qty_f - $qty_r;
+                $qty_cyo =  (int)($quantity - $qty_f - $qty_r);
             } elseif (($ST + $SCYO) > 0) {
                 $qty_r   = $total_r;
                 $qty_cyo = $total_cyo;
@@ -1128,7 +1130,7 @@ class SalidasController extends Controller
             $insert_data['categoria']      = $categoria;
             $insert_data['status']         = 'FINISHED';
             $insert_data['voucher_number'] = $request->input('voucher_number');
-            $insert_data['flete']          = $request->flete;
+            $insert_data['flete']          = (isset($request->flete)) ? $request->flete : 0;
             $insert_data['observacion']    = $request->observacion;
             $insert_data['user_id']        = \Auth::user()->id;
             $insert_data['flete_invoice']  = (isset($request->factura_flete)) ? 1 : 0;
@@ -1169,35 +1171,44 @@ class SalidasController extends Controller
 
                 $cant_total_cyo = $cant_total_f = $cant_total_r = $diff_sf = $diff_sfr = 0;
 
+               /*  $product_id     = $product->producto->id;
+                $movement_id    = $movement->id;
+                $cant           = $cantidad;
+                $movement_type  = $movement->type;
+                $cod_fenovo     = $product->producto->cod_fenovo;
+                $prev_stock_f   = $product->producto->stock_f;
+                $prev_stock_r   = $product->producto->stock_r;
+                $prev_stock_cyo = $product->producto->stock_cyo; */
+
                 if (isset($quantities[0])) {
                     $cant_total_f = ($unit_type == 'K') ? ($unit_weight * $unit_package * $quantities[0]['cant']) : ($unit_package * $quantities[0]['cant']);
-                    //$product->producto->stock_f -= $cant_total_f;
-                    if (($product->producto->stock_f - $cant_total_f) > 0 || ($product->producto->stock_f - $cant_total_f) == 0) {
+                    $product->producto->stock_f -= $cant_total_f;
+                    /* if (($product->producto->stock_f - $cant_total_f) > 0 || ($product->producto->stock_f - $cant_total_f) == 0) {
                         $product->producto->stock_f -= $cant_total_f;
                     } else {
                         $diff_sf                    = $cant_total_f - $product->producto->stock_f;
                         $product->producto->stock_f = 0;
-                    }
+                    } */
                 }
                 if (isset($quantities[1])) {
                     $cant_total_r = ($unit_type == 'K') ? ($unit_weight * $unit_package * $quantities[1]['cant']) : ($unit_package * $quantities[1]['cant']);
-                    //$product->producto->stock_r -= $cant_total_r;
-                    if (($product->producto->stock_r - $cant_total_r - $diff_sf) > 0 || ($product->producto->stock_r - $cant_total_r - $diff_sf) == 0) {
+                    $product->producto->stock_r -= $cant_total_r;
+                   /*  if (($product->producto->stock_r - $cant_total_r - $diff_sf) > 0 || ($product->producto->stock_r - $cant_total_r - $diff_sf) == 0) {
                         $product->producto->stock_r -= ($cant_total_r + $diff_sf);
                     } else {
                         $diff_sfr                   = ($cant_total_r + $diff_sf) - $product->producto->stock_r;
                         $product->producto->stock_r = 0;
-                    }
+                    } */
                 }
                 if (isset($quantities[2])) {
                     $cant_total_cyo = ($unit_type == 'K') ? ($unit_weight * $unit_package * $quantities[2]['cant']) : ($unit_package * $quantities[2]['cant']);
-                    //$product->producto->stock_cyo -= $cant_total_cyo;
+                    $product->producto->stock_cyo -= $cant_total_cyo;
                     $punto_venta = $product->producto->proveedor->punto_venta;
-                    if (($product->producto->stock_cyo - $cant_total_cyo - $diff_sfr) > 0 || ($product->producto->stock_cyo - $cant_total_cyo - $diff_sfr) == 0) {
+                    /*  if (($product->producto->stock_cyo - $cant_total_cyo - $diff_sfr) > 0 || ($product->producto->stock_cyo - $cant_total_cyo - $diff_sfr) == 0) {
                         $product->producto->stock_cyo -= ($cant_total_cyo + $diff_sfr);
                     } else {
                         $product->producto->stock_cyo = 0;
-                    }
+                    } */
                 }
 
                 $cant_total = $cant_total_f + $cant_total_r + $cant_total_cyo;
@@ -1224,6 +1235,11 @@ class SalidasController extends Controller
                         if (isset($quantities[2])) {
                             ($deposito) ? $prod_store->stock_cyo -= $cant_total_cyo : $prod_store->stock_cyo += $cant_total_cyo;
                         }
+
+                       /*  $pos_stock_f   = $prod_store->stock_f;
+                        $pos_stock_r   = $prod_store->stock_r;
+                        $pos_stock_cyo = $prod_store->stock_cyo; */
+
                         $prod_store->save();
                     } else {
                         $data_prod_store['product_id'] = $product->product_id;
@@ -1237,6 +1253,10 @@ class SalidasController extends Controller
                         if (isset($quantities[2])) {
                             $data_prod_store['stock_cyo'] = $cant_total_cyo;
                         }
+                        $pos_stock_f   = $cant_total_f;
+                        $pos_stock_r   = $cant_total_r;
+                        $pos_stock_cyo = $cant_total_cyo;
+
                         ProductStore::create($data_prod_store);
                     }
 
@@ -1404,14 +1424,16 @@ class SalidasController extends Controller
             $mp          = MovementProduct::where('id', $id)->where('product_id', $request->input('product_id'))->first();
             $m           = Movement::where('id',$mp->movement_id)->first();
 
-            $destino = $this->origenData($m->type, $m->to, true);
-            $lista = $destino->listprice_associate;
+            if($m->type == 'VENTACLIENTE'){
+                $destino = $this->origenData($m->type, $m->to, true);
+                $lista = $destino->listprice_associate;
 
-            if($lista != 'L0'){
-                if($mp->invoice){
-                    $mp->unit_price  = $mp->unit_price / (1 + ($mp->tasiva / 100));
-                }else{
-                    $mp->unit_price  = $mp->unit_price * (1 + ($mp->tasiva / 100));
+                if($lista != 'L0'){
+                    if($mp->invoice){
+                        $mp->unit_price  = $mp->unit_price / (1 + ($mp->tasiva / 100));
+                    }else{
+                        $mp->unit_price  = $mp->unit_price * (1 + ($mp->tasiva / 100));
+                    }
                 }
             }
             $mp->invoice = !$mp->invoice;

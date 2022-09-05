@@ -28,21 +28,23 @@
             </div>
         </div>
 
-        <div class="row mt-5">
-            <div class="col-6">
-                <label class="text-dark">Flete <strong> <span id="porcentajeFlete"></span> </strong> % </label>
-                <input type="text" name="flete" id="flete" value="0" class="form-control text-center">
+        @if(\Auth::user()->rol() != 'contable')
+            <div class="row mt-5">
+                <div class="col-6">
+                    <label class="text-dark">Flete <strong> <span id="porcentajeFlete"></span> </strong> % </label>
+                    <input type="text" name="flete" id="flete" value="0" class="form-control text-center">
+                </div>
+                <div class="col-5" style="margin-top: 30px;">
+                    <fieldset>
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" name="factura_flete" id="factura_flete" value='1'
+                                class="custom-control-input">
+                            <label class="custom-control-label" for="factura_flete">Factura flete </label>
+                        </div>
+                    </fieldset>
+                </div>
             </div>
-            <div class="col-5" style="margin-top: 30px;">
-                <fieldset>
-                    <div class="custom-control custom-checkbox">
-                        <input type="checkbox" name="factura_flete" id="factura_flete" value='1'
-                            class="custom-control-input">
-                        <label class="custom-control-label" for="factura_flete">Factura flete </label>
-                    </div>
-                </fieldset>
-            </div>
-        </div>
+        @endif
 
         <div class="row mt-5">
             <div class="col-12">
