@@ -176,11 +176,8 @@ class ProductController extends Controller
         $producto = Product::where('id', $request->id)->with('productos_store')->first();
 
         if ($request->ajax()) {
-            $movimientos = MovementProduct::with(['movement'])
-                ->whereEntidadId(1)
-                ->whereProductId($producto->id)
-                ->orderBy('id', 'DESC')
-                ->get();
+            $movimientos = MovementProduct::with(['movement'])->whereEntidadId(1)->whereProductId($producto->id)->orderBy('id', 'DESC')->get();
+
             return Datatables::of($movimientos)
                 ->addIndexColumn()
                 ->addColumn('fecha', function ($movimiento) {
@@ -210,6 +207,83 @@ class ProductController extends Controller
                 ->make(true);
         }
         return view('admin.products.historial', compact('producto'));
+    }
+
+    public function getHistorial(Request $request)
+    {
+        $totalFilteredRecord = $totalDataRecord = $draw = '';
+
+        $totalDataRecord = MovementProduct::with(['movement'])->whereEntidadId(1)->whereProductId($request->id)->orderBy('id', 'DESC')->count();
+        $totalFilteredRecord = $totalDataRecord;
+
+        $start_val = ($request->input('start')) ? $request->input('start') : 0;
+        $limit_val = ($request->input('length')) ? $request->input('length') : 10;
+
+        if (empty($request->input('search.value'))) {
+            $movimientos = MovementProduct::with(['movement'])
+                ->whereEntidadId(1)
+                ->whereProductId($request->id)
+                ->offset($start_val)
+                ->limit($limit_val)
+                ->orderBy('id', 'DESC')
+                ->get();
+        }else {
+            $search_text = $request->input('search.value');
+
+            $movimientos = MovementProduct::with(['movement'])                
+                ->whereEntidadId(1)
+                ->whereProductId($request->id)
+                ->where('movement_id', 'LIKE', "%{$search_text}%")
+                ->offset($start_val)
+                ->limit($limit_val)
+                ->orderBy('movement_products.id', 'DESC')
+                ->get();
+
+            $totalFilteredRecord = MovementProduct::with(['movement'])                
+                ->whereEntidadId(1)
+                ->whereProductId($request->id)
+                ->where('movement_id', 'LIKE', "%{$search_text}%")
+                ->count();
+        }
+
+        $arrSend = [];
+
+        if (!empty($movimientos)) {
+            foreach ($movimientos as $movimiento) {
+
+                $data['id']     = $movimiento->id;
+                $data['fecha']  = date('d/m/Y', strtotime($movimiento->created_at));
+                $data['orden']  = ($movimiento->movement) ? $movimiento->movement->id : null;
+                $data['type']   = ($movimiento->movement) ? $movimiento->movement->type : null;
+                $from = null;
+                if (!is_null($movimiento->deposito) && $movimiento->movement->type != 'COMPRA') {
+                    $dep = Store::where('id', $movimiento->deposito)->first();
+                    $from = $dep->razon_social;
+                } else {
+                    $from = $movimiento->movement->From($movimiento->movement->type);
+                }
+                $data['from']           = $from;
+                $data['to']             = ($movimiento->movement) ? $movimiento->movement->To($movimiento->movement->type) : null;
+                $data['observacion']    = ($movimiento->movement) ? $movimiento->movement->observacion : null;
+                $data['unit_package']   = ($movimiento->unit_package) ? $movimiento->unit_package : null;
+                $data['bultos']         = ($movimiento->bultos) ? $movimiento->bultos : null;
+                $data['circuito']       = ($movimiento->circuito) ? $movimiento->circuito : null;
+                $data['entry']          = ($movimiento->entry) ? $movimiento->entry : null;
+                $data['egress']         = ($movimiento->egress) ? $movimiento->egress : null;
+                $data['balance']        = ($movimiento->balance) ? $movimiento->balance : null;
+              
+                $arrSend[]          = $data;
+            }
+        }
+        $draw          = $request->input('draw');
+        $get_json_data = [
+            'draw'            => intval($draw),
+            'recordsTotal'    => intval($totalDataRecord),
+            'recordsFiltered' => intval($totalFilteredRecord),
+            'data'            => $arrSend,
+        ];
+
+        print json_encode($get_json_data);
     }
 
     public function historialTienda(Request $request)
