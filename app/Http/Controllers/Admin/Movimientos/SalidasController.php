@@ -1549,7 +1549,7 @@ class SalidasController extends Controller
         foreach ($products as $p) {
 
             // Obtengo los movimientos
-            $movements_products = MovementProduct::where('movement_id', '>', 1200)
+            $movements_products = MovementProduct::where('movement_id', '>', 611)
                 ->where('product_id', $p->id)
                 ->where('entidad_id', Auth::user()->store_active)
                 ->orderBy('id', 'ASC')
@@ -1565,23 +1565,23 @@ class SalidasController extends Controller
                 }
 
                 if ($i > 0) {
-                    $bultos = $mp->bultos * $mp->unit_package;
+                    $cantidad = $mp->bultos * $mp->unit_package;
 
                     if ($mp->entry > 0) {
-                        $new_balance  = $balance_orig + $bultos;
+                        $new_balance  = $balance_orig + $cantidad;
                         $balance_orig = $new_balance;
 
                         MovementProduct::where('id', $mp->id)->update([
                             'balance' => $new_balance,
-                            'entry'   => $bultos,
+                            'entry'   => $cantidad,
                         ]);
                     } elseif ($mp->egress > 0) {
-                        $new_balance  = $balance_orig - $bultos;
+                        $new_balance  = $balance_orig - $cantidad;
                         $balance_orig = $new_balance;
 
                         MovementProduct::where('id', $mp->id)->update([
                             'balance' => $new_balance,
-                            'egress'  => $bultos,
+                            'egress'  => $cantidad,
                         ]);
                     }
                 }
