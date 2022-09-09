@@ -77,7 +77,7 @@ class SalidasController extends Controller
         $totalFilteredRecord = $totalDataRecord = $draw = '';
 
         $arrTypes            = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
-        $fecha               = Carbon::now()->subDays(60)->toDateTimeString();
+        $fecha               = Carbon::now()->subDays(90)->toDateTimeString();
         $totalDataRecord     = Movement::whereIn('type', $arrTypes)
             ->whereDate('movements.created_at', '>', $fecha)
             ->where('from', 1)
@@ -306,7 +306,9 @@ class SalidasController extends Controller
 
         $session_products = DB::table('session_products as t1')
             ->join('products as t2', 't1.product_id', '=', 't2.id')
-            ->select('t1.id', 't2.cod_fenovo', 't2.name', 't2.cod_proveedor', 't1.quantity', 't2.unit_weight', 't1.unit_package', 't2.unit_type', 't2.unit_package as presentacion')
+            ->select(
+                't1.id', 't1.quantity', 't1.unit_package', 't2.palet',
+                't2.cod_fenovo', 't2.name', 't2.cod_proveedor', 't2.unit_weight', 't2.unit_type', 't2.unit_package as presentacion')
             ->where('t1.list_id', '=', $list_id)
             ->whereNull('pausado')
             ->orderBy('t2.cod_fenovo')
@@ -1547,7 +1549,7 @@ class SalidasController extends Controller
         foreach ($products as $p) {
 
             // Obtengo los movimientos
-            $movements_products = MovementProduct::where('movement_id', '>', 1200)
+            $movements_products = MovementProduct::where('movement_id', '>', 611)
                 ->where('product_id', $p->id)
                 ->where('entidad_id', Auth::user()->store_active)
                 ->orderBy('id', 'ASC')
@@ -1563,23 +1565,23 @@ class SalidasController extends Controller
                 }
 
                 if ($i > 0) {
-                    $bultos = $mp->bultos * $mp->unit_package;
+                    $cantidad = $mp->bultos * $mp->unit_package;
 
                     if ($mp->entry > 0) {
-                        $new_balance  = $balance_orig + $bultos;
+                        $new_balance  = $balance_orig + $cantidad;
                         $balance_orig = $new_balance;
 
                         MovementProduct::where('id', $mp->id)->update([
                             'balance' => $new_balance,
-                            'entry'   => $bultos,
+                            'entry'   => $cantidad,
                         ]);
                     } elseif ($mp->egress > 0) {
-                        $new_balance  = $balance_orig - $bultos;
+                        $new_balance  = $balance_orig - $cantidad;
                         $balance_orig = $new_balance;
 
                         MovementProduct::where('id', $mp->id)->update([
                             'balance' => $new_balance,
-                            'egress'  => $bultos,
+                            'egress'  => $cantidad,
                         ]);
                     }
                 }
