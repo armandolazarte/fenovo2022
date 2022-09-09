@@ -824,7 +824,7 @@ class IngresosController extends Controller
             $movement_id   = $request->id;
             $tiendaIngreso = $request->tiendaIngreso;
             $tiendaEgreso  = $request->tiendaEgreso;
-
+        
             // Obtengo los datos del movimiento
             $movement_temp = MovementTemp::where('id', $movement_id)->with('movement_products')->first();
 
@@ -921,7 +921,7 @@ class IngresosController extends Controller
                     } else {
                         $latest                        = $cantidad;
                         $data_prod_store['product_id'] = $movimiento['product_id'];
-                        $data_prod_store['store_id']   = ${$tiendaIngreso};
+                        $data_prod_store['store_id']   = $tiendaIngreso;
                         $data_prod_store['stock_f']    = $latest;
                         $data_prod_store['stock_r']    = 0;
                         $data_prod_store['stock_cyo']  = 0;
@@ -1082,12 +1082,13 @@ class IngresosController extends Controller
         $movimientos = MovementProductTemp::where('movement_id', $request->id)->orderBy('created_at', 'asc')->get();
         $depositos   = Store::orderBy('cod_fenovo', 'asc')->where('active', 1)->where('store_type', 'D')->get();
 
-        $productos   = Product::where('proveedor_id', '=', $movement->from)->orderBy('name')->get();
-        $proximo      = (int)Product::where('categorie_id', '!=', 1)->max('cod_fenovo')+1;
-        $categories  = $this->productCategoryRepository->getActives('name', 'ASC');
-        $descuentos  = $this->descuentoRepository->getActives('descripcion', 'ASC');
+        $productos  = Product::where('proveedor_id', '=', $movement->from)->orderBy('name')->get();
+        $proximo    = (int)Product::where('categorie_id', '!=', 1)->max('cod_fenovo') + 1;
+        $categories = $this->productCategoryRepository->getActives('name', 'ASC');
+        $descuentos = $this->descuentoRepository->getActives('descripcion', 'ASC');
 
-        return view('admin.movimientos.ingresosNoCongelados.edit',
+        return view(
+            'admin.movimientos.ingresosNoCongelados.edit',
             compact('movement', 'proveedor', 'productos', 'movimientos', 'depositos', 'categories', 'descuentos', 'proximo')
         );
     }
@@ -1107,7 +1108,7 @@ class IngresosController extends Controller
     public function editProductNoCongelados(Request $request)
     {
         try {
-            $product      = Product::find($request->id);
+            $product = Product::find($request->id);
             return new JsonResponse([
                 'type' => 'success',
                 'html' => view('admin.movimientos.ingresosNoCongelados.modalEditProducto', compact('product'))->render(),
@@ -1119,12 +1120,11 @@ class IngresosController extends Controller
     public function updateProductNoCongelados(Request $request)
     {
         try {
-
-            $dataprice['plistproveedor']    = $request->plistproveedor;
-            $dataprice['descproveedor']     = $request->descproveedor;
-            $dataprice['costfenovo']        = $request->costfenovo;
-            $dataprice['mupfenovo']         = $request->mupfenovo;
-            $dataprice['plist0neto']        = $request->plist0neto;
+            $dataprice['plistproveedor'] = $request->plistproveedor;
+            $dataprice['descproveedor']  = $request->descproveedor;
+            $dataprice['costfenovo']     = $request->costfenovo;
+            $dataprice['mupfenovo']      = $request->mupfenovo;
+            $dataprice['plist0neto']     = $request->plist0neto;
             ProductPrice::whereProductId($request->product_id)->update($dataprice);
 
             return new JsonResponse(['msj' => 'Actualización correcta !', 'type' => 'success']);
