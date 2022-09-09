@@ -15,6 +15,7 @@ use App\Repositories\StoreRepository;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
@@ -215,7 +216,7 @@ class OfertaController extends Controller
     }
 
     public function exportExcepcionesToCsv(Request $request)
-    {	
+    {
         return Excel::download(new ExcepViewExport($request), 'excepc.csv', \Maatwebsite\Excel\Excel::CSV, ['Content-Type' => 'text/csv']);
     }
     

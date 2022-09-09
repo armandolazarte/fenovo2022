@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\SessionOferta;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\FromView;
@@ -22,7 +23,10 @@ class ExcepViewExport implements FromView
         $dia       = date('d', time());
         $hora      = date('H', time());
         $min       = date('i', time());
-        $registros = str_pad(count($sessionOfertas), 4, '0', STR_PAD_LEFT);
+
+        $count = DB::table('oferta_store')->count();        
+
+        $registros = str_pad($count, 4, '0', STR_PAD_LEFT);
 
         $data = $anio . $mes . $dia . $hora . $min . $registros;
 
