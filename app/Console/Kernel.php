@@ -30,7 +30,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('update:prices')->dailyAt('03:27')->runInBackground();
 
         // Copias DB / mantiene últimas 7 copias
-        $schedule->command('snapshot:cleanup --keep=6')->dailyAt('03:27')->runInBackground();
+        $schedule->command('snapshot:cleanup --keep=29')->dailyAt('03:27')->runInBackground();
         $schedule->command('snapshot:create')->dailyAt('03:27')->runInBackground();
 
         //Exportacion Fenovo ejecutada cada hora
