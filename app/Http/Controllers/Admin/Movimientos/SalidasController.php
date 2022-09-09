@@ -1620,21 +1620,7 @@ class SalidasController extends Controller
 
         }
 
-        if ($code) {
-
-            $store = Store::find(Auth::user()->store_active);
-            $producto = Product::where('cod_fenovo', $code)->first();
-
-            return  new JsonResponse([
-                'Mensaje ' => 'Stock actualizado ',
-                'Frioteka' =>  str_pad($store->cod_fenovo, 4, '0', STR_PAD_LEFT).' - '.$store->description,
-                'Id produ' => $producto->id,
-                'Producto' => $code,
-                'Stock   ' => $producto->stockReal(),
-            ]);
-        }
-
-        return  new JsonResponse(['msj' => 'Stocks actualizados ']);
+        return redirect()->back()->withInput();
     }
 
     public function updateJurisdiccion()
