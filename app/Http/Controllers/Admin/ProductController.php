@@ -82,18 +82,22 @@ class ProductController extends Controller
         if ($request->ajax()) {
             $categorieIdBetween = [1, 3];
             $productos          = DB::table('products as t1')
-                            /* ->where('t1.active', 1) */
-                            ->whereBetween('t1.categorie_id', $categorieIdBetween)
-                            ->join('product_prices as t2', 't1.id', '=', 't2.product_id')
-                            ->join('proveedors as t3', 't3.id', '=', 't1.proveedor_id')
-                            ->select(['t1.id', 't1.active', 't1.cod_fenovo', 't1.name', 't1.unit_type', 't2.costfenovo', 't3.name as proveedor'])
-                            ->orderBy('t1.cod_fenovo')
-                            ->get();
+                // ->where('t1.active', 1)
+                ->whereBetween('t1.categorie_id', $categorieIdBetween)
+                ->join('product_prices as t2', 't1.id', '=', 't2.product_id')
+                ->join('proveedors as t3', 't3.id', '=', 't1.proveedor_id')
+                ->select(['t1.id', 't1.active', 't1.cod_fenovo', 't1.name', 't1.unit_type', 't2.costfenovo', 't3.name as proveedor'])
+                ->orderBy('t1.cod_fenovo')
+                ->get();
 
             return Datatables::of($productos)
 
                 ->addColumn('stock', function ($producto) {
-                    return Product::find($producto->id)->stockReal(null, 1);
+                    if (Auth::user()->store_active == 1) {
+                        return Product::find($producto->id)->stockReal(null, 1);
+                    }
+                    $product_store = ProductStore::whereStoreId(64)->whereProductId($producto->id)->first();
+                    return ($product_store) ? $product_store->stock_r + $product_store->stock_f + $product_store->stock_cyo : null;
                 })
                 ->addColumn('costo', function ($producto) {
                     return '$' . $producto->costfenovo;
@@ -160,9 +164,9 @@ class ProductController extends Controller
 
     public function getProductosHtml(Request $request)
     {
-        $productos  = Product::where('proveedor_id', '=', $request->from)->orderBy('name')->get();
-        $html       = view('admin.movimientos.ingresosNoCongelados.productos', compact('productos'))->render();
-        $proximo    = (int)Product::where('categorie_id', '!=', 1)->max('cod_fenovo') + 1;
+        $productos = Product::where('proveedor_id', '=', $request->from)->orderBy('name')->get();
+        $html      = view('admin.movimientos.ingresosNoCongelados.productos', compact('productos'))->render();
+        $proximo   = (int)Product::where('categorie_id', '!=', 1)->max('cod_fenovo') + 1;
 
         return new JsonResponse([
             'html'    => $html,
@@ -213,7 +217,7 @@ class ProductController extends Controller
     {
         $totalFilteredRecord = $totalDataRecord = $draw = '';
 
-        $totalDataRecord = MovementProduct::with(['movement'])->whereEntidadId(1)->whereProductId($request->id)->orderBy('id', 'DESC')->count();
+        $totalDataRecord     = MovementProduct::with(['movement'])->whereEntidadId(1)->whereProductId($request->id)->orderBy('id', 'DESC')->count();
         $totalFilteredRecord = $totalDataRecord;
 
         $start_val = ($request->input('start')) ? $request->input('start') : 0;
@@ -227,10 +231,10 @@ class ProductController extends Controller
                 ->limit($limit_val)
                 ->orderBy('id', 'DESC')
                 ->get();
-        }else {
+        } else {
             $search_text = $request->input('search.value');
 
-            $movimientos = MovementProduct::with(['movement'])                
+            $movimientos = MovementProduct::with(['movement'])
                 ->whereEntidadId(1)
                 ->whereProductId($request->id)
                 ->where('movement_id', 'LIKE', "%{$search_text}%")
@@ -239,7 +243,7 @@ class ProductController extends Controller
                 ->orderBy('movement_products.id', 'DESC')
                 ->get();
 
-            $totalFilteredRecord = MovementProduct::with(['movement'])                
+            $totalFilteredRecord = MovementProduct::with(['movement'])
                 ->whereEntidadId(1)
                 ->whereProductId($request->id)
                 ->where('movement_id', 'LIKE', "%{$search_text}%")
@@ -250,29 +254,28 @@ class ProductController extends Controller
 
         if (!empty($movimientos)) {
             foreach ($movimientos as $movimiento) {
-
-                $data['id']     = $movimiento->id;
-                $data['fecha']  = date('d/m/Y', strtotime($movimiento->created_at));
-                $data['orden']  = ($movimiento->movement) ? $movimiento->movement->id : null;
-                $data['type']   = ($movimiento->movement) ? $movimiento->movement->type : null;
-                $from = null;
+                $data['id']    = $movimiento->id;
+                $data['fecha'] = date('d/m/Y', strtotime($movimiento->created_at));
+                $data['orden'] = ($movimiento->movement) ? $movimiento->movement->id : null;
+                $data['type']  = ($movimiento->movement) ? $movimiento->movement->type : null;
+                $from          = null;
                 if (!is_null($movimiento->deposito) && $movimiento->movement->type != 'COMPRA') {
-                    $dep = Store::where('id', $movimiento->deposito)->first();
+                    $dep  = Store::where('id', $movimiento->deposito)->first();
                     $from = $dep->razon_social;
                 } else {
                     $from = $movimiento->movement->From($movimiento->movement->type);
                 }
-                $data['from']           = $from;
-                $data['to']             = ($movimiento->movement) ? $movimiento->movement->To($movimiento->movement->type) : null;
-                $data['observacion']    = ($movimiento->movement) ? $movimiento->movement->observacion : null;
-                $data['unit_package']   = ($movimiento->unit_package) ? $movimiento->unit_package : null;
-                $data['bultos']         = ($movimiento->bultos) ? $movimiento->bultos : 0;
-                $data['circuito']       = ($movimiento->circuito) ? $movimiento->circuito : null;
-                $data['entry']          = ($movimiento->entry) ? $movimiento->entry : 0;
-                $data['egress']         = ($movimiento->egress) ? $movimiento->egress : 0;
-                $data['balance']        = ($movimiento->balance) ? $movimiento->balance : 0;
-              
-                $arrSend[]          = $data;
+                $data['from']         = $from;
+                $data['to']           = ($movimiento->movement) ? $movimiento->movement->To($movimiento->movement->type) : null;
+                $data['observacion']  = ($movimiento->movement) ? $movimiento->movement->observacion : null;
+                $data['unit_package'] = ($movimiento->unit_package) ? $movimiento->unit_package : null;
+                $data['bultos']       = ($movimiento->bultos) ? $movimiento->bultos : 0;
+                $data['circuito']     = ($movimiento->circuito) ? $movimiento->circuito : null;
+                $data['entry']        = ($movimiento->entry) ? $movimiento->entry : 0;
+                $data['egress']       = ($movimiento->egress) ? $movimiento->egress : 0;
+                $data['balance']      = ($movimiento->balance) ? $movimiento->balance : 0;
+
+                $arrSend[] = $data;
             }
         }
         $draw          = $request->input('draw');
@@ -369,7 +372,7 @@ class ProductController extends Controller
                     return date('d/m/Y', strtotime($movimiento->date));
                 })
                 ->addColumn('historial', function ($movimiento) {
-                    return '<a href="' . route('product.historial', ['id' => $movimiento->product_id]) . '"> <i class="fa fa-list" aria-hidden="true"></i> </a>';
+                    return '<a href="' . route('product.historial.tienda', ['product_id' => $movimiento->product_id, 'store_id' => 64]) . '"> <i class="fa fa-list" aria-hidden="true"></i> </a>';
                 })
                 ->rawColumns(['fecha', 'historial'])
                 ->make(true);

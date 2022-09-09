@@ -91,7 +91,7 @@
                         @endif    
                     </td>
                     <td>
-                        @if (in_array($store->store_type, ['N', 'D']))
+                        @if ($store->id == 1))
                         <a href="{{ route('product.historial', ['id' => $producto->id]) }}">
                             <i class="fa fa-list" aria-hidden="true"></i>
                         </a>     
