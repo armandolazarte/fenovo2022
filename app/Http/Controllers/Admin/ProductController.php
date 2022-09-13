@@ -1599,15 +1599,28 @@ class ProductController extends Controller
     {
         try {
             $store     = Store::find($request->id);
-            $productos = DB::table('products as t1')->where('t1.active', 1)
-                ->leftJoin('proveedors as t3', 't3.id', '=', 't1.proveedor_id')
-                ->leftJoin('products_store as t4', 't1.id', '=', 't4.product_id')
-                ->select(['t1.id', 't1.cod_fenovo', 't1.name as producto', 't1.unit_type', 't3.name as proveedor', 't1.unit_weight', 't1.unit_package'])
-                ->selectRaw('t4.stock_f + t4.stock_r + t4.stock_cyo as stock')
-                ->selectRaw('(t4.stock_f + t4.stock_r + t4.stock_cyo) * t1.unit_weight as kilage')
-                ->where('t4.store_id', '=', $request->id)
-                ->orderBy('t1.cod_fenovo')
-                ->get();
+
+            if ($request->id != 1) {
+                $productos = DB::table('products as t1')->where('t1.active', 1)
+                    ->leftJoin('proveedors as t3', 't3.id', '=', 't1.proveedor_id')
+                    ->leftJoin('products_store as t4', 't1.id', '=', 't4.product_id')
+                    ->select(['t1.id', 't1.cod_fenovo', 't1.name as producto', 't1.unit_type', 't3.name as proveedor', 't1.unit_weight', 't1.unit_package'])
+                    ->selectRaw('t4.stock_f + t4.stock_r + t4.stock_cyo as stock')
+                    ->selectRaw('(t4.stock_f + t4.stock_r + t4.stock_cyo) * t1.unit_weight as kilage')
+                    ->where('t4.store_id', '=', $request->id)
+                    ->orderBy('t1.cod_fenovo')
+                    ->get();
+            }else{
+
+                $productos = DB::table('products as t1')->where('t1.active', 1)
+                    ->join('proveedors as t3', 't3.id', '=', 't1.proveedor_id')
+                    ->select(['t1.id', 't1.cod_fenovo', 't1.name as producto', 't1.unit_type', 't3.name as proveedor', 't1.unit_weight', 't1.unit_package'])
+                    ->selectRaw('t1.stock_f + t1.stock_r + t1.stock_cyo as stock')
+                    ->selectRaw('(t1.stock_f + t1.stock_r + t1.stock_cyo) * t1.unit_weight as kilage')
+                    ->orderBy('t1.cod_fenovo')
+                    ->get();
+                
+            }    
 
             $kgrs = $productos->sum('kilage');
 
