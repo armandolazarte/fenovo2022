@@ -1562,7 +1562,26 @@ class SalidasController extends Controller
 
             foreach ($products as $p) {
                 // Obtengo los movimientos
-                $movements_products = MovementProduct::where('movement_id', '>', 611)
+
+                $movimientoId = 611;
+
+                switch ($tienda_id) {
+                    case 11:
+                        // Deposito Blas Parera Parana
+                        $movimientoId = 1977;
+                        break;
+                    case 59:
+                        // Deposito Reconquista
+                        $movimientoId = 2652;
+                        break;
+        
+                    case 60:
+                        // Deposito Reconquista
+                        $movimientoId = 2652;
+                        break;
+                }
+
+                $movements_products = MovementProduct::where('movement_id', '>', $movimientoId)
                     ->where('product_id', $p->id)
                     ->where('entidad_id', $tienda_id)
                     ->orderBy('id', 'ASC')
@@ -1601,7 +1620,7 @@ class SalidasController extends Controller
                 }
 
                 // Obtengo el Stock de los movimientos
-                $produ = MovementProduct::whereEntidadId(Auth::user()->store_active)->whereProductId($p->id)->orderBy('id', 'DESC')->limit(1)->first();
+                $produ = MovementProduct::whereEntidadId($tienda_id)->whereProductId($p->id)->orderBy('id', 'DESC')->limit(1)->first();
                 $stock = ($produ) ? $produ->balance : 0;
 
                 // Obtengo el coeficiente de Stock
@@ -1610,17 +1629,17 @@ class SalidasController extends Controller
                 // Reviso los stocks y actualizo
 
                 // Actualizo Nave
-                if (Auth::user()->store_active == 1) {
+                if ($tienda_id == 1) {
                     $p->stock_f = $stock          * ($parametro->coeficiente / 100);
                     $p->stock_r = $stock - $stock * ($parametro->coeficiente / 100);
                     $p->save();
                 } else {
                     // Actualizo Otro deposito
-                    $product_store = ProductStore::whereStoreId(Auth::user()->store_active)->whereProductId($p->id)->first();
+                    $product_store = ProductStore::whereStoreId($tienda_id)->whereProductId($p->id)->first();
 
                     if (!$product_store) {
                         $product_store = ProductStore::create([
-                            'store_id'   => Auth::user()->store_active,
+                            'store_id'   => $tienda_id,
                             'product_id' => $p->id,
                         ]);
                     }
