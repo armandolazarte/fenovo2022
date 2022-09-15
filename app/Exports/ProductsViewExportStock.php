@@ -27,13 +27,12 @@ class ProductsViewExportStock implements FromView
 
             // Buscar si el producto tiene oferta del proveedor           
             $oferta = SessionOferta::whereProductId($producto->id)->select('costfenovo')->where('fecha_desde', '<=', $hoy)->where('fecha_hasta', '>=', $hoy)->first();
-            $costo = (!$oferta) ? $producto->product_price->costfenovo : $oferta->costfenovo;
 
             $objProducto = new stdClass();
             $objProducto->proveedor    = $producto->proveedor->name;
             $objProducto->cod_fenovo   = $producto->cod_fenovo;
             $objProducto->nombre       = $producto->name;
-            $objProducto->costo        = round($costo,2);
+            $objProducto->costo        = (!$oferta) ? $producto->product_price->costfenovo : $oferta->costfenovo;
             $objProducto->unidad       = $producto->unit_type;
             $objProducto->presentacion = (count(explode('|', $producto->unit_package)) > 1) ? 0 : $producto->unit_package;
             $objProducto->stockini     = ($producto->stockInicioSemana()) ? $producto->stockInicioSemana()->balance : 0;
