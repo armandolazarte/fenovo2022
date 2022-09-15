@@ -1,5 +1,6 @@
 <table>
     <tr>
+        <td>Lote</td>
         <td>ID</td>
         <td>Fecha y Hora de registro</td>
         <td>Fecha Comprobante</td>
@@ -27,6 +28,7 @@
     @endphp
 
         <tr>
+            <td>{{ $mp->movement_id }}</td>
             <td>{{ $mp->id }}</td>
             <td>{{ \Carbon\Carbon::parse($mp->movement->created_at)->format('d/m/Y H:i') }}</td>
             <td>{{ \Carbon\Carbon::parse($mp->movement->date)->format('d/m/Y') }}</td>
