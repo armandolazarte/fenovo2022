@@ -18112,7 +18112,7 @@
          * @throws \Exception if there are now PDFs to merge
          * @static 
          */ 
-        public static function merge($orientation = 'P')
+        public static function merge($orientation = null)
         {
                         /** @var \Webklex\PDFMerger\PDFMerger $instance */
                         $instance->merge($orientation);
