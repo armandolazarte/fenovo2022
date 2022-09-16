@@ -109,6 +109,7 @@ class SalidasController extends Controller
             $search_text = $request->input('search.value');
             $movimientos = Movement::join('stores', 'movements.to', '=', 'stores.id')
                 ->whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
+                ->where('from', 1)->where('categoria', '=', 1)      // SE AGREGA PARA FILTRAR INFO A DANTE
                 ->select('movements.*')
                 ->selectRaw('CONCAT(movements.id," ", movements.type," ", stores.description) as txtMovimiento')
                 ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
@@ -120,6 +121,7 @@ class SalidasController extends Controller
 
             $totalFilteredRecord = Movement::join('stores', 'movements.to', '=', 'stores.id')
                 ->whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
+                ->where('from', 1)     // SE AGREGA PARA FILTRAR INFO A DANTE
                 ->select('movements.*')
                 ->selectRaw('CONCAT(movements.id," ", movements.type," ", stores.description) as txtMovimiento')
                 ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
