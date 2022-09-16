@@ -1597,42 +1597,25 @@ class SalidasController extends Controller
                         $balance_orig = $new_balance =  $mp->balance;
                     }
 
-                    if ($i > 0) {
+                    $pass = true;
+
+                    if(in_array($tienda_id,[11,59,60]) && $m->type == 'AJUSTE' && $m->to == $tienda_id && $m->from == $tienda_id && $m->voucher_number == '00001'){
+                        $stock_de_prod_en_deposito = Base08::where('cod_fenovo',$p->cod_fenovo)->first();
+                        $new_balance = ($stock_de_prod_en_deposito)? $stock_de_prod_en_deposito->stock:0;
+                        $balance_orig = $new_balance;
+                        MovementProduct::where('id', $mp->id)->update([
+                            'balance' => $new_balance,
+                            'bultos' => null,
+                            'circuito' => null,
+                            'entry' => 0,
+                            'egress' => 0
+                        ]);
+                        $pass = false;
+                    }
+
+                    if ($i > 0 && $pass) {
                         $cantidad = $mp->bultos * $mp->unit_package;
-                        if($tienda_id == 60 && $m->type == 'AJUSTE' && $m->to == $tienda_id && $m->from == $tienda_id && $m->voucher_number == '00001'){
-                            $stock_de_prod_en_deposito = Base08::where('cod_fenovo',$p->cod_fenovo)->first();
-                            $new_balance = ($stock_de_prod_en_deposito)? $stock_de_prod_en_deposito->stock:0;
-                            $balance_orig = $new_balance;
-                            MovementProduct::where('id', $mp->id)->update([
-                                'balance' => $new_balance,
-                                'bultos' => null,
-                                'circuito' => null,
-                                'entry' => 0,
-                                'egress' => 0
-                            ]);
-                        }elseif($tienda_id == 59 && $m->type == 'AJUSTE' && $m->to == $tienda_id && $m->from == $tienda_id && $m->voucher_number == '00001'){
-                            $stock_de_prod_en_deposito = Base08::where('cod_fenovo',$p->cod_fenovo)->first();
-                            $new_balance = ($stock_de_prod_en_deposito)? $stock_de_prod_en_deposito->stock:0;
-                            $balance_orig = $new_balance;
-                            MovementProduct::where('id', $mp->id)->update([
-                                'balance' => $new_balance,
-                                'bultos' => null,
-                                'circuito' => null,
-                                'entry' => 0,
-                                'egress' => 0
-                            ]);
-                        }elseif($tienda_id == 11 && $m->type == 'AJUSTE' && $m->to == $tienda_id && $m->from == $tienda_id && $m->voucher_number == '00001'){
-                            $stock_de_prod_en_deposito = Base08::where('cod_fenovo',$p->cod_fenovo)->first();
-                            $new_balance = ($stock_de_prod_en_deposito)? $stock_de_prod_en_deposito->stock:0;
-                            $balance_orig = $new_balance;
-                            MovementProduct::where('id', $mp->id)->update([
-                                'balance' => $new_balance,
-                                'bultos' => null,
-                                'circuito' => null,
-                                'entry' => 0,
-                                'egress' => 0
-                            ]);
-                        }elseif($mp->entry > 0) {
+                        if($mp->entry > 0) {
                             $new_balance  = $balance_orig + $cantidad;
                             $balance_orig = $new_balance;
 
