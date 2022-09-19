@@ -217,7 +217,11 @@ class ProductController extends Controller
     {
         $totalFilteredRecord = $totalDataRecord = $draw = '';
 
-        $totalDataRecord     = MovementProduct::with(['movement'])->whereEntidadId(1)->whereProductId($request->id)->orderBy('id', 'DESC')->count();
+        $totalDataRecord     = MovementProduct::with(['movement'])
+            ->whereEntidadTipo('S')
+            ->whereEntidadId(1)
+            ->whereProductId($request->id)
+            ->orderBy('id', 'DESC')->count();
         $totalFilteredRecord = $totalDataRecord;
 
         $start_val = ($request->input('start')) ? $request->input('start') : 0;
@@ -225,6 +229,7 @@ class ProductController extends Controller
 
         if (empty($request->input('search.value'))) {
             $movimientos = MovementProduct::with(['movement'])
+                ->whereEntidadTipo('S')
                 ->whereEntidadId(1)
                 ->whereProductId($request->id)
                 ->offset($start_val)
@@ -235,6 +240,7 @@ class ProductController extends Controller
             $search_text = $request->input('search.value');
 
             $movimientos = MovementProduct::with(['movement'])
+                ->whereEntidadTipo('S')
                 ->whereEntidadId(1)
                 ->whereProductId($request->id)
                 ->where('movement_id', 'LIKE', "%{$search_text}%")
@@ -244,6 +250,7 @@ class ProductController extends Controller
                 ->get();
 
             $totalFilteredRecord = MovementProduct::with(['movement'])
+                ->whereEntidadTipo('S')
                 ->whereEntidadId(1)
                 ->whereProductId($request->id)
                 ->where('movement_id', 'LIKE', "%{$search_text}%")
@@ -296,6 +303,7 @@ class ProductController extends Controller
 
         if ($request->ajax()) {
             $movimientos = MovementProduct::with(['movement'])
+                ->whereEntidadTipo('S')
                 ->whereProductId($producto->id)
                 ->whereEntidadId($store->id)
                 ->orWhere('deposito', $store->id)
