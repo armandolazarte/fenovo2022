@@ -4,7 +4,7 @@
 
 /**
  * A helper file for Laravel, to provide autocomplete information to your IDE
- * Generated for Laravel 8.83.17.
+ * Generated for Laravel 8.83.23.
  *
  * This file should not be included in your code, only analyzed by your IDE!
  *
@@ -18112,7 +18112,7 @@
          * @throws \Exception if there are now PDFs to merge
          * @static 
          */ 
-        public static function merge($orientation = 'P')
+        public static function merge($orientation = null)
         {
                         /** @var \Webklex\PDFMerger\PDFMerger $instance */
                         $instance->merge($orientation);
@@ -18583,6 +18583,16 @@
         {
                         /** @var \Facade\FlareClient\Flare $instance */
                         return $instance->filterExceptionsUsing($filterExceptionsCallable);
+        }
+                    /**
+         * 
+         *
+         * @static 
+         */ 
+        public static function filterReportsUsing($filterReportsCallable)
+        {
+                        /** @var \Facade\FlareClient\Flare $instance */
+                        return $instance->filterReportsUsing($filterReportsCallable);
         }
                     /**
          * 
