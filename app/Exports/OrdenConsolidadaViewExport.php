@@ -55,12 +55,22 @@ class OrdenConsolidadaViewExport implements FromView
             $panama1 = ($movimiento->hasPanama()) ? str_pad($cip, 4, '0', STR_PAD_LEFT) . '-' . str_pad($movimiento->getPanama()->orden, 8, '0', STR_PAD_LEFT) : '0.0';
             $panama2 = ($movimiento->hasFlete()) ? str_pad($cip, 4, '0', STR_PAD_LEFT) . '-' . str_pad($movimiento->getFlete()->orden, 8, '0', STR_PAD_LEFT) : '0.0';
 
+            if($movimiento->type == 'VENTACLIENTE'){
+                $tipo = 'VENTA';   
+            }else{
+                if ($movimiento->type == 'VENTA' && $movimiento->observacion == 'VENTA DIRECTA') {
+                    $tipo = 'VENTA DIRECTA';   
+                }else{
+                    $tipo = $movimiento->type;
+                }
+            } 
+
             /* 1  */ $objMovimiento->id         = str_pad($movimiento->id, 8, '0', STR_PAD_LEFT);
             /* 2  */ $objMovimiento->fecha      = date('d/m/Y', strtotime($movimiento->date));
             /* 3  */ $objMovimiento->destino_id = str_pad($destino_id, 3, '0', STR_PAD_LEFT);
             /* 4  */ $objMovimiento->destino    = $movimiento->To($movimiento->type);
             /* 5  */ $objMovimiento->items      = $movimiento->products_egress()->count('id');
-            /* 6  */ $objMovimiento->tipo       = ($movimiento->type == 'VENTACLIENTE') ? 'VENTA' : $movimiento->type;
+            /* 6  */ $objMovimiento->tipo       = $tipo;
             /* 7  */ $objMovimiento->kgrs       = $movimiento->totalKgrs();
             /* 8  */ $objMovimiento->bultos     = $movimiento->products_egress()->sum('bultos');
             /* 9  */ $objMovimiento->flete      = ($movimiento->hasFlete()) ? $movimiento->getFlete()->neto105 + $movimiento->getFlete()->neto21 : '0.0';
