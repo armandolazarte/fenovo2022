@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\Movimientos;
 
 use App\Http\Controllers\Controller;
+use App\Models\Coeficiente;
 use App\Models\FleteSetting;
 use App\Models\InvoiceCompra;
 use App\Models\Movement;
@@ -622,7 +623,6 @@ class IngresosController extends Controller
         $movement = (!$request->is_cerrada)
             ? MovementTemp::query()->where('id', $request->id)->with('movement_ingreso_products')->first()
             : Movement::query()->where('id', $request->id)->with('movement_ingreso_products')->first();
-
         $ajustes     = $this->enumRepository->getType('ajustes');
         $movimientos = $movement->movement_ingreso_products;
 
@@ -824,7 +824,7 @@ class IngresosController extends Controller
             $movement_id   = $request->id;
             $tiendaIngreso = $request->tiendaIngreso;
             $tiendaEgreso  = $request->tiendaEgreso;
-        
+
             // Obtengo los datos del movimiento
             $movement_temp = MovementTemp::where('id', $movement_id)->with('movement_products')->first();
 
@@ -972,74 +972,80 @@ class IngresosController extends Controller
             DB::beginTransaction();
             Schema::disableForeignKeyConstraints();
 
-            $product = Product::find($request->producto_id);
+            $cantidad = $request->bultos_actual * $request->unit_package;
 
-            if ($request->bultos_anterior < $request->bultos_actual) {
-                $operacion = 'suma';
-                $bultos    = ($request->bultos_actual - $request->bultos_anterior);
-            } else {
-                $operacion = 'resta';
-                $bultos    = ($request->bultos_anterior - $request->bultos_actual);
+            // Actualizo el movimiento mal ingresado
+            MovementProduct::where('id', $request->detalle_id)->update([
+                'bultos' => $request->bultos_actual,
+                'entry'  => $cantidad,
+            ]);
+
+            // Actualizar los movimientos
+            $movements_products = MovementProduct::where('movement_id', '>', 611)
+                ->where('product_id', $request->producto_id)
+                ->where('entidad_id', Auth::user()->store_active)
+                ->orderBy('id', 'ASC')
+                ->get();
+
+            // Voy actualizando los stocks desde los mas viejos a los mas recientes
+            for ($i = 0; $i < count($movements_products); $i++) {
+                $mp = $movements_products[$i];
+                $m  = Movement::where('id', $mp->movement_id)->first();
+
+                if ($i == 0) {
+                    $balance_orig = $new_balance = $mp->balance;
+                }
+
+                if ($i > 0) {
+                    $cantidad = $mp->bultos * $mp->unit_package;
+
+                    if ($mp->entry > 0) {
+                        $new_balance  = $balance_orig + $cantidad;
+                        $balance_orig = $new_balance;
+
+                        MovementProduct::where('id', $mp->id)->update([
+                            'balance' => $new_balance,
+                            'entry'   => $cantidad,
+                        ]);
+                    } elseif ($mp->egress > 0) {
+                        $new_balance  = $balance_orig - $cantidad;
+                        $balance_orig = $new_balance;
+
+                        MovementProduct::where('id', $mp->id)->update([
+                            'balance' => $new_balance,
+                            'egress'  => $cantidad,
+                        ]);
+                    }
+                }
             }
 
-            $cantidad = $bultos * $request->unit_package;
+            // Obtengo el Stock de los movimientos
+            $produ = MovementProduct::whereEntidadId(Auth::user()->store_active)
+                ->whereProductId($request->producto_id)
+                ->orderBy('id', 'DESC')->limit(1)->first();
+            $stock = ($produ) ? $produ->balance : 0;
 
-            switch ($request->tipo) {
-                case 'FACTURA':
-                    $product->stock_f = ($operacion == 'suma') ? $product->stock_f + $cantidad : $product->stock_f - $cantidad;
-                    $circuito         = 'F';
-                    break;
-                case 'REMITO':
-                    $product->stock_r = ($operacion == 'suma') ? $product->stock_r + $cantidad : $product->stock_r - $cantidad;
-                    $circuito         = 'R';
-                    break;
-                case 'CyO':
-                    $product->stock_cyo = ($operacion == 'suma') ? $product->stock_cyo + $cantidad : $product->stock_cyo - $cantidad;
-                    $circuito           = 'CyO';
-                    break;
-            }
+            // Obtengo el producto
+            $producto = Product::find($request->producto_id);
 
-            $stock = $product->stock_f + $product->stock_r + $product->stock_cyo;
-            $product->save();
+            // Obtengo el coeficiente de Stock
+            $parametro = Coeficiente::find($request->producto_id);
 
-            $from  = \Auth::user()->store_active;
-            $count = Movement::where('from', $from)->where('type', 'AJUSTE')->count();
-            $orden = ($count) ? $count + 1 : 1;
+            // Reviso los stocks y actualizo
+            $producto->stock_f = $stock          * ($parametro->coeficiente / 100);
+            $producto->stock_r = $stock - $stock * ($parametro->coeficiente / 100);
+            $producto->save();
 
-            // Inserta movimiento de Ajuste
-            $insert_data                   = [];
-            $insert_data['type']           = 'AJUSTE';
-            $insert_data['to']             = Auth::user()->store_active;
-            $insert_data['date']           = now();
-            $insert_data['from']           = Auth::user()->store_active;
-            $insert_data['status']         = 'FINISHED';
-            $insert_data['orden']          = $orden;
-            $insert_data['voucher_number'] = time();
-            $insert_data['flete']          = 0;
-            $insert_data['user_id']        = Auth::user()->id;
-            $insert_data['observacion']    = $request->observacion;
-            $movement                      = Movement::create($insert_data);
-
-            // Inserta el Detalle del Ajuste
-            $latest['movement_id']  = $movement->id;
-            $latest['entidad_id']   = (Auth::user()->store_active) ? Auth::user()->store_active : 1;
-            $latest['entidad_tipo'] = 'S';
-            $latest['unit_package'] = 0;
-            $latest['circuito']     = $circuito;
-            $latest['unit_type']    = $product->unit_type;
-            $latest['product_id']   = $request->producto_id;
-            $latest['entry']        = ($operacion == 'suma') ? $cantidad : 0;
-            $latest['egress']       = ($operacion == 'resta') ? $cantidad : 0;
-            $latest['bultos']       = $bultos;
-            $latest['balance']      = $stock;
-            MovementProduct::create($latest);
-
+            // Fin actualizacion
             DB::commit();
             Schema::enableForeignKeyConstraints();
 
             //
+            $movement = Movement::query()->where('id', $request->movimiento_id)->with('movement_ingreso_products')->first();
+            $movimientos = $movement->movement_ingreso_products;
+            
             return new JsonResponse([
-                'html' => view('admin.movimientos.ingresos.show-detalle', compact('movimientos'))->render(),
+                'html' => view('admin.movimientos.ingresos.detalleingresoShow', compact('movement','movimientos'))->render(),
                 'type' => 'success',
             ]);
         } catch (\Exception $e) {
