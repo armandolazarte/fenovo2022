@@ -1041,11 +1041,11 @@ class IngresosController extends Controller
             Schema::enableForeignKeyConstraints();
 
             //
-            $movement = Movement::query()->where('id', $request->movimiento_id)->with('movement_ingreso_products')->first();
+            $movement    = Movement::query()->where('id', $request->movimiento_id)->with('movement_ingreso_products')->first();
             $movimientos = $movement->movement_ingreso_products;
-            
+
             return new JsonResponse([
-                'html' => view('admin.movimientos.ingresos.detalleingresoShow', compact('movement','movimientos'))->render(),
+                'html' => view('admin.movimientos.ingresos.detalleIngresoShow', compact('movement', 'movimientos'))->render(),
                 'type' => 'success',
             ]);
         } catch (\Exception $e) {
