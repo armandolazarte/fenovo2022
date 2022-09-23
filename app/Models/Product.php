@@ -217,16 +217,19 @@ class Product extends Model
     {
         $dias       = 8;
         $movimiento = MovementProduct::whereEntidadId($entidad_id)
+            ->whereEntidadTipo('S')
             ->where('created_at', '>', Carbon::now()->subDays($dias))
             ->whereProductId($this->id)
             ->orderBy('created_at')
             ->first();
+
         if (!$movimiento) {
             $dias++;
             $tope = 1095;
             for ($i = $dias; $i < $tope; $i++) {
                 $movimiento = MovementProduct::whereEntidadId($entidad_id)
                     ->where('created_at', '>', Carbon::now()->subDays($i))
+                    ->whereEntidadTipo('S')
                     ->whereProductId($this->id)
                     ->orderBy('created_at')
                     ->first();
@@ -241,29 +244,24 @@ class Product extends Model
         return $movimiento;
     }
 
-    public function ingresoSemana()
-    {
-        if ($this->stockInicioSemana()) {
-            $id = $this->stockInicioSemana()->id;
-            $ingreso =  MovementProduct::whereEntidadId(1)->whereProductId($this->id)->where('id', '>', $id)->sum('entry');
-            return round($ingreso, 2);
-        }
-        return null;
+    public function ingresoSemana($id)
+    {           
+        $ingreso =  MovementProduct::whereEntidadId(1)
+            ->whereEntidadTipo('S')
+            ->whereProductId($this->id)
+            ->where('id', '>', $id)->sum('entry');
+        return round($ingreso, 2);        
     }
 
-    public function salidaSemana()
+    public function salidaSemana($id)
     {
-        if ($this->stockInicioSemana()) {
-            $id = $this->stockInicioSemana()->id;
-            $salida = MovementProduct::whereEntidadId(1)->whereProductId($this->id)->where('id', '>', $id)->sum('egress');
-            return round($salida, 2);
-        }
-        return null;
-    }
-
-    public function stockFinSemana()
-    {
-        return ($this->stockInicioSemana())? round($this->stockInicioSemana()->balance + $this->ingresoSemana() - $this->salidaSemana(),2):null;
+        $salida = MovementProduct::whereEntidadId(1)
+            ->whereEntidadTipo('S')
+            ->whereProductId($this->id)
+            ->where('id', '>', $id)
+            ->sum('egress');
+        return round($salida, 2);
+        
     }
 
     public function setNameAttribute($value)
