@@ -22,15 +22,18 @@ class StoreCompraSemanalController extends Controller
         $store_id = 1;
         if (!empty($productos)) {
             foreach ($productos as $producto) {
+                $movimiento     = $producto->stockInicioSemana();
+                $balance_inicio = ($movimiento) ? $movimiento->balance : 0;
+
                 $data['store_id']     = $store_id;
                 $data['product_id']   = $producto->id;
                 $oferta               = SessionOferta::whereProductId($producto->id)->select('costfenovo')->where('fecha_desde', '<=', $hoy)->where('fecha_hasta', '>=', $hoy)->first();
                 $data['costo']        = (!$oferta) ? $producto->product_price->costfenovo : $oferta->costfenovo;
-                $data['fechaCaptura'] = ($producto->stockInicioSemana()) ? $producto->stockInicioSemana()->created_at : null;
-                $data['inicio']       = ($producto->stockInicioSemana()) ? $producto->stockInicioSemana()->balance : 0;
-                $data['compras']      = $producto->ingresoSemana();
-                $data['salidas']      = $producto->salidaSemana();
-                $data['actual']       = $producto->stockFinSemana();
+                $data['fechaCaptura'] = ($movimiento) ? $movimiento->created_at : null;
+                $data['inicio']       = $balance_inicio;
+                $data['compras']      = ($movimiento) ? $producto->ingresoSemana($movimiento->id) : 0;
+                $data['salidas']      = ($movimiento) ? $producto->salidaSemana($movimiento->id) : 0;
+                $data['actual']       = $balance_inicio + $data['compras'] - $data['salidas'];
                 StoreCompraSemanal::create($data);
             }
         }
