@@ -82,10 +82,10 @@ class IngresosController extends Controller
                     return  $movement->voucher_number;
                 })
                 ->addColumn('edit', function ($movement) {
-                    if ($movement->categoria == 1) {
+                    //if ($movement->categoria == 1) {
                         return '<a href="' . route('ingresos.edit', ['id' => $movement->id]) . '"> <i class="fa fa-pencil-alt"></i></a>';
-                    }
-                    return '<a href="' . route('ingresos.editNocongelados', ['id' => $movement->id]) . '"> <i class="fa fa-pencil-alt"></i></a>' . $movement->categoria;
+                    //}
+                    //return '<a href="' . route('ingresos.editNocongelados', ['id' => $movement->id]) . '"> <i class="fa fa-pencil-alt"></i></a>' . $movement->categoria;
                 })
                 ->addColumn('show', function ($movement) {
                     return '<a href="' . route('ingresos.show', ['id' => $movement->id, 'is_cerrada' => false]) . '"> <i class="fa fa-eye"></i> </a>';
