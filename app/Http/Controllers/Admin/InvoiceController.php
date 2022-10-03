@@ -342,10 +342,11 @@ class InvoiceController extends Controller
                     }
                 }
             }
-
-            $m = Movement::where('id', $movement_id)->first();
-            $m->status = 'FINISHED_AND_GENERATED_FACT';
-            $m->save();
+            if(is_null($error)){
+                $m = Movement::where('id', $movement_id)->first();
+                $m->status = 'FINISHED_AND_GENERATED_FACT';
+                $m->save();
+            }
 
             DB::commit();
             Schema::enableForeignKeyConstraints();
