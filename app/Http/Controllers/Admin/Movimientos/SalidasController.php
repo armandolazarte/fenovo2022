@@ -107,12 +107,14 @@ class SalidasController extends Controller
             }
         } else {
             $search_text = $request->input('search.value');
-            $movimientos = Movement::join('stores', 'movements.to', '=', 'stores.id')
-                ->leftJoin('customers', 'movements.to', '=', 'customers.id')
+
+            if($request->input('tipo') == 0){
+
+                $movimientos = Movement::join('stores', 'movements.to', '=', 'stores.id')
                 ->whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
                 ->where('from', 1)->where('categoria', '=', 1)      // SE AGREGA PARA FILTRAR INFO A DANTE
                 ->select('movements.*')
-                ->selectRaw('CONCAT(movements.id," ", movements.type," ", stores.description," ", customers.razon_social) as txtMovimiento')
+                ->selectRaw('CONCAT(movements.id," ", movements.type," ", stores.description) as txtMovimiento')
                 ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
                 ->offset($start_val)
                 ->limit($limit_val)
@@ -120,14 +122,22 @@ class SalidasController extends Controller
                 ->orderBy('movements.id', 'DESC')
                 ->get();
 
-            $totalFilteredRecord = Movement::join('stores', 'movements.to', '=', 'stores.id')
-                ->leftJoin('customers', 'movements.to', '=', 'customers.id')
+            }else{
+
+                $movimientos = Movement::join('customers', 'movements.to', '=', 'customers.id')
                 ->whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
-                ->where('from', 1)     // SE AGREGA PARA FILTRAR INFO A DANTE
+                ->where('from', 1)->where('categoria', '=', 1)      // SE AGREGA PARA FILTRAR INFO A DANTE
                 ->select('movements.*')
-                ->selectRaw('CONCAT(movements.id," ", movements.type," ", stores.description," ", customers.razon_social) as txtMovimiento')
+                ->selectRaw('CONCAT(movements.id," ", movements.type," ", customers.razon_social) as txtMovimiento')
                 ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
-                ->count();
+                ->offset($start_val)
+                ->limit($limit_val)
+                ->orderBy('date', 'desc')
+                ->orderBy('movements.id', 'DESC')
+                ->get();
+            }            
+
+            $totalFilteredRecord = $movimientos->count();
         }
 
         $data = [];

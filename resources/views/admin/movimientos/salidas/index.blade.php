@@ -20,6 +20,16 @@
             </div>
         </div>
     </div>
+
+    <div class="row mb-2">
+        <div class="col-12 text-right">
+            <select id="tipo" class="filtro">
+                <option value="0" selected>Buscar todos tipos</option>
+                <option value="1">Sólo venta clientes</option>
+            </select>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-12 ">
             <div class="table-responsive">
@@ -29,7 +39,7 @@
                             <td>#</td>
                             <td>Fecha</td>
                             <td>Destino</td>
-                            <td>Tipo</td>
+                            <td>Tipo  </td>
                             <td>Item</td>
                             <td>Factura</td>
                             <td>Rto</td>
@@ -50,6 +60,23 @@
 
 @section('js')
     <script>
+
+
+    jQuery(document).ready(function() {
+        cargarDatos();
+    })
+
+    jQuery(".filtro").on("change", function() {
+        let tipo = jQuery("#tipo").val();
+        jQuery('.yajra-datatable').DataTable().destroy();
+        cargarDatos(tipo);
+    })
+
+    
+    const cargarDatos = (tipo = 0)=>{
+
+        console.log(tipo);
+
         var table = jQuery('.yajra-datatable').DataTable({
             lengthMenu : [[10, 25, 50, 500], [10, 25, 50, 500]],
             stateSave:true,
@@ -58,7 +85,11 @@
             ordering:false,
             autoWidth: true,
             dom: '<lfrtp>',
-            ajax: "{{ route('salidas.getSalidas') }}",
+            ajax: {
+                url: "{{ route('salidas.getSalidas') }}",
+                type: "get",
+                data: {tipo},
+            },
             columns: [
                 { data: 'id' },
                 { data: 'date' },
@@ -71,45 +102,48 @@
                 { data: 'paper' },
                 { data: 'flete' },                
             ]
-        });
+        }); 
+
+    }
+    
 
 
-        jQuery('.yajra-datatable').on('draw.dt', function() {
-            jQuery('[data-toggle="tooltip" ]').tooltip();
-        });
+    jQuery('.yajra-datatable').on('draw.dt', function() {
+        jQuery('[data-toggle="tooltip" ]').tooltip();
+    });
 
-        function createRemito(id) {
-            var url = "{{ route('get.total.movement') }}"
-            jQuery.ajax({
-                url: url,
-                type: 'GET',
-                data: {
-                    movement_id: id
-                },
-                beforeSend: function() {
-                    jQuery('#loader').removeClass('hidden')
-                },
-                success: function(data) {
-                    if (data['type'] == 'success') {
-                        jQuery("#movement_id_in_modal").val(id)
-                        jQuery("#total_in_span").html(data['total'])
-                        let neto = data['total'].replace(/\./g, '').replace(/\,/g, '.')
-                        jQuery("#neto").val(neto).select()
-                        jQuery('#createRemito').addClass('offcanvas-on')
-                    } else {
-                        toastr.error(data['msj'], 'Verifique')
-                    }
-                    jQuery('#loader').addClass('hidden')
-                },
-                error: function(data) {},
-                complete: function() {
-                    jQuery('#loader').addClass('hidden')
+    function createRemito(id) {
+        var url = "{{ route('get.total.movement') }}"
+        jQuery.ajax({
+            url: url,
+            type: 'GET',
+            data: {
+                movement_id: id
+            },
+            beforeSend: function() {
+                jQuery('#loader').removeClass('hidden')
+            },
+            success: function(data) {
+                if (data['type'] == 'success') {
+                    jQuery("#movement_id_in_modal").val(id)
+                    jQuery("#total_in_span").html(data['total'])
+                    let neto = data['total'].replace(/\./g, '').replace(/\,/g, '.')
+                    jQuery("#neto").val(neto).select()
+                    jQuery('#createRemito').addClass('offcanvas-on')
+                } else {
+                    toastr.error(data['msj'], 'Verifique')
                 }
-            });
-        };
-
-        jQuery('#close_modal_salida').on('click', function() {
-            jQuery('#createRemito').removeClass('offcanvas-on')
+                jQuery('#loader').addClass('hidden')
+            },
+            error: function(data) {},
+            complete: function() {
+                jQuery('#loader').addClass('hidden')
+            }
         });
-    </script>
+    };
+
+    jQuery('#close_modal_salida').on('click', function() {
+        jQuery('#createRemito').removeClass('offcanvas-on')
+    });
+</script>
 @endsection
