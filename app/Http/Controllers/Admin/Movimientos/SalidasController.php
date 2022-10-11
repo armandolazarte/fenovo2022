@@ -108,10 +108,11 @@ class SalidasController extends Controller
         } else {
             $search_text = $request->input('search.value');
             $movimientos = Movement::join('stores', 'movements.to', '=', 'stores.id')
+                ->leftJoin('customers', 'movements.to', '=', 'customers.id')
                 ->whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
                 ->where('from', 1)->where('categoria', '=', 1)      // SE AGREGA PARA FILTRAR INFO A DANTE
                 ->select('movements.*')
-                ->selectRaw('CONCAT(movements.id," ", movements.type," ", stores.description) as txtMovimiento')
+                ->selectRaw('CONCAT(movements.id," ", movements.type," ", stores.description," ", customers.razon_social) as txtMovimiento')
                 ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
                 ->offset($start_val)
                 ->limit($limit_val)
@@ -120,10 +121,11 @@ class SalidasController extends Controller
                 ->get();
 
             $totalFilteredRecord = Movement::join('stores', 'movements.to', '=', 'stores.id')
+                ->leftJoin('customers', 'movements.to', '=', 'customers.id')
                 ->whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
                 ->where('from', 1)     // SE AGREGA PARA FILTRAR INFO A DANTE
                 ->select('movements.*')
-                ->selectRaw('CONCAT(movements.id," ", movements.type," ", stores.description) as txtMovimiento')
+                ->selectRaw('CONCAT(movements.id," ", movements.type," ", stores.description," ", customers.razon_social) as txtMovimiento')
                 ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
                 ->count();
         }

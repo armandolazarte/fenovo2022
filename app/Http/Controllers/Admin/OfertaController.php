@@ -206,7 +206,6 @@ class OfertaController extends Controller
     {
         $oferta = SessionOferta::find($request->id);
         $oferta->stores()->sync($request->get('stores'));
-        Mail::to('novedades@frioteka.com')->bcc('cachoalbornoz@gmail.com')->send(new NovedadMail('Excepcion creada'));
         return redirect()->route('oferta.index');
     }
 
