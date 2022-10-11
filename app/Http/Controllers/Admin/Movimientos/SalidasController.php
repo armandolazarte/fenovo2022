@@ -115,7 +115,7 @@ class SalidasController extends Controller
                     ->whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
                     ->where('from', 1)->where('categoria', '=', 1)      // SE AGREGA PARA FILTRAR INFO A DANTE
                     ->select('movements.*')
-                    ->selectRaw('CONCAT(movements.id," ", movements.type," ", movements.observacion) as txtMovimiento')
+                    ->selectRaw('CONCAT(movements.id," ", movements.type," ", stores.description, " ", movements.observacion) as txtMovimiento')
                     ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
                     ->offset($start_val)
                     ->limit($limit_val)
