@@ -37,7 +37,7 @@ class NotasCreditoController extends Controller
     public function index(Request $request)
     {
         $arrTypes = ['DEVOLUCION', 'DEVOLUCIONCLIENTE'];
-        $movement = Movement::where('from', \Auth::user()->store_active)->whereIn('type', $arrTypes)->orderBy('created_at', 'DESC')->get();
+        $movement = Movement::whereIn('type', $arrTypes)->orderBy('created_at', 'DESC')->get();
         if ($request->ajax()) {
             return DataTables::of($movement)
                 ->addIndexColumn()
