@@ -123,13 +123,15 @@ class SalidasController extends Controller
                     ->orderBy('movements.id', 'DESC')
                     ->get();
 
-            } elseif ($request->input('tipo') == 'TIENDAS') {       
+            } elseif ($request->input('tipo') == 'TIENDAS') {  
+                
+                $arrTypes        = ['VENTA', 'TRASLADO'];
 
                 $movimientos = Movement::join('stores', 'movements.to', '=', 'stores.id')
                     ->whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
                     ->where('from', 1)->where('categoria', '=', 1)      // SE AGREGA PARA FILTRAR INFO A DANTE
                     ->select('movements.*')
-                    ->selectRaw('CONCAT(movements.id," ", movements.type," ", stores.description, " ", movements.observacion) as txtMovimiento')
+                    ->selectRaw('CONCAT(movements.id," ", movements.type," ", stores.description) as txtMovimiento')
                     ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
                     ->offset($start_val)
                     ->limit($limit_val)
