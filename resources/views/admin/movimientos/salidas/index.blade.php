@@ -22,11 +22,16 @@
     </div>
 
     <div class="row mb-2">
-        <div class="col-12 text-right">
+        <div class="col-10 text-right">
+            Buscar texto        
             <select id="tipo" class="filtro">
-                <option value="0" selected>Buscar todos tipos</option>
-                <option value="1">Sólo venta clientes</option>
+                <option value="TODOS" selected>Todas las salidas</option>
+                <option value="TIENDAS">Sólo en tiendas</option>
+                <option value="CLIENTES">Sólo en clientes</option>
             </select>
+        </div>
+        <div class="col-2 text-right">
+            <input type="search" id="search" name="search" class=" form-control" autofocus>
         </div>
     </div>
 
@@ -63,19 +68,21 @@
 
 
     jQuery(document).ready(function() {
-        cargarDatos();
+        cargarDatos(jQuery("#tipo").val());
     })
 
     jQuery(".filtro").on("change", function() {
-        let tipo = jQuery("#tipo").val();
         jQuery('.yajra-datatable').DataTable().destroy();
-        cargarDatos(tipo);
+        cargarDatos(jQuery("#tipo").val());
+    })
+
+    jQuery("#search").on("keypress keyup", function() {
+        jQuery('.yajra-datatable').DataTable().destroy();
+        cargarDatos(jQuery("#tipo").val());
     })
 
     
-    const cargarDatos = (tipo = 0)=>{
-
-        console.log(tipo);
+    const cargarDatos = (tipo)=>{
 
         var table = jQuery('.yajra-datatable').DataTable({
             lengthMenu : [[10, 25, 50, 500], [10, 25, 50, 500]],
@@ -84,11 +91,14 @@
             serverSide: true,
             ordering:false,
             autoWidth: true,
-            dom: '<lfrtp>',
+            dom: '<lrtip>',
             ajax: {
                 url: "{{ route('salidas.getSalidas') }}",
                 type: "get",
-                data: {tipo},
+                data: {
+                    tipo,
+                    "search": jQuery("#search").val(),
+                },
             },
             columns: [
                 { data: 'id' },
