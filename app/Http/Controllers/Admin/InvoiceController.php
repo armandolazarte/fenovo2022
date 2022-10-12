@@ -366,7 +366,10 @@ class InvoiceController extends Controller
     {
         try {
             $movement = Movement::where('id', $movement_id)->with('products_egress')->firstOrFail();
-
+            $store = Store::where('id',$movement->from)->first();
+            if($store && !is_null($store->punto_venta)){
+                $this->pto_vta = $store->punto_venta;
+            }
             $result  = $this->createVoucher($movement,$this->pto_vta);
             if ($result['status']) {
                 $invoice = $this->invoiceRepository->getByMovement($movement_id);
