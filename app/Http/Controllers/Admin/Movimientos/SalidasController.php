@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Movimientos;
 use App\Exports\OrdenConsolidadaViewExport;
 use App\Http\Controllers\Controller;
 use App\Mail\NovedadMail;
+use App\Models\Base08;
 use App\Models\Coeficiente;
 use App\Models\Customer;
 use App\Models\FleteSetting;
@@ -21,7 +22,6 @@ use App\Models\ProductStore;
 use App\Models\SessionOferta;
 use App\Models\SessionProduct;
 use App\Models\Store;
-use App\Models\Base08;
 use App\Repositories\CustomerRepository;
 use App\Repositories\EnumRepository;
 
@@ -88,7 +88,7 @@ class SalidasController extends Controller
         $limit_val = $request->input('length');
         $start_val = $request->input('start');
 
-        if (empty($request->input('search.value'))) {
+        if (empty($request->input('search'))) {
             if (\Auth::user()->rol() == 'superadmin' || \Auth::user()->rol() == 'admin') {
                 $movimientos = Movement::whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
                     ->where('from', 1)->where('categoria', '=', 1)      // SE AGREGA PARA FILTRAR INFO A DANTE
@@ -106,28 +106,69 @@ class SalidasController extends Controller
                     ->get();
             }
         } else {
-            $search_text = $request->input('search.value');
-            $movimientos = Movement::join('stores', 'movements.to', '=', 'stores.id')
-                ->leftJoin('customers', 'movements.to', '=', 'customers.id')
-                ->whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
-                ->where('from', 1)->where('categoria', '=', 1)      // SE AGREGA PARA FILTRAR INFO A DANTE
-                ->select('movements.*')
-                ->selectRaw('CONCAT(movements.id," ", movements.type," ", stores.description," ", customers.razon_social) as txtMovimiento')
-                ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
-                ->offset($start_val)
-                ->limit($limit_val)
-                ->orderBy('date', 'desc')
-                ->orderBy('movements.id', 'DESC')
-                ->get();
+            $search_text = $request->input('search');
+            // Busca todos los movimientos
+            if ($request->input('tipo') == 'TODOS') {
 
-            $totalFilteredRecord = Movement::join('stores', 'movements.to', '=', 'stores.id')
-                ->leftJoin('customers', 'movements.to', '=', 'customers.id')
-                ->whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
-                ->where('from', 1)     // SE AGREGA PARA FILTRAR INFO A DANTE
-                ->select('movements.*')
-                ->selectRaw('CONCAT(movements.id," ", movements.type," ", stores.description," ", customers.razon_social) as txtMovimiento')
-                ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
-                ->count();
+                $movimientos = Movement::join('stores', 'movements.to', '=', 'stores.id')
+                    ->join('customers', 'movements.to', '=', 'customers.id')
+                    ->whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
+                    ->where('from', 1)->where('categoria', '=', 1)      // SE AGREGA PARA FILTRAR INFO A DANTE
+                    ->select('movements.*')
+                    ->selectRaw('CONCAT(movements.id," ", movements.type," ", stores.description, " ", movements.observacion) as txtMovimiento')
+                    ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
+                    ->offset($start_val)
+                    ->limit($limit_val)
+                    ->orderBy('date', 'desc')
+                    ->orderBy('movements.id', 'DESC')
+                    ->get();
+
+            } elseif ($request->input('tipo') == 'TIENDAS') {  
+                
+                $arrTypes        = ['VENTA', 'TRASLADO'];
+
+                $movimientos = Movement::join('stores', 'movements.to', '=', 'stores.id')
+                    ->whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
+                    ->where('from', 1)->where('categoria', '=', 1)      // SE AGREGA PARA FILTRAR INFO A DANTE
+                    ->select('movements.*')
+                    ->selectRaw('CONCAT(movements.id," ", movements.type," ", stores.description) as txtMovimiento')
+                    ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
+                    ->offset($start_val)
+                    ->limit($limit_val)
+                    ->orderBy('date', 'desc')
+                    ->orderBy('movements.id', 'DESC')
+                    ->get();
+
+            } elseif ($request->input('tipo') == 'CLIENTES') {
+
+                $arrTypes        = ['VENTACLIENTE'];
+
+                $movimientos = Movement::join('customers', 'movements.to', '=', 'customers.id')
+                    ->whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
+                    ->where('from', 1)->where('categoria', '=', 1)      // SE AGREGA PARA FILTRAR INFO A DANTE
+                    ->select('movements.*')
+                    ->selectRaw('CONCAT(movements.id," ", movements.type," ", customers.razon_social) as txtMovimiento')
+                    ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
+                    ->offset($start_val)
+                    ->limit($limit_val)
+                    ->orderBy('date', 'desc')
+                    ->orderBy('movements.id', 'DESC')
+                    ->get();
+                
+                $totalFilteredRecord = Movement::join('customers', 'movements.to', '=', 'customers.id')
+                    ->whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
+                    ->where('from', 1)->where('categoria', '=', 1)      // SE AGREGA PARA FILTRAR INFO A DANTE
+                    ->select('movements.*')
+                    ->selectRaw('CONCAT(movements.id," ", movements.type," ", customers.razon_social) as txtMovimiento')
+                    ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
+                    ->offset($start_val)
+                    ->limit($limit_val)
+                    ->orderBy('date', 'desc')
+                    ->orderBy('movements.id', 'DESC')
+                    ->count();    
+            }
+
+            
         }
 
         $data = [];
@@ -1559,7 +1600,7 @@ class SalidasController extends Controller
         if ($cod_fenovo) {
             $products = Product::where('cod_fenovo', $cod_fenovo)->select('id', 'stock_f', 'stock_r')->get();
         } else {
-            $products = Product::select('id', 'stock_f', 'stock_r','cod_fenovo')->get();
+            $products = Product::select('id', 'stock_f', 'stock_r', 'cod_fenovo')->get();
         }
 
         foreach ($stores as $store) {
@@ -1573,16 +1614,16 @@ class SalidasController extends Controller
                 switch ($tienda_id) {
                     case 11:
                         // Deposito Blas Parera Parana
-                        $movimientoId = 1200;//1977;
+                        $movimientoId = 1200; //1977;
                         break;
                     case 59:
                         // Deposito Reconquista
-                        $movimientoId = 1200;//2652;
+                        $movimientoId = 1200; //2652;
                         break;
 
                     case 60:
                         // Deposito Resistencia
-                        $movimientoId = 1200;//2652;
+                        $movimientoId = 1200; //2652;
                         break;
                 }
 
@@ -1598,28 +1639,28 @@ class SalidasController extends Controller
                     $m  = Movement::where('id', $mp->movement_id)->first();
 
                     if ($i == 0) {
-                        $balance_orig = $new_balance =  $mp->balance;
+                        $balance_orig = $new_balance = $mp->balance;
                     }
 
                     $pass = true;
 
-                    if(in_array($tienda_id,[11,59,60]) && $m->type == 'AJUSTE' && $m->to == $tienda_id && $m->from == $tienda_id && $m->voucher_number == '00001'){
-                        $stock_de_prod_en_deposito = Base08::where('cod_fenovo',$p->cod_fenovo)->first();
-                        $new_balance = ($stock_de_prod_en_deposito)? $stock_de_prod_en_deposito->stock:0;
-                        $balance_orig = $new_balance;
+                    if (in_array($tienda_id, [11, 59, 60]) && $m->type == 'AJUSTE' && $m->to == $tienda_id && $m->from == $tienda_id && $m->voucher_number == '00001') {
+                        $stock_de_prod_en_deposito = Base08::where('cod_fenovo', $p->cod_fenovo)->first();
+                        $new_balance               = ($stock_de_prod_en_deposito) ? $stock_de_prod_en_deposito->stock : 0;
+                        $balance_orig              = $new_balance;
                         MovementProduct::where('id', $mp->id)->update([
-                            'balance' => $new_balance,
-                            'bultos' => null,
+                            'balance'  => $new_balance,
+                            'bultos'   => null,
                             'circuito' => null,
-                            'entry' => 0,
-                            'egress' => 0
+                            'entry'    => 0,
+                            'egress'   => 0,
                         ]);
                         $pass = false;
                     }
 
                     if ($i > 0 && $pass) {
                         $cantidad = $mp->bultos * $mp->unit_package;
-                        if($mp->entry > 0) {
+                        if ($mp->entry > 0) {
                             $new_balance  = $balance_orig + $cantidad;
                             $balance_orig = $new_balance;
 
@@ -1675,7 +1716,7 @@ class SalidasController extends Controller
         $duration = $end - $start;
         $hours    = (int)($duration / 60 / 60);
         $minutes  = (int)($duration / 60) - $hours * 60;
-        $seconds  = (int)$duration        - $hours        * 60 * 60 - $minutes * 60;
+        $seconds  = (int)$duration        - $hours * 60 * 60 - $minutes * 60;
         return "Tiempo ejecucion {$hours} : {$minutes} : {$seconds}";
     }
 
