@@ -123,8 +123,8 @@ class SalidasController extends Controller
                     ->orderBy('movements.id', 'DESC')
                     ->get();
 
-            } elseif ($request->input('tipo') == 'TIENDAS') {  
-                
+            } elseif ($request->input('tipo') == 'TIENDAS') {
+
                 $arrTypes        = ['VENTA', 'TRASLADO'];
 
                 $movimientos = Movement::join('stores', 'movements.to', '=', 'stores.id')
@@ -154,7 +154,7 @@ class SalidasController extends Controller
                     ->orderBy('date', 'desc')
                     ->orderBy('movements.id', 'DESC')
                     ->get();
-                
+
                 $totalFilteredRecord = Movement::join('customers', 'movements.to', '=', 'customers.id')
                     ->whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
                     ->where('from', 1)->where('categoria', '=', 1)      // SE AGREGA PARA FILTRAR INFO A DANTE
@@ -165,10 +165,10 @@ class SalidasController extends Controller
                     ->limit($limit_val)
                     ->orderBy('date', 'desc')
                     ->orderBy('movements.id', 'DESC')
-                    ->count();    
+                    ->count();
             }
 
-            
+
         }
 
         $data = [];
@@ -389,7 +389,7 @@ class SalidasController extends Controller
 
             // Se comenta esto el 10/10/2022 porque en Orden ahora van todos los productos tantos facturados como panama
 
-            $movimientos = $movement->movement_salida_products; //($movement->type == 'TRASLADO') ? $movement->group_products_egress : $movement->group_movement_salida_products;
+            $movimientos = $movement->group_movement_salida_products; //($movement->type == 'TRASLADO') ? $movement->group_products_egress : $movement->group_movement_salida_products;
             foreach ($movimientos as $movimiento) {
                 // if ($movimiento->invoice) {
                 $objProduct                = new stdClass();

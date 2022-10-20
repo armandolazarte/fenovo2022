@@ -62,8 +62,8 @@
 <table style="width: 100%; font-size:10px">
     <tr>
         <td class=" text-center">Bultos</td>
-        <td class=" text-center">Kgrs</td>
-        <td class=" text-center">Unidades</td>
+        <td class=" text-center">Cantidad</td>
+        <td class=" text-center">COD.</td>
         <td class="w-25 text-left">Nombre del producto</td>
         <td class=" text-center">Presentación</td>
         <td class=" text-center">Unidad</td>
@@ -83,11 +83,11 @@
 
     <tr>
         <td class=" text-center">{{ (int)$session_product->quantity}}</td>
-        <td class=" text-center">{{ (float)$session_product->unit_weight * (float)$session_product->unit_package * (float)$session_product->quantity }} </td>
+       {{--  <td class=" text-center">{{ (float)$session_product->unit_weight * (float)$session_product->unit_package * (float)$session_product->quantity }} </td> --}}
         <td class=" text-center">{{ $session_product->unit_package * $session_product->quantity }} </td>
+        <td class=" text-center">{{ $session_product->cod_fenovo}} </td>
         <td class=" text-left">{{$session_product->name}} @if($session_product->cod_proveedor) ({{$session_product->cod_proveedor}}) @endif</td>
-        <td class=" text-center">{{$session_product->unit_package}}</td>
-        <td class=" text-center">{{$session_product->unit_type}}</td>
+        <td class=" text-center">{{$session_product->unit_package}} ({{$session_product->unit_type}})</td>
         <td class=" text-center">{{$session_product->palet}}</td>
     </tr>
 
