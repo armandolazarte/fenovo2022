@@ -86,9 +86,9 @@ class Movement extends Model
     {
         return $this->hasMany(MovementProduct::class)->where('egress', '>', 0)
                     ->where('circuito', '!=', 'CyO')
-                    ->where('invoice', true)
+                    //->where('invoice', true)
                     ->select(['*', DB::raw('SUM(bultos) as bultos')])
-                    ->groupBy('product_id');
+                    ->groupBy('product_id')->orderBy('product_id','ASC');
     }
 
     public function salida_products_no_cyo()
