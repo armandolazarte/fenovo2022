@@ -30,7 +30,7 @@
             <tr>
                 <td> {{ $loop->iteration }}</td>
                 <td> {{ $movimiento->product->cod_fenovo }} </td>
-                <td> {{ $movimiento->product->name }}</td>
+                <td class=" text-left"> {{ $movimiento->product->name }}</td>
                 <td> {{ $movimiento->unit_type }}</td>
                 <td> {{ number_format($movimiento->product->unit_weight*$movimiento->unit_package*$movimiento->bultos,2, ',', '.') }}</td>
                 <td> {{ number_format($movimiento->unit_package,2) }} </td>
