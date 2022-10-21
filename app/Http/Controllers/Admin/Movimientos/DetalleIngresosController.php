@@ -21,6 +21,9 @@ class DetalleIngresosController extends Controller
         try {
             $hoy = Carbon::parse(now())->format('Y-m-d');
 
+
+            
+
             foreach ($request->datos as $movimiento) {
                 $product               = Product::find($movimiento['product_id']);
                 $latest                = $product->stockReal(null, Auth::user()->store_active);
@@ -38,20 +41,24 @@ class DetalleIngresosController extends Controller
                 $costo_fenovo = (!$oferta) ? $product->product_price->costfenovo : $oferta->costfenovo;
                 $unit_price   = (!$oferta) ? $product->product_price->plist0neto : $oferta->plist0neto;
 
-                MovementProductTemp::firstOrCreate(
+                MovementProductTemp::Create(
                     [
-                        'entidad_id'   => Auth::user()->store_active,
                         'movement_id'  => $movimiento['movement_id'],
+                        'entidad_id'   => Auth::user()->store_active,
+                        'entidad_tipo' => 'S',
                         'product_id'   => $movimiento['product_id'],
                         'tasiva'       => $product->product_price->tasiva,
                         'cost_fenovo'  => $costo_fenovo,
                         'unit_price'   => $unit_price,
+                        'bultos'       => $movimiento['bultos'],
+                        'entry'        => $movimiento['entry'],
+                        'balance'      => $balance,
+                        'egress'       => 0,
                         'unit_package' => $movimiento['unit_package'],
                         'unit_type'    => $movimiento['unit_type'],
                         'invoice'      => $movimiento['invoice'],
                         'cyo'          => $movimiento['cyo'],
                     ],
-                    $movimiento
                 );
             }
             return new JsonResponse(['msj' => 'Guardado', 'type' => 'success']);
@@ -201,34 +208,34 @@ class DetalleIngresosController extends Controller
             $movimiento  = $request->datos;
 
             // Actualizo el Stock del producto
-            $product     = Product::find($movimiento['product_id']);
-            $latest      = $product->stockReal(null, Auth::user()->store_active);
-            $balance     = ($latest) ? $latest + $movimiento['entry'] : $movimiento['entry'];
+            $product = Product::find($movimiento['product_id']);
+            $latest  = $product->stockReal(null, Auth::user()->store_active);
+            $balance = ($latest) ? $latest + $movimiento['entry'] : $movimiento['entry'];
 
             if ($movimiento['circuito'] == 'F') {
                 $product->stock_f += $balance;
             } elseif ($movimiento['circuito'] == 'R') {
                 $product->stock_r += $balance;
-            }            
+            }
             $product->save();
 
             // Actualizo el Stock del producto en Product_store
             if (!is_null($movimiento['deposito'])) {
-                $stock_cyo  = $stock_f  = $stock_r  = 0;
+                $stock_cyo  = $stock_f = $stock_r = 0;
                 $prod_store = ProductStore::where('product_id', $movimiento['product_id'])->where('store_id', $movimiento['deposito'])->first();
-                if($prod_store){
+                if ($prod_store) {
                     if ($movimiento['circuito'] == 'F') {
                         $prod_store->stock_f = $prod_store->stock_f + $movimiento['entry'];
                     } else {
                         $prod_store->stock_r = $prod_store->stock_r + $movimiento['entry'];
                     }
                     $prod_store->save();
-                }else{
+                } else {
                     ProductStore::create([
                         'product_id' => $movimiento['product_id'],
                         'store_id'   => $movimiento['deposito'],
-                        'stock_f'    => ($movimiento['circuito'] == 'F')?$movimiento['entry']:0,
-                        'stock_r'    => ($movimiento['circuito'] == 'R')?$movimiento['entry']:0,
+                        'stock_f'    => ($movimiento['circuito'] == 'F') ? $movimiento['entry'] : 0,
+                        'stock_r'    => ($movimiento['circuito'] == 'R') ? $movimiento['entry'] : 0,
                         'stock_cyo'  => $stock_cyo,
                     ]);
                 }
@@ -260,7 +267,7 @@ class DetalleIngresosController extends Controller
                     'unit_type'    => $movimiento['unit_type'],
                     'invoice'      => $movimiento['invoice'],
                     'cyo'          => $movimiento['cyo'],
-                    'balance'      => $movimiento['balance']
+                    'balance'      => $movimiento['balance'],
                 ],
                 $movimiento
             );
@@ -322,10 +329,10 @@ class DetalleIngresosController extends Controller
     {
         try {
             // Obtener el subtotal
-            $movimiento   = MovementProduct::where('movement_id', $request->movement_id)->where('product_id', $request->product_id)->first();
+            $movimiento = MovementProduct::where('movement_id', $request->movement_id)->where('product_id', $request->product_id)->first();
 
             // Actualizo el Stock del producto
-            $producto    =  Product::where('id', $request->product_id)->first();
+            $producto = Product::where('id', $request->product_id)->first();
             if ($movimiento->circuito == 'F') {
                 $producto->stock_f -= $movimiento->entry;
             } elseif ($movimiento->circuito == 'R') {
@@ -335,7 +342,7 @@ class DetalleIngresosController extends Controller
 
             // Actualizo el Stock del producto en Product_store
             if (!is_null($movimiento->deposito)) {
-                $stock_cyo  = $stock_f  = $stock_r  = 0;
+                $stock_cyo  = $stock_f = $stock_r = 0;
                 $prod_store = ProductStore::where('product_id', $request->product_id)->where('store_id', $movimiento->deposito)->first();
                 if ($movimiento->circuito == 'F') {
                     $prod_store->stock_f = $prod_store->stock_f - $movimiento->entry;
