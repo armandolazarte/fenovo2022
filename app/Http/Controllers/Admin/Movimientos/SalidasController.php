@@ -77,7 +77,7 @@ class SalidasController extends Controller
         $totalFilteredRecord = $totalDataRecord = $draw = '';
 
         $arrTypes        = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
-        $fecha           = Carbon::now()->subDays(90)->toDateTimeString();
+        $fecha           = Carbon::now()->subDays(150)->toDateTimeString();
         $totalDataRecord = Movement::whereIn('type', $arrTypes)
             ->whereDate('movements.created_at', '>', $fecha)
             ->where('from', 1)
