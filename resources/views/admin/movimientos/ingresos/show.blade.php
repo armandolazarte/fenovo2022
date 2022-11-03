@@ -38,6 +38,7 @@
                     <div class="row font-weight-bolder mb-5">
 
                         <input type="hidden" id="movement_id" name="movement_id" value="{{ $movement->id }}">
+                        <input type="hidden" name="circuito" id="circuito" value="{{ $movement->subtype }}">                                    
 
                         <div class="col-md-2">
                             {{ date('d-m-Y', strtotime($movement->date)) }}
@@ -47,6 +48,7 @@
                         </div>
                         <div class="col-md-2 text-center">
                             {{ $movement->subtype }}
+
                         </div>
                         <div class="col-md-3 text-center">
                             {{ $movement->origenData($movement->type) }}
@@ -83,11 +85,20 @@
         <script>
             const guardarItem = (product_id, peso_unitario) => {
 
-                jQuery('#loader').removeClass('hidden');
+                jQuery('#loader').removeClass('hidden');                
+
+                let circuito = '';
+                if(jQuery("#circuito").val() == 'FACTURA'){
+                    circuito = 'F'
+                }else{
+                    if(jQuery("#circuito").val() == 'REMITO'){
+                        circuito = 'R'
+                    }
+                }
 
                 const movement_id = jQuery("#movement_id").val();
                 const unit_type = jQuery("#unit_type").val();
-                const circuito = jQuery("#circuito").val();
+                
 
                 const store_id = 1;
                 let invoice = 0;
@@ -134,17 +145,22 @@
                     data: {
                         datos: arrMovimientos
                     },
-                    success: function(data) {
+                    success: function(data) {                        
                         if (data['type'] == 'success') {
-                            jQuery("#dataTemp").html('');
+                            jQuery("#detalleCompra").html(data['html'])
                         }
-                        if (data['type'] !== 'success') {
-                            toastr.error(data['msj'], 'Verifique');
-                        }
+                        
+                    },
+                    error: function(data) {
+            
+                    },
+                    complete: function(){
+                        jQuery("#dataTemp").html('')
+                        jQuery('#loader').addClass('hidden');
                     }
                 })
 
-                jQuery('#loader').addClass('hidden');
+                
             }
 
             const sumar = () => {
@@ -289,10 +305,16 @@
                                 data: {
                                     arrId
                                 },
+                                beforeSend: function(){
+                                    jQuery('#loader').removeClass('hidden');
+                                },
                                 success: function(data) {
                                     if (data['type'] == 'success') {
                                         jQuery("#detalleCompra").html(data['html'])
                                     }
+                                },
+                                complete: function(){
+                                    jQuery('#loader').addClass('hidden');
                                 }
                             });
                         }

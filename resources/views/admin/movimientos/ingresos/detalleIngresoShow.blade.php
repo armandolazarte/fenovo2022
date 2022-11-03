@@ -31,11 +31,6 @@
 
                                 @foreach ($movimientos as $movimiento)
 
-                                    @if ($loop->first)
-                                       <input type="hidden" name="circuito" id="circuito" value="{{ $movimiento->circuito }}">
-                                    @endif
-
-
                                     @php
                                         $total += $movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos;
                                     @endphp

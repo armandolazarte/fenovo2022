@@ -120,7 +120,8 @@ class DetalleIngresosController extends Controller
         try {
             $hoy = Carbon::parse(now())->format('Y-m-d');
 
-            dd($hoy);
+            DB::beginTransaction();
+            Schema::disableForeignKeyConstraints();
 
             foreach ($request->datos as $movimiento) {
                 $product = Product::find($movimiento['product_id']);
@@ -160,8 +161,10 @@ class DetalleIngresosController extends Controller
                 // Actualizo el producto
                 if ($movimiento['circuito'] == 'F') {
                     $product->stock_f = $product->stock_f + $movimiento['entry'];
-                } else {
+                } elseif ($movimiento['circuito'] == 'R') {
                     $product->stock_r = $product->stock_r + $movimiento['entry'];
+                } else {
+                    $product->stock_cyo = $product->stock_cyo + $movimiento['entry'];
                 }
                 $product->save();
 
@@ -204,9 +207,22 @@ class DetalleIngresosController extends Controller
                     }
                 }
             }
-            return new JsonResponse(['msj' => 'Guardado', 'type' => 'success']);
+            
+            // Busco rearmar el detalle luego de borrar los registros
+            $movement    = Movement::query()->where('ids', $movimiento['movement_id'])->with('movement_ingreso_products')->first();
+            $movimientos = $movement->movement_ingreso_products;
+
+            DB::commit();
+            Schema::enableForeignKeyConstraints();
+
+            return new JsonResponse([
+                'html' => view('admin.movimientos.ingresos.detalleIngresoShow', compact('movement', 'movimientos'))->render(),
+                'type' => 'success',
+            ]);
         } catch (\Exception $e) {
-            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+            DB::rollback();
+            Schema::enableForeignKeyConstraints();
+            return  new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
         }
     }
 
