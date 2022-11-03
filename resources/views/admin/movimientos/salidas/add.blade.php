@@ -48,6 +48,8 @@
 @section('js')
     @if (\Auth::user()->rol() == 'contable')
         <script>
+
+            
             jQuery(document).ready(function() {
                 cargarTablaProductos();
             });

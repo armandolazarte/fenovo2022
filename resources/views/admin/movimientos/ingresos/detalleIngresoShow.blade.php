@@ -18,6 +18,11 @@
                                     <th>Unidades</th>
                                     <th>#</th>
                                     <th>Historial</th>
+                                    <th>
+                                        <a href="javascript:void(0)" onclick="deleteItemSession()" title="Eliminar productos seleccionados " class=" text-white">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </a>
+                                    </th>
                                 </tr>
 
                                 @php
@@ -57,10 +62,12 @@
                                             @endif
                                         </td>
                                         <td>
-                                            <a
-                                                href="{{ route('product.historial', ['id' => $movimiento->product_id]) }}">
+                                            <a href="{{ route('product.historial', ['id' => $movimiento->product_id]) }}">
                                                 <i class="fa fa-list" aria-hidden="true"></i>
                                             </a>
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" class="deleteItem" value="{{ $movimiento->id }}">
                                         </td>
                                     </tr>
                                 @endforeach
@@ -74,6 +81,7 @@
                                     <th></th>
                                     <th> {{ $movimientos->sum('bultos') }} </th>
                                     <th> {{ number_format($total, 2, ',', '.') }} </th>
+                                    <th></th>
                                     <th></th>
                                     <th></th>
                                     <th></th>
