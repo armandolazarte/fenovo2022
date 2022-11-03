@@ -624,9 +624,11 @@ class IngresosController extends Controller
             ? MovementTemp::query()->where('id', $request->id)->with('movement_ingreso_products')->first()
             : Movement::query()->where('id', $request->id)->with('movement_ingreso_products')->first();
         $ajustes     = $this->enumRepository->getType('ajustes');
+
+        $productos   = $this->productRepository->getByProveedorIdPluck($movement->from);
         $movimientos = $movement->movement_ingreso_products;
 
-        return view('admin.movimientos.ingresos.show', compact('movement', 'movimientos', 'ajustes'));
+        return view('admin.movimientos.ingresos.show', compact('movement', 'movimientos', 'ajustes', 'productos'));
     }
     public function destroy(Request $request)
     {
