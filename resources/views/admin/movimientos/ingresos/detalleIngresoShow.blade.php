@@ -30,6 +30,7 @@
                                 @endphp
 
                                 @foreach ($movimientos as $movimiento)
+
                                     @php
                                         $total += $movimiento->cost_fenovo * $movimiento->unit_package * $movimiento->bultos;
                                     @endphp
@@ -67,7 +68,9 @@
                                             </a>
                                         </td>
                                         <td>
+                                            @if ($movement->status == 'FINISHED')
                                             <input type="checkbox" class="deleteItem" value="{{ $movimiento->id }}">
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach

@@ -34,7 +34,12 @@
                             <label>Comprobante</label>
                         </div>
                     </div>
-                    <div class="row font-weight-bolder">
+
+                    <div class="row font-weight-bolder mb-5">
+
+                        <input type="hidden" id="movement_id" name="movement_id" value="{{ $movement->id }}">
+                        <input type="hidden" name="circuito" id="circuito" value="{{ $movement->subtype }}">                                    
+
                         <div class="col-md-2">
                             {{ date('d-m-Y', strtotime($movement->date)) }}
                         </div>
@@ -43,12 +48,24 @@
                         </div>
                         <div class="col-md-2 text-center">
                             {{ $movement->subtype }}
+
                         </div>
                         <div class="col-md-3 text-center">
                             {{ $movement->origenData($movement->type) }}
                         </div>
                         <div class="col-md-2 text-center">
                             {{ $movement->voucher_number }}
+                        </div>
+                    </div>
+
+                    <div class="row mt-3 mb-3">
+                        <div class="col-xs-12 col-md-4">
+                            {{ Form::select('product_id', $productos, null, ['id' => 'product_id', 'class' => 'js-example-basic-single form-control bg-transparent', 'placeholder' => '(+) Agregar productos ...']) }}
+                        </div>
+                        <div class="col-xs-12 col-md-7">
+                            <div id="dataTemp">
+                                @include('admin.movimientos.ingresos.detalleTemp')
+                            </div>
                         </div>
                     </div>
 
@@ -66,6 +83,134 @@
 
     @section('js')
         <script>
+            const guardarItem = (product_id, peso_unitario) => {
+
+                jQuery('#loader').removeClass('hidden');                
+
+                let circuito = '';
+                if(jQuery("#circuito").val() == 'FACTURA'){
+                    circuito = 'F'
+                }else{
+                    if(jQuery("#circuito").val() == 'REMITO'){
+                        circuito = 'R'
+                    }
+                }
+
+                const movement_id = jQuery("#movement_id").val();
+                const unit_type = jQuery("#unit_type").val();
+                
+
+                const store_id = 1;
+                let invoice = 0;
+                let cyo = 0;
+
+                let arrMovimientos = [];
+                jQuery('.calculate').each(function() {
+                    if (isNaN(parseFloat(jQuery(this).val()))) {
+                        valido = false;
+                    } else {
+                        let presentacion_input = jQuery(this).attr("id").split('_');
+                        let presentacion = presentacion_input[1];
+                        let unit_package = presentacion;
+                        let valor = parseFloat(jQuery(this).val());
+                        let entry = (unit_type == 'K') ? (valor * presentacion) * peso_unitario : (valor *
+                            presentacion);
+                        let egress = 0;
+                        let balance = 0;
+                        let entidad_tipo = 'S';
+
+                        if (entry > 0) {
+                            let Movi = new Object();
+                            Movi.movement_id = movement_id;
+                            Movi.entidad_id = store_id;
+                            Movi.entidad_tipo = entidad_tipo;
+                            Movi.product_id = product_id;
+                            Movi.unit_package = unit_package;
+                            Movi.unit_type = unit_type;
+                            Movi.invoice = invoice;
+                            Movi.circuito = circuito;
+                            Movi.cyo = cyo;
+                            Movi.bultos = valor;
+                            Movi.entry = entry;
+                            Movi.balance = 0;
+                            Movi.egress = 0;
+                            arrMovimientos.push(Movi);
+                        }
+                    }
+                });
+
+                jQuery.ajax({
+                    url: '{{ route('detalle-ingresos.store.cerrada') }}',
+                    type: 'POST',
+                    data: {
+                        datos: arrMovimientos
+                    },
+                    success: function(data) {                        
+                        if (data['type'] == 'success') {
+                            jQuery("#detalleCompra").html(data['html'])
+                        }
+                        
+                    },
+                    error: function(data) {
+            
+                    },
+                    complete: function(){
+                        jQuery("#dataTemp").html('')
+                        jQuery('#loader').addClass('hidden');
+                    }
+                })
+
+                
+            }
+
+            const sumar = () => {
+                let total = 0;
+                let valido = true;
+
+                jQuery('.calculate').each(function() {
+                    if (isNaN(parseFloat(jQuery(this).val()))) {
+                        valido = false;
+                    }
+                });
+
+                if (valido) {
+                    jQuery('.calculate').each(function() {
+                        let valor = parseFloat(jQuery(this).val());
+                        let presentacion_input = jQuery(this).attr("id").split('_');
+                        let presentacion = presentacion_input[1];
+
+                        total = total + (valor * presentacion);
+                    });
+                    if (total > 0) {
+                        jQuery('#btn-guardar-producto').removeClass("d-none");
+                    }
+                    jQuery('.total').val(total.toFixed(2))
+                } else {
+                    jQuery('#btn-guardar-producto').addClass("d-none");
+                    jQuery('.total').val(0)
+                }
+            }
+
+            jQuery("#product_id").on('change', function() {
+                const productId = jQuery("#product_id").val();
+                jQuery.ajax({
+                    url: '{{ route('detalle-ingresos.check') }}',
+                    type: 'POST',
+                    data: {
+                        productId
+                    },
+                    success: function(data) {
+                        if (data['type'] == 'success') {
+                            jQuery("#dataTemp").html(data['html']);
+                            jQuery(".calculate").first().select();
+                            if (jQuery("#unit_weight").val() == 0) {
+                                toastr.error('PRODUCTO SIN "PESO UNITARIO"', 'Verifique');
+                            }
+                        }
+                    },
+                });
+            })
+
             const editarMovimiento = (detalleId, bultos, producto_id, cod_fenovo, nombre, unit_package) => {
                 jQuery("#detalle_id").val(detalleId);
                 jQuery("#bultos_anterior").val(bultos);
@@ -86,7 +231,7 @@
                 }
                 if (jQuery('#bultos_anterior').val() == jQuery('#bultos_actual').val()) {
                     toastr.error('Ingrese una cantidad <strong>diferente al anteriormente registrada </strong>',
-                    "Cantidad");
+                        "Cantidad");
                     jQuery('#bultos_actual').select()
                     return
                 }
@@ -160,10 +305,16 @@
                                 data: {
                                     arrId
                                 },
+                                beforeSend: function(){
+                                    jQuery('#loader').removeClass('hidden');
+                                },
                                 success: function(data) {
                                     if (data['type'] == 'success') {
                                         jQuery("#detalleCompra").html(data['html'])
                                     }
+                                },
+                                complete: function(){
+                                    jQuery('#loader').addClass('hidden');
                                 }
                             });
                         }
