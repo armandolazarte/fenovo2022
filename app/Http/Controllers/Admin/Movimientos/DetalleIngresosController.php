@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Movimientos;
 
 use App\Http\Controllers\Controller;
 use App\Models\InvoiceCompra;
+use App\Models\Movement;
 use App\Models\MovementProduct;
 use App\Models\MovementProductTemp;
 use App\Models\Product;
@@ -13,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class DetalleIngresosController extends Controller
 {
@@ -20,9 +22,6 @@ class DetalleIngresosController extends Controller
     {
         try {
             $hoy = Carbon::parse(now())->format('Y-m-d');
-
-
-            
 
             foreach ($request->datos as $movimiento) {
                 $product               = Product::find($movimiento['product_id']);
@@ -113,6 +112,93 @@ class DetalleIngresosController extends Controller
             ]);
         } catch (\Exception $e) {
             return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
+    }
+
+    public function deleteCompraItems(Request $request)
+    {
+        try {
+            $arrIds = $request->arrId;
+
+            DB::beginTransaction();
+            Schema::disableForeignKeyConstraints();
+
+            foreach ($arrIds as $id) {
+                // Obtengo el movimiento
+                $movi = MovementProduct::find($id);
+
+                // Obtengo los datos del movimiento
+                $circuito = $movi->circuito;
+                $producto = Product::find($movi->product_id);
+
+                // Actualizo el producto
+                if ($circuito == 'F') {
+                    $producto->stock_f = $producto->stock_f - $movi->entry;
+                } else {
+                    $producto->stock_r = $producto->stock_r - $movi->entry;
+                }
+                $producto->save();
+
+                // Elimino el movimiento
+                $movi->delete();
+
+                // Obtengo los movimientos
+                $movements_products = MovementProduct::where('movement_id', '>', 611)
+                    ->where('product_id', $movi->product_id)
+                    ->where('entidad_id', 1)
+                    ->orderBy('id', 'ASC')
+                    ->get();
+
+                
+                // Voy actualizando los stocks desde los mas viejos a los mas recientes
+                for ($i = 0; $i < count($movements_products); $i++) {
+                    $mp = $movements_products[$i];
+                    $m  = Movement::where('id', $mp->movement_id)->first();
+
+                    if ($i == 0) {
+                        $balance_orig = $new_balance = $mp->balance;
+                    }
+
+                    if ($i > 0) {
+                        $cantidad = $mp->bultos * $mp->unit_package;
+
+                        if ($mp->entry > 0) {
+                            $new_balance  = $balance_orig + $cantidad;
+                            $balance_orig = $new_balance;
+
+                            MovementProduct::where('id', $mp->id)->update([
+                                'balance' => $new_balance,
+                                'entry'   => $cantidad,
+                            ]);
+                        } elseif ($mp->egress > 0) {
+                            $new_balance  = $balance_orig - $cantidad;
+                            $balance_orig = $new_balance;
+
+                            MovementProduct::where('id', $mp->id)->update([
+                                'balance' => $new_balance,
+                                'egress'  => $cantidad,
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            // Busco rearmar el detalle luego de borrar los registros
+            $movement    = Movement::query()->where('id', $movi->movement_id)->with('movement_ingreso_products')->first();
+            $movimientos = $movement->movement_ingreso_products;
+
+            DB::commit();
+            Schema::enableForeignKeyConstraints();
+
+            return new JsonResponse([
+                'html' => view('admin.movimientos.ingresos.detalleIngresoShow', compact('movement', 'movimientos'))->render(),
+                'type' => 'success',
+                'msj'  => 'ok',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollback();
+            Schema::enableForeignKeyConstraints();
+            return  new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
         }
     }
 

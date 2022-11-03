@@ -85,7 +85,8 @@
                     return
                 }
                 if (jQuery('#bultos_anterior').val() == jQuery('#bultos_actual').val()) {
-                    toastr.error('Ingrese una cantidad <strong>diferente al anteriormente registrada </strong>', "Cantidad");
+                    toastr.error('Ingrese una cantidad <strong>diferente al anteriormente registrada </strong>',
+                    "Cantidad");
                     jQuery('#bultos_actual').select()
                     return
                 }
@@ -132,5 +133,43 @@
                     }
                 });
             };
+
+            function deleteItemSession() {
+
+                let route = '{{ route('delete.item.compra.produc') }}';
+                var arrId = [];
+                jQuery('.deleteItem:checked').each(function() {
+                    arrId.push(jQuery(this).val());
+                })
+
+                if (arrId.length > 0) {
+
+                    ymz.jq_confirm({
+                        title: 'Eliminar',
+                        text: "confirma borrar registro/s ?",
+                        no_btn: "Cancelar",
+                        yes_btn: "Confirma",
+                        no_fn: function() {
+                            return false;
+                        },
+                        yes_fn: function() {
+                            jQuery.ajax({
+                                url: route,
+                                type: 'POST',
+                                dataType: 'json',
+                                data: {
+                                    arrId
+                                },
+                                success: function(data) {
+                                    if (data['type'] == 'success') {
+                                        jQuery("#detalleCompra").html(data['html'])
+                                    }
+                                }
+                            });
+                        }
+                    });
+
+                }
+            }
         </script>
     @endsection
