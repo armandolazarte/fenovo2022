@@ -115,6 +115,101 @@ class DetalleIngresosController extends Controller
         }
     }
 
+    public function storeCerrada(Request $request)
+    {
+        try {
+            $hoy = Carbon::parse(now())->format('Y-m-d');
+
+            dd($hoy);
+
+            foreach ($request->datos as $movimiento) {
+                $product = Product::find($movimiento['product_id']);
+
+                // Buscar si el producto tiene oferta del proveedor
+                $oferta = DB::table('products as t1')
+                    ->join('session_ofertas as t2', 't1.id', '=', 't2.product_id')
+                    ->select('t2.costfenovo', 't2.plist0neto')
+                    ->where('t1.id', $movimiento['product_id'])
+                    ->where('t2.fecha_desde', '<=', $hoy)
+                    ->where('t2.fecha_hasta', '>=', $hoy)
+                    ->first();
+                $costo_fenovo = (!$oferta) ? $product->product_price->costfenovo : $oferta->costfenovo;
+                $unit_price   = (!$oferta) ? $product->product_price->plist0neto : $oferta->plist0neto;
+
+                MovementProduct::Create(
+                    [
+                        'movement_id'  => $movimiento['movement_id'],
+                        'entidad_id'   => 1,
+                        'entidad_tipo' => 'S',
+                        'product_id'   => $movimiento['product_id'],
+                        'tasiva'       => $product->product_price->tasiva,
+                        'cost_fenovo'  => $costo_fenovo,
+                        'unit_price'   => $unit_price,
+                        'bultos'       => $movimiento['bultos'],
+                        'entry'        => $movimiento['entry'],
+                        'balance'      => 0,
+                        'egress'       => 0,
+                        'circuito'     => $movimiento['circuito'],
+                        'unit_package' => $movimiento['unit_package'],
+                        'unit_type'    => $movimiento['unit_type'],
+                        'invoice'      => $movimiento['invoice'],
+                        'cyo'          => $movimiento['cyo'],
+                    ],
+                );
+
+                // Actualizo el producto
+                if ($movimiento['circuito'] == 'F') {
+                    $product->stock_f = $product->stock_f + $movimiento['entry'];
+                } else {
+                    $product->stock_r = $product->stock_r + $movimiento['entry'];
+                }
+                $product->save();
+
+                // Obtengo los movimientos
+                $movements_products = MovementProduct::where('movement_id', '>', 611)
+                    ->where('product_id', $movimiento['product_id'])
+                    ->where('entidad_id', 1)
+                    ->orderBy('id', 'ASC')
+                    ->get();
+
+                // Voy actualizando los stocks desde los mas viejos a los mas recientes
+                for ($i = 0; $i < count($movements_products); $i++) {
+                    $mp = $movements_products[$i];
+                    $m  = Movement::where('id', $mp->movement_id)->first();
+
+                    if ($i == 0) {
+                        $balance_orig = $new_balance = $mp->balance;
+                    }
+
+                    if ($i > 0) {
+                        $cantidad = $mp->bultos * $mp->unit_package;
+
+                        if ($mp->entry > 0) {
+                            $new_balance  = $balance_orig + $cantidad;
+                            $balance_orig = $new_balance;
+
+                            MovementProduct::where('id', $mp->id)->update([
+                                'balance' => $new_balance,
+                                'entry'   => $cantidad,
+                            ]);
+                        } elseif ($mp->egress > 0) {
+                            $new_balance  = $balance_orig - $cantidad;
+                            $balance_orig = $new_balance;
+
+                            MovementProduct::where('id', $mp->id)->update([
+                                'balance' => $new_balance,
+                                'egress'  => $cantidad,
+                            ]);
+                        }
+                    }
+                }
+            }
+            return new JsonResponse(['msj' => 'Guardado', 'type' => 'success']);
+        } catch (\Exception $e) {
+            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
+    }
+
     public function deleteCompraItems(Request $request)
     {
         try {
@@ -129,15 +224,15 @@ class DetalleIngresosController extends Controller
 
                 // Obtengo los datos del movimiento
                 $circuito = $movi->circuito;
-                $producto = Product::find($movi->product_id);
+                $product  = Product::find($movi->product_id);
 
                 // Actualizo el producto
                 if ($circuito == 'F') {
-                    $producto->stock_f = $producto->stock_f - $movi->entry;
+                    $product->stock_f = $product->stock_f - $movi->entry;
                 } else {
-                    $producto->stock_r = $producto->stock_r - $movi->entry;
+                    $product->stock_r = $product->stock_r - $movi->entry;
                 }
-                $producto->save();
+                $product->save();
 
                 // Elimino el movimiento
                 $movi->delete();
@@ -149,7 +244,6 @@ class DetalleIngresosController extends Controller
                     ->orderBy('id', 'ASC')
                     ->get();
 
-                
                 // Voy actualizando los stocks desde los mas viejos a los mas recientes
                 for ($i = 0; $i < count($movements_products); $i++) {
                     $mp = $movements_products[$i];
