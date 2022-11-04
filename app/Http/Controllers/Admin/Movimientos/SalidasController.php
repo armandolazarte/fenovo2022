@@ -1745,6 +1745,7 @@ class SalidasController extends Controller
             $movements_products = MovementProduct::where('movement_id', '>', 611)
                 ->where('product_id', $p->id)
                 ->where('entidad_id', Auth::user()->store_active)
+                ->orderBy('movement_id', 'ASC')
                 ->orderBy('id', 'ASC')
                 ->get();
 
