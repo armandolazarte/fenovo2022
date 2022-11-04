@@ -986,7 +986,7 @@ class IngresosController extends Controller
             $movements_products = MovementProduct::where('movement_id', '>', 611)
                 ->where('product_id', $request->producto_id)
                 ->where('entidad_id', Auth::user()->store_active)
-                ->orderBy('id', 'ASC')
+                ->orderBy('movement_id', 'ASC')
                 ->get();
 
             // Voy actualizando los stocks desde los mas viejos a los mas recientes
