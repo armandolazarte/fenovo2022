@@ -209,7 +209,7 @@ class DetalleIngresosController extends Controller
             }
             
             // Busco rearmar el detalle luego de borrar los registros
-            $movement    = Movement::query()->where('ids', $movimiento['movement_id'])->with('movement_ingreso_products')->first();
+            $movement    = Movement::query()->where('id', $movimiento['movement_id'])->with('movement_ingreso_products')->first();
             $movimientos = $movement->movement_ingreso_products;
 
             DB::commit();
