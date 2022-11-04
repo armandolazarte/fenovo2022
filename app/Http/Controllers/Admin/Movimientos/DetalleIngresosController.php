@@ -207,11 +207,12 @@ class DetalleIngresosController extends Controller
                     }
                 }
             }
-            
+
             // Busco rearmar el detalle luego de borrar los registros
             $movement    = Movement::query()->where('id', $movimiento['movement_id'])->with('movement_ingreso_products')->first();
             $movimientos = $movement->movement_ingreso_products;
 
+            // Efectuo los cambios en la BD
             DB::commit();
             Schema::enableForeignKeyConstraints();
 
