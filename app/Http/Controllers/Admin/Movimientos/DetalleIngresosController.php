@@ -172,7 +172,7 @@ class DetalleIngresosController extends Controller
                 $movements_products = MovementProduct::where('movement_id', '>', 611)
                     ->where('product_id', $movimiento['product_id'])
                     ->where('entidad_id', 1)
-                    ->orderBy('id', 'ASC')
+                    ->orderBy('movement_id', 'ASC')
                     ->get();
 
                 // Voy actualizando los stocks desde los mas viejos a los mas recientes
@@ -258,7 +258,7 @@ class DetalleIngresosController extends Controller
                 $movements_products = MovementProduct::where('movement_id', '>', 611)
                     ->where('product_id', $movi->product_id)
                     ->where('entidad_id', 1)
-                    ->orderBy('id', 'ASC')
+                    ->orderBy('movement_id', 'ASC')
                     ->get();
 
                 // Voy actualizando los stocks desde los mas viejos a los mas recientes
