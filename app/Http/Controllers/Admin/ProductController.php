@@ -178,38 +178,6 @@ class ProductController extends Controller
     public function historial(Request $request)
     {
         $producto = Product::where('id', $request->id)->with('productos_store')->first();
-
-        // if ($request->ajax()) {
-        //     $movimientos = MovementProduct::with(['movement'])->whereEntidadId(1)->whereProductId($producto->id)->orderBy('id', 'DESC')->get();
-
-        //     return Datatables::of($movimientos)
-        //         ->addIndexColumn()
-        //         ->addColumn('fecha', function ($movimiento) {
-        //             return date('d/m/Y', strtotime($movimiento->created_at));
-        //         })
-        //         ->addColumn('type', function ($movimiento) {
-        //             return ($movimiento->movement) ? $movimiento->movement->type : null;
-        //         })
-        //         ->addColumn('from', function ($movimiento) {
-        //             if (!is_null($movimiento->deposito) && $movimiento->movement->type != 'COMPRA') {
-        //                 $dep = Store::where('id', $movimiento->deposito)->first();
-        //                 return $dep->razon_social;
-        //             }
-        //             return $movimiento->movement->From($movimiento->movement->type);
-        //         })
-        //         ->addColumn('to', function ($movimiento) {
-        //             return ($movimiento->movement) ? $movimiento->movement->To($movimiento->movement->type) : null;
-        //         })
-        //         ->addColumn('orden', function ($movimiento) {
-        //             return ($movimiento->movement) ? $movimiento->movement->id : null;
-        //         })
-        //         ->addColumn('observacion', function ($movimiento) {
-        //             return ($movimiento->movement) ? $movimiento->movement->observacion : null;
-        //         })
-
-        //         ->rawColumns(['fecha', 'type', 'from', 'to', 'orden', 'observacion'])
-        //         ->make(true);
-        // }
         return view('admin.products.historial', compact('producto'));
     }
 
