@@ -57,7 +57,9 @@ Route::post('ingresos/ajustar/item', [IngresosController::class, 'ajustarIngreso
 Route::get('detalle-ingresos/movimentos', [DetalleIngresosController::class, 'getMovements'])->name('detalle-movimiento.getMovements');
 Route::post('detalle-ingresos/destroy', [DetalleIngresosController::class, 'destroy'])->name('detalle-ingresos.destroy');
 Route::post('detalle-ingresos/store', [DetalleIngresosController::class, 'store'])->name('detalle-ingresos.store');
+Route::post('detalle-ingresos/store/cerrada', [DetalleIngresosController::class, 'storeCerrada'])->name('detalle-ingresos.store.cerrada');
 Route::post('detalle-ingresos/check', [DetalleIngresosController::class, 'check'])->name('detalle-ingresos.check');
+Route::post('detalle-ingresos/delete-compra-product', [DetalleIngresosController::class, 'deleteCompraItems'])->name('delete.item.compra.produc');
 
 Route::post('detalle-ingresos/check/no-congelados', [DetalleIngresosController::class, 'checkNoCongelados'])->name('detalle-ingresos.check.noCongelado');
 Route::post('detalle-ingresos/check/no-congelados/check', [DetalleIngresosController::class, 'checkNoCongeladosCheck'])->name('detalle-ingresos.check.noCongelado.check');

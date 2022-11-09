@@ -104,7 +104,6 @@
 
                     </div>
 
-
                 </div>
             </div>
 
@@ -138,7 +137,6 @@
         });
 
         const verDiv = () => {
-
             if (jQuery('#checkTiendas').prop('checked')) {
                 jQuery('#divStore').show()
             } else {

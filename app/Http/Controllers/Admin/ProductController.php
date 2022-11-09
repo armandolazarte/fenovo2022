@@ -234,7 +234,7 @@ class ProductController extends Controller
                 ->whereProductId($request->id)
                 ->offset($start_val)
                 ->limit($limit_val)
-                ->orderBy('id', 'DESC')
+                ->orderBy('movement_id', 'DESC')
                 ->get();
         } else {
             $search_text = $request->input('search.value');
@@ -246,7 +246,7 @@ class ProductController extends Controller
                 ->where('movement_id', 'LIKE', "%{$search_text}%")
                 ->offset($start_val)
                 ->limit($limit_val)
-                ->orderBy('movement_products.id', 'DESC')
+                ->orderBy('movement_id', 'DESC')
                 ->get();
 
             $totalFilteredRecord = MovementProduct::with(['movement'])

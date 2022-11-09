@@ -624,9 +624,11 @@ class IngresosController extends Controller
             ? MovementTemp::query()->where('id', $request->id)->with('movement_ingreso_products')->first()
             : Movement::query()->where('id', $request->id)->with('movement_ingreso_products')->first();
         $ajustes     = $this->enumRepository->getType('ajustes');
+
+        $productos   = $this->productRepository->getByProveedorIdPluck($movement->from);
         $movimientos = $movement->movement_ingreso_products;
 
-        return view('admin.movimientos.ingresos.show', compact('movement', 'movimientos', 'ajustes'));
+        return view('admin.movimientos.ingresos.show', compact('movement', 'movimientos', 'ajustes', 'productos'));
     }
     public function destroy(Request $request)
     {
@@ -984,7 +986,7 @@ class IngresosController extends Controller
             $movements_products = MovementProduct::where('movement_id', '>', 611)
                 ->where('product_id', $request->producto_id)
                 ->where('entidad_id', Auth::user()->store_active)
-                ->orderBy('id', 'ASC')
+                ->orderBy('movement_id', 'ASC')
                 ->get();
 
             // Voy actualizando los stocks desde los mas viejos a los mas recientes

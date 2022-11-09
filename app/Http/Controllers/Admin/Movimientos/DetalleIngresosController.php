@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin\Movimientos;
 
 use App\Http\Controllers\Controller;
 use App\Models\InvoiceCompra;
+use App\Models\Movement;
 use App\Models\MovementProduct;
 use App\Models\MovementProductTemp;
 use App\Models\Product;
@@ -13,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class DetalleIngresosController extends Controller
 {
@@ -20,9 +22,6 @@ class DetalleIngresosController extends Controller
     {
         try {
             $hoy = Carbon::parse(now())->format('Y-m-d');
-
-
-            
 
             foreach ($request->datos as $movimiento) {
                 $product               = Product::find($movimiento['product_id']);
@@ -113,6 +112,204 @@ class DetalleIngresosController extends Controller
             ]);
         } catch (\Exception $e) {
             return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
+    }
+
+    public function storeCerrada(Request $request)
+    {
+        try {
+            $hoy = Carbon::parse(now())->format('Y-m-d');
+
+            DB::beginTransaction();
+            Schema::disableForeignKeyConstraints();
+
+            foreach ($request->datos as $movimiento) {
+                $product = Product::find($movimiento['product_id']);
+
+                // Buscar si el producto tiene oferta del proveedor
+                $oferta = DB::table('products as t1')
+                    ->join('session_ofertas as t2', 't1.id', '=', 't2.product_id')
+                    ->select('t2.costfenovo', 't2.plist0neto')
+                    ->where('t1.id', $movimiento['product_id'])
+                    ->where('t2.fecha_desde', '<=', $hoy)
+                    ->where('t2.fecha_hasta', '>=', $hoy)
+                    ->first();
+                $costo_fenovo = (!$oferta) ? $product->product_price->costfenovo : $oferta->costfenovo;
+                $unit_price   = (!$oferta) ? $product->product_price->plist0neto : $oferta->plist0neto;
+
+                MovementProduct::Create(
+                    [
+                        'movement_id'  => $movimiento['movement_id'],
+                        'entidad_id'   => 1,
+                        'entidad_tipo' => 'S',
+                        'product_id'   => $movimiento['product_id'],
+                        'tasiva'       => $product->product_price->tasiva,
+                        'cost_fenovo'  => $costo_fenovo,
+                        'unit_price'   => $unit_price,
+                        'bultos'       => $movimiento['bultos'],
+                        'entry'        => $movimiento['entry'],
+                        'balance'      => 0,
+                        'egress'       => 0,
+                        'circuito'     => $movimiento['circuito'],
+                        'unit_package' => $movimiento['unit_package'],
+                        'unit_type'    => $movimiento['unit_type'],
+                        'invoice'      => $movimiento['invoice'],
+                        'cyo'          => $movimiento['cyo'],
+                    ],
+                );
+
+                // Actualizo el producto
+                if ($movimiento['circuito'] == 'F') {
+                    $product->stock_f = $product->stock_f + $movimiento['entry'];
+                } elseif ($movimiento['circuito'] == 'R') {
+                    $product->stock_r = $product->stock_r + $movimiento['entry'];
+                } else {
+                    $product->stock_cyo = $product->stock_cyo + $movimiento['entry'];
+                }
+                $product->save();
+
+                // Obtengo los movimientos
+                $movements_products = MovementProduct::where('movement_id', '>', 611)
+                    ->where('product_id', $movimiento['product_id'])
+                    ->where('entidad_id', 1)
+                    ->orderBy('movement_id', 'ASC')
+                    ->get();
+
+                // Voy actualizando los stocks desde los mas viejos a los mas recientes
+                for ($i = 0; $i < count($movements_products); $i++) {
+                    $mp = $movements_products[$i];
+                    $m  = Movement::where('id', $mp->movement_id)->first();
+
+                    if ($i == 0) {
+                        $balance_orig = $new_balance = $mp->balance;
+                    }
+
+                    if ($i > 0) {
+                        $cantidad = $mp->bultos * $mp->unit_package;
+
+                        if ($mp->entry > 0) {
+                            $new_balance  = $balance_orig + $cantidad;
+                            $balance_orig = $new_balance;
+
+                            MovementProduct::where('id', $mp->id)->update([
+                                'balance' => $new_balance,
+                                'entry'   => $cantidad,
+                            ]);
+                        } elseif ($mp->egress > 0) {
+                            $new_balance  = $balance_orig - $cantidad;
+                            $balance_orig = $new_balance;
+
+                            MovementProduct::where('id', $mp->id)->update([
+                                'balance' => $new_balance,
+                                'egress'  => $cantidad,
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            // Busco rearmar el detalle luego de borrar los registros
+            $movement    = Movement::query()->where('id', $movimiento['movement_id'])->with('movement_ingreso_products')->first();
+            $movimientos = $movement->movement_ingreso_products;
+
+            // Efectuo los cambios en la BD
+            DB::commit();
+            Schema::enableForeignKeyConstraints();
+
+            return new JsonResponse([
+                'html' => view('admin.movimientos.ingresos.detalleIngresoShow', compact('movement', 'movimientos'))->render(),
+                'type' => 'success',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollback();
+            Schema::enableForeignKeyConstraints();
+            return  new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
+        }
+    }
+
+    public function deleteCompraItems(Request $request)
+    {
+        try {
+            $arrIds = $request->arrId;
+
+            DB::beginTransaction();
+            Schema::disableForeignKeyConstraints();
+
+            foreach ($arrIds as $id) {
+                // Obtengo el movimiento
+                $movi = MovementProduct::find($id);
+
+                // Obtengo los datos del movimiento
+                $circuito = $movi->circuito;
+                $product  = Product::find($movi->product_id);
+
+                // Actualizo el producto
+                if ($circuito == 'F') {
+                    $product->stock_f = $product->stock_f - $movi->entry;
+                } else {
+                    $product->stock_r = $product->stock_r - $movi->entry;
+                }
+                $product->save();
+
+                // Elimino el movimiento
+                $movi->delete();
+
+                // Obtengo los movimientos
+                $movements_products = MovementProduct::where('movement_id', '>', 611)
+                    ->where('product_id', $movi->product_id)
+                    ->where('entidad_id', 1)
+                    ->orderBy('movement_id', 'ASC')
+                    ->get();
+
+                // Voy actualizando los stocks desde los mas viejos a los mas recientes
+                for ($i = 0; $i < count($movements_products); $i++) {
+                    $mp = $movements_products[$i];
+                    $m  = Movement::where('id', $mp->movement_id)->first();
+
+                    if ($i == 0) {
+                        $balance_orig = $new_balance = $mp->balance;
+                    }
+
+                    if ($i > 0) {
+                        $cantidad = $mp->bultos * $mp->unit_package;
+
+                        if ($mp->entry > 0) {
+                            $new_balance  = $balance_orig + $cantidad;
+                            $balance_orig = $new_balance;
+
+                            MovementProduct::where('id', $mp->id)->update([
+                                'balance' => $new_balance,
+                                'entry'   => $cantidad,
+                            ]);
+                        } elseif ($mp->egress > 0) {
+                            $new_balance  = $balance_orig - $cantidad;
+                            $balance_orig = $new_balance;
+
+                            MovementProduct::where('id', $mp->id)->update([
+                                'balance' => $new_balance,
+                                'egress'  => $cantidad,
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            // Busco rearmar el detalle luego de borrar los registros
+            $movement    = Movement::query()->where('id', $movi->movement_id)->with('movement_ingreso_products')->first();
+            $movimientos = $movement->movement_ingreso_products;
+
+            DB::commit();
+            Schema::enableForeignKeyConstraints();
+
+            return new JsonResponse([
+                'html' => view('admin.movimientos.ingresos.detalleIngresoShow', compact('movement', 'movimientos'))->render(),
+                'type' => 'success',
+                'msj'  => 'ok',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollback();
+            Schema::enableForeignKeyConstraints();
+            return  new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
         }
     }
 
