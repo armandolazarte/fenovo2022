@@ -59,6 +59,7 @@ class Store extends Model
         'active',
         'cip',                         // codigo impresion panama
         'password',                    // codigo acceso impresion facturas
+        'inscripto_convenio_multilateral'
     ];
 
     public function region()
