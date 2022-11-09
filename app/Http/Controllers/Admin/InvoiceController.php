@@ -472,9 +472,9 @@ class InvoiceController extends Controller
                 $iibb              = Iibb::where('state', $this->client->state)->first();
 
                 if(isset($this->client->inscripto_convenio_multilateral)){
-                    if($iibb && $this->client->inscripto_convenio_multilatera){
+                    if($iibb && $this->client->inscripto_convenio_multilateral){
                         $iibb = $iibb->value;
-                    }elseif($iibb && !$this->client->inscripto_convenio_multilatera){
+                    }elseif($iibb && !$this->client->inscripto_convenio_multilateral){
                         $iibb = $iibb->value_no_convenio;
                     }else{
                         $iibb  = 0;
