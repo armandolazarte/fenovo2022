@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Class Iibb
- * 
+ *
  * @property int $id
  * @property string|null $state
  * @property float|null $value
@@ -25,11 +25,13 @@ class Iibb extends Model
 	protected $table = 'iibbs';
 
 	protected $casts = [
+		'value' => 'float',
 		'value' => 'float'
 	];
 
 	protected $fillable = [
 		'state',
-		'value'
+		'value',  // Por defecto ahora todos estan inscripto en el convenio multilateral y toman este porcentaje
+		'value_no_convenio' // se toma este valor cuando no estan inscriptos en el convenio ej Corrientes
 	];
 }

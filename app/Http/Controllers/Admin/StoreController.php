@@ -78,6 +78,7 @@ class StoreController extends Controller
         $data['online_sale'] = ($request->has('online_sale')) ? 1 : 0;
         $data['habilitado_panama'] = ($request->has('habilitado_panama')) ? 1 : 0;
         $data['recibe_traslado'] = ($request->has('recibe_traslado')) ? 1 : 0;
+        $data['inscripto_convenio_multilateral'] = ($request->has('inscripto_convenio_multilateral')) ? 1 : 0;
         $this->storeRepository->create($data);
         return redirect()->route('stores.index');
     }
@@ -100,6 +101,7 @@ class StoreController extends Controller
         $data['online_sale'] = ($request->has('online_sale')) ? 1 : 0;
         $data['habilitado_panama'] = ($request->has('habilitado_panama')) ? 1 : 0;
         $data['recibe_traslado'] = ($request->has('recibe_traslado')) ? 1 : 0;
+        $data['inscripto_convenio_multilateral'] = ($request->has('inscripto_convenio_multilateral')) ? 1 : 0;
         $this->storeRepository->update($request->input('store_id'), $data);
         return redirect()->route('stores.index');
     }

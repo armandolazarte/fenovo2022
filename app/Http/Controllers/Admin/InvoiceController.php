@@ -470,7 +470,18 @@ class InvoiceController extends Controller
                 $numero_de_factura = $last_voucher + 1;
                 $fecha             = date('Y-m-d');
                 $iibb              = Iibb::where('state', $this->client->state)->first();
-                $iibb              = ($iibb) ? $iibb->value : 0;
+
+                if(isset($this->client->inscripto_convenio_multilateral)){
+                    if($iibb && $this->client->inscripto_convenio_multilatera){
+                        $iibb = $iibb->value;
+                    }elseif($iibb && !$this->client->inscripto_convenio_multilatera){
+                        $iibb = $iibb->value_no_convenio;
+                    }else{
+                        $iibb  = 0;
+                    }
+                }else{
+                    $iibb  = ($iibb) ? $iibb->value : 0;
+                }
 
                 $importe            = $this->importes($movement);
                 $importe_gravado    = $importe['gravado'];

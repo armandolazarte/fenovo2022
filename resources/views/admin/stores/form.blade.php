@@ -237,6 +237,17 @@
                 @endif
 
                 <div class="col-3">
+                    <p>Inscript Conv Multilateral:</p>
+                    <div class="custom-control switch custom-switch custom-control-inline">
+                        <input type="checkbox" class="custom-control-input" id="inscripto_convenio_multilateral"
+                            name="inscripto_convenio_multilateral"
+                            @if (isset($store) && $store->inscripto_convenio_multilateral) checked="" @elseif(isset($store) && !$store->inscripto_convenio_multilateral) unchecked="" @else checked="" @endif
+                            value="1">
+                        <label class="custom-control-label mr-1" for="inscripto_convenio_multilateral"></label>
+                    </div>
+                </div>
+
+                <div class="col-2">
                     <p>Activo :</p>
                     <div class="custom-control switch custom-switch custom-control-inline">
                         <input type="checkbox" class="custom-control-input" id="active" name="active"
@@ -246,7 +257,7 @@
                     </div>
                 </div>
 
-                <div class="col-3">
+                <div class="col-2">
                     <p>Vta-OnLine:</p>
                     <div class="custom-control switch custom-switch custom-control-inline">
                         <input type="checkbox" class="custom-control-input" id="online_sale" name="online_sale"
@@ -256,7 +267,7 @@
                     </div>
                 </div>
 
-                <div class="col-3">
+                <div class="col-2">
                     <p>Habilitado-Pna:</p>
                     <div class="custom-control switch custom-switch custom-control-inline">
                         <input type="checkbox" class="custom-control-input" id="habilitado_panama"
@@ -266,7 +277,7 @@
                         <label class="custom-control-label mr-1" for="habilitado_panama"></label>
                     </div>
                 </div>
-                <div class="col-3">
+                <div class="col-2">
                     <p>Recibe - traslados:</p>
                     <div class="custom-control switch custom-switch custom-control-inline">
                         <input type="checkbox" class="custom-control-input" id="recibe_traslado"
