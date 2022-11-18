@@ -1748,7 +1748,6 @@ class SalidasController extends Controller
                 ->orderBy('movement_id', 'ASC')
                 ->orderBy('id', 'ASC')
                 ->get();
-
             // Voy actualizando los stocks desde los mas viejos a los mas recientes
             for ($i = 0; $i < count($movements_products); $i++) {
                 $mp = $movements_products[$i];
