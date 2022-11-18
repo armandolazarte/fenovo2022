@@ -2,7 +2,7 @@
 
     jQuery("#unit_type").on('change', function() {
         if (jQuery("#unit_type").val() == 'K') {
-            jQuery("#unit_weight").val(1).prop('disabled', true);
+            jQuery("#unit_weight").val(1).prop('disabled', false);
         }else{
             jQuery("#unit_weight").prop('disabled', false);
         }
