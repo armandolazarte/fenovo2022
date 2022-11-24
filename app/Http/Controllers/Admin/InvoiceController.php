@@ -273,7 +273,10 @@ class InvoiceController extends Controller
             if(is_null($error)){
                 if($movement->type != 'TRASLADO'){
                     // Inicio creacion del invoice cta y orden
-                    $movement = Movement::where('id', $movement_id)->with('salida_products_cyo')->firstOrFail();
+
+                    //COMENTADO EL DIA 24/11/22 porque creo una diferencia entre los archivos cabeele y ordenes y  no se esta usando  el CyO
+
+                    /* $movement = Mov/ement::where('id', $movement_id)->with('salida_products_cyo')->firstOrFail();
                     if(isset($movement->salida_products_cyo) && count($movement->salida_products_cyo)){
                         $movements = $movement->salida_products_cyo->groupBy('punto_venta');
                         $invoice_cyo = null;
@@ -306,7 +309,7 @@ class InvoiceController extends Controller
                                 $error = json_encode($result);
                             }
                         }
-                    }
+                    } */
                 }
             }
 
