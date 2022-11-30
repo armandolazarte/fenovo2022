@@ -34,6 +34,7 @@
                                             <th>No</th>
                                             <th>Razon social</th>
                                             <th>Cuit</th>
+                                            <th>Pto Venta</th>
                                             <th>Email</th>
                                             <th></th>
                                             <th></th>
@@ -61,9 +62,10 @@
         @include('partials.table.setting'),
         ajax: "{{ route('proveedors.index') }}",
         columns: [
-            {data: 'DT_RowIndex', 'class':'text-center col-1', orderable: false, searchable: false},
+            {data: 'id', 'class':'text-center', orderable: false, searchable: false},
             {data: 'name'},
             {data: 'cuit'},
+            {data: 'punto_venta', 'class':'text-center'},
             {data: 'email'},
             {data: 'edit', name: 'Editar', 'class':'text-center', orderable: false, searchable: false},
             {data: 'destroy', name: 'Borrar', 'class':'text-center', orderable: false, searchable: false},
