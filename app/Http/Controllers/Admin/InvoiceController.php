@@ -103,6 +103,7 @@ class InvoiceController extends Controller
                                             ->get();
             }else{
                 $productos = MovementProduct::where('movement_id', $movement_id)
+                                            ->where('circuito','!=','CyO')
                                             ->where('invoice', 1)
                                             ->where('egress', '>', 0)
                                             ->with('product')
@@ -266,9 +267,8 @@ class InvoiceController extends Controller
                         $error = json_encode($result);
                     }
                 }
-            }else{
-                $error = 'No hay productos cargados';
             }
+
             // fin de creacion del invoice con punto de vta fenovo
             if(is_null($error)){
                 if($movement->type != 'TRASLADO'){
@@ -276,7 +276,7 @@ class InvoiceController extends Controller
 
                     //COMENTADO EL DIA 24/11/22 porque creo una diferencia entre los archivos cabeele y ordenes y  no se esta usando  el CyO
 
-                    /* $movement = Mov/ement::where('id', $movement_id)->with('salida_products_cyo')->firstOrFail();
+                    $movement = Movement::where('id', $movement_id)->with('salida_products_cyo')->firstOrFail();
                     if(isset($movement->salida_products_cyo) && count($movement->salida_products_cyo)){
                         $movements = $movement->salida_products_cyo->groupBy('punto_venta');
                         $invoice_cyo = null;
@@ -285,7 +285,8 @@ class InvoiceController extends Controller
                             $punto_venta = $m[0]->punto_venta;
                             $movement->products = $productos;
 
-                            $result  = $this->createVoucher($movement,$punto_venta);
+                            $result  = $this->createVoucher($movement,$punto_venta,'CyO');
+
                             if ($result['status']) {
                                 $invoice_cyo = $this->invoiceRepository->getByMovement($movement_id,$punto_venta);
                                 if (isset($invoice_cyo)) {
@@ -309,7 +310,7 @@ class InvoiceController extends Controller
                                 $error = json_encode($result);
                             }
                         }
-                    } */
+                    }
                 }
             }
 
@@ -418,9 +419,9 @@ class InvoiceController extends Controller
         }
     }
 
-    private function createVoucher($movement,$pto_vta = false)
+    private function createVoucher($movement,$pto_vta = false, $circuito = false)
     {
-        $data_invoice = $this->dataInvoice($movement,$pto_vta);
+        $data_invoice = $this->dataInvoice($movement,$pto_vta, $circuito);
 
         if ($data_invoice['status']) {
             try {
@@ -454,7 +455,7 @@ class InvoiceController extends Controller
         return ['status' => false,  'error' => $data_invoice['error']];
     }
 
-    private function dataInvoice($movement,$pto_vta = false)
+    private function dataInvoice($movement,$pto_vta = false, $circuito = false)
     {
         try {
             $tipo_movimiento = $movement->type;
@@ -486,7 +487,7 @@ class InvoiceController extends Controller
                     $iibb  = ($iibb) ? $iibb->value : 0;
                 }
 
-                $importe            = $this->importes($movement);
+                $importe            = $this->importes($movement, $circuito);
                 $importe_gravado    = $importe['gravado'];
                 $importe_total_iibb = $importe['total_iibb'];
                 $importe_exento_iva = 0;
@@ -564,9 +565,14 @@ class InvoiceController extends Controller
         }
     }
 
-    private function importes($movement)
+    private function importes($movement, $circuito = false)
     {
-        $products           = $movement->movement_salida_products;
+        if($circuito && $circuito == 'CyO'){
+            $products           = $movement->salida_products_cyo;
+        }else{
+            $products           = $movement->movement_salida_products;
+        }
+
         $gravado            = 0;
         $costo_fenovo_total = 0;
         $iva                = 0;
