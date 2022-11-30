@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Proveedors\EditRequest;
-use App\Models\Product;
 use App\Models\Proveedor;
 
 use App\Repositories\EnumRepository;
@@ -26,7 +25,7 @@ class ProveedorController extends Controller
     }
 
     public function index(Request $request)
-    {       
+    {
         if ($request->ajax()) {
             $proveedor = Proveedor::orderBy('name')->whereActive(1)->get();
             return Datatables::of($proveedor)
@@ -56,28 +55,20 @@ class ProveedorController extends Controller
     }
 
     public function getProveedoresHtml()
-    {	
+    {
         $proveedores = Proveedor::orderBy('name')->pluck('name', 'id');
         return new JsonResponse([
-            'html'  => view('admin.movimientos.ingresosNoCongelados.proveedores', compact('proveedores'))->render(),
+            'html' => view('admin.movimientos.ingresosNoCongelados.proveedores', compact('proveedores'))->render(),
             'type' => 'success',
         ]);
     }
 
-    public function store(EditRequest $request)
-    {
-        try {
-            $data           = $request->except(['_token']);
-            $data['active'] = 1;
-            $proveedor = $this->proveedorRepository->create($data);
-            return new JsonResponse([
-                'proveedor' => $proveedor,
-                'msj'  => 'Guardado correctamente !',
-                'type' => 'success',
-            ]);
-        } catch (\Exception $e) {
-            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
-        }
+    public function store(Request $request)
+    {        
+        $data           = $request->except(['_token']);
+        $data['active'] = 1;
+        $this->proveedorRepository->create($data);
+        return redirect()->route('proveedors.index');            
     }
 
     public function edit(Request $request)
@@ -88,19 +79,12 @@ class ProveedorController extends Controller
         return  view('admin.proveedors.form', compact('proveedor', 'ivaType', 'states'));
     }
 
-    public function update(EditRequest $request, $id)
+    public function update(Request $request)
     {
-        try {
-            $data           = $request->except(['_token', 'proveedor_id', 'active']);
-            $data['active'] = ($request->has('active')) ? 1 : 0;
-            $this->proveedorRepository->update($request->input('proveedor_id'), $data);
-            return new JsonResponse([
-                'msj'  => 'Actualización correcta !',
-                'type' => 'success',
-            ]);
-        } catch (\Exception $e) {
-            return new JsonResponse(['msj' => $e->getMessage(), 'type' => 'error']);
-        }
+        $data = $request->except(['_token', 'proveedor_id']);
+        $data['active'] = ($request->has('active')) ? 1 : 0;
+        $this->proveedorRepository->update($request->input('proveedor_id'), $data);
+        return redirect()->route('proveedors.index');          
     }
 
     public function destroy(Request $request)

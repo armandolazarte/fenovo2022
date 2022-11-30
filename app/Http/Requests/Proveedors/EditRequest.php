@@ -16,10 +16,17 @@ class EditRequest extends FormRequest
 
     public function rules()
     {
-
         return [
-            'cuit' => 'required|unique:proveedors,cuit,' . $this->proveedor_id,
             'name' => 'required',
+            'cuit' => 'required|unique:proveedors,cuit,' . $this->proveedor_id,
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'name.required' => 'Razon social es requerida',
+            'cuit.required' => 'El cuit es requerido!'
         ];
     }
 }
