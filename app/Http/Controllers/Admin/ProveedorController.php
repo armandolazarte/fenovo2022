@@ -88,7 +88,7 @@ class ProveedorController extends Controller
         return  view('admin.proveedors.form', compact('proveedor', 'ivaType', 'states'));
     }
 
-    public function update(EditRequest $request)
+    public function update(EditRequest $request, $id)
     {
         try {
             $data           = $request->except(['_token', 'proveedor_id', 'active']);
