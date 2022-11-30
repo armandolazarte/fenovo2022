@@ -139,23 +139,11 @@ class InvoiceController extends Controller
                 array_push($array_productos, $objProduct);
             }
 
-            if ($cyo) {
-                $objProduct             = new stdClass();
-                $objProduct->bultos     = 0;
-                $objProduct->cod_fenovo = '';
-                $objProduct->cant       = 0;
-                $objProduct->iva        = 0;
-                $objProduct->unit_price = 0;
-                $objProduct->total      = 0;
-                $objProduct->name       = '(*) Productos por cuenta y orden de '.$proveedor_nombre;
-                $objProduct->unity      = ' ';
-                $objProduct->class      = '';
-                array_push($array_productos, $objProduct);
-            }
-
             $total_lineas             = 22;
             $paginas                  = (int)((count($array_productos) / $total_lineas) + 1);
             $faltantes_para_completar = ($total_lineas * $paginas) - count($array_productos);
+
+            $faltantes_para_completar = ($cyo)? $faltantes_para_completar - 1:$faltantes_para_completar;
 
             for ($aux = 0; $aux < $faltantes_para_completar; $aux++) {
                 $objProduct             = new stdClass();
@@ -168,6 +156,20 @@ class InvoiceController extends Controller
                 $objProduct->unit_price = 0;
                 $objProduct->unity      = 'none';
                 $objProduct->class      = 'no-visible';
+                array_push($array_productos, $objProduct);
+            }
+
+            if ($cyo) {
+                $objProduct             = new stdClass();
+                $objProduct->bultos     = 0;
+                $objProduct->cod_fenovo = '';
+                $objProduct->cant       = 0;
+                $objProduct->iva        = 0;
+                $objProduct->unit_price = 0;
+                $objProduct->total      = 0;
+                $objProduct->name       = 'Mercadería vendida por cuenta y orden de: <br>'.strtoupper($proveedor_nombre) .' - CUIT N°: '.$producto->product->proveedor->cuit;
+                $objProduct->unity      = ' ';
+                $objProduct->class      = '';
                 array_push($array_productos, $objProduct);
             }
 
@@ -273,9 +275,6 @@ class InvoiceController extends Controller
             if(is_null($error)){
                 if($movement->type != 'TRASLADO'){
                     // Inicio creacion del invoice cta y orden
-
-                    //COMENTADO EL DIA 24/11/22 porque creo una diferencia entre los archivos cabeele y ordenes y  no se esta usando  el CyO
-
                     $movement = Movement::where('id', $movement_id)->with('salida_products_cyo')->firstOrFail();
                     if(isset($movement->salida_products_cyo) && count($movement->salida_products_cyo)){
                         $movements = $movement->salida_products_cyo->groupBy('punto_venta');
