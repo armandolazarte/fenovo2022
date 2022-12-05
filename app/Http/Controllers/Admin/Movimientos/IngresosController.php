@@ -396,14 +396,16 @@ class IngresosController extends Controller
 
             // Considerar cada uno de los movimientos
             foreach ($movement_temp->movement_ingreso_products as $movimiento) {
+
                 // Ajusto el STOCK DEL PRODUCTO luego de la compra
                 $product        = Product::find($movimiento['product_id']);
                 $latest         = $product->stockReal();
                 $balance_compra = ($latest) ? $latest + $movimiento['entry'] : $movimiento['entry'];
                 //
-                if ($movimiento['cyo']) {
+
+                if ($movimiento['cyo'] == 1) {
                     $product->stock_cyo = $product->stock_cyo + $movimiento['entry'];
-                } elseif ($movimiento['invoice']) {
+                } elseif ($movimiento['invoice']  == 1 ) {
                     $product->stock_f = $product->stock_f + $movimiento['entry'];
                 } else {
                     $product->stock_r = $product->stock_r + $movimiento['entry'];
@@ -461,15 +463,21 @@ class IngresosController extends Controller
 
                 // Generar la venta directa si viene el Id de Store
                 if ($tienda) {
+                    
                     // Ajusto STOCK DE NAVE - "RESTO ENTRADA"
-                    $product->stock_f = $product->stock_f - $movimiento['entry'];
+                    if ($movimiento['cyo']  == 1 ) {
+                        $product->stock_cyo = $product->stock_cyo - $movimiento['entry'];
+                    } elseif ($movimiento['invoice']  == 1) {
+                        $product->stock_f = $product->stock_f - $movimiento['entry'];
+                    }
+
                     $product->save();
                     $balance_nave = $product->stockReal();
 
                     // Ajusto STOCK TIENDA DESTINO - "SUMO ENTRADA"
                     $prod_store = ProductStore::where('product_id', $product->id)->where('store_id', $tienda)->first();
 
-                    if ($prod_store) {
+                    if ($prod_store) {                        
                         $prod_store->stock_f += $movimiento['entry'];
                         $prod_store->save();
                         //
@@ -535,7 +543,7 @@ class IngresosController extends Controller
                         'egress'       => $movimiento['entry'],
                         'balance'      => $balance_nave,
                         'punto_venta'  => 18,
-                        'circuito'     => 'F',
+                        'circuito'     => $circuito,
                     ]);
 
                     // MOVIMIENTO ENTRADA TIENDA DESTINO
@@ -555,7 +563,7 @@ class IngresosController extends Controller
                         'egress'       => 0,
                         'balance'      => $balance_tienda,
                         'punto_venta'  => 18,
-                        'circuito'     => 'F',
+                        'circuito'     => $circuito,
                     ]);
 
                     // Acumulo el total de ventas
