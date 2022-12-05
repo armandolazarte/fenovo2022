@@ -543,7 +543,7 @@ class IngresosController extends Controller
                         'egress'       => $movimiento['entry'],
                         'balance'      => $balance_nave,
                         'punto_venta'  => 18,
-                        'circuito'     => $circuito,
+                        'circuito'     => 'F',
                     ]);
 
                     // MOVIMIENTO ENTRADA TIENDA DESTINO
@@ -563,7 +563,7 @@ class IngresosController extends Controller
                         'egress'       => 0,
                         'balance'      => $balance_tienda,
                         'punto_venta'  => 18,
-                        'circuito'     => $circuito,
+                        'circuito'     => 'F',
                     ]);
 
                     // Acumulo el total de ventas
