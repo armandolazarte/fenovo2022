@@ -389,7 +389,7 @@ class SalidasController extends Controller
 
             // Se comenta esto el 10/10/2022 porque en Orden ahora van todos los productos tantos facturados como panama
 
-            $movimientos = ($movement->type == 'TRASLADO') ? $movement->group_products_egress : $movement->group_movement_salida_products; //$movement->group_movement_salida_products; //
+            $movimientos = $movement->group_products_egress;// ($movement->type == 'TRASLADO') ? $movement->group_products_egress : $movement->group_movement_salida_products; //$movement->group_movement_salida_products; //
             foreach ($movimientos as $movimiento) {
                 // if ($movimiento->invoice) {
                 $objProduct                = new stdClass();
