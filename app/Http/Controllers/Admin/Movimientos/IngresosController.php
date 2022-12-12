@@ -463,7 +463,7 @@ class IngresosController extends Controller
 
                 // Generar la venta directa si viene el Id de Store
                 if ($tienda) {
-                    
+
                     // Ajusto STOCK DE NAVE - "RESTO ENTRADA"
                     if ($movimiento['cyo']  == 1 ) {
                         $product->stock_cyo = $product->stock_cyo - $movimiento['entry'];
@@ -477,7 +477,7 @@ class IngresosController extends Controller
                     // Ajusto STOCK TIENDA DESTINO - "SUMO ENTRADA"
                     $prod_store = ProductStore::where('product_id', $product->id)->where('store_id', $tienda)->first();
 
-                    if ($prod_store) {                        
+                    if ($prod_store) {
                         $prod_store->stock_f += $movimiento['entry'];
                         $prod_store->save();
                         //
@@ -542,8 +542,8 @@ class IngresosController extends Controller
                         'bultos'       => $movimiento['bultos'],
                         'egress'       => $movimiento['entry'],
                         'balance'      => $balance_nave,
-                        'punto_venta'  => 18,
-                        'circuito'     => 'F',
+                        'punto_venta'  => ($circuito == 'CyO')?$product->proveedor->punto_venta:18,
+                        'circuito'     => $circuito,
                     ]);
 
                     // MOVIMIENTO ENTRADA TIENDA DESTINO
@@ -562,8 +562,8 @@ class IngresosController extends Controller
                         'entry'        => $movimiento['entry'],
                         'egress'       => 0,
                         'balance'      => $balance_tienda,
-                        'punto_venta'  => 18,
-                        'circuito'     => 'F',
+                        'punto_venta'  => ($circuito == 'CyO')?$product->proveedor->punto_venta:18,
+                        'circuito'     => $circuito,
                     ]);
 
                     // Acumulo el total de ventas

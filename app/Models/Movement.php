@@ -160,6 +160,7 @@ class Movement extends Model
         return MovementProduct::where('movement_id', $this->id)
                               ->where('entidad_id', \Auth::user()->store_active)
                               ->where('entidad_tipo', 'S')
+                              ->where('circuito','!=', 'CyO')
                               ->where('invoice', true)
                               ->count();
     }
