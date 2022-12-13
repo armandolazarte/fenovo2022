@@ -269,10 +269,9 @@
             <td style="font-size:11px;text-align: center;"><span class="{{$p->class}}">@if($p->iva > 0){{number_format($p->iva, 2, ',', '.')}}@endif</span></td>
             <td style="font-size:11px;text-align: right;"><span class="{{$p->class}}"> @if($p->unit_price > 0){{number_format($p->unit_price, 2, ',', '.')}}@endif</span></td>
           @endif
-          @if($invoice->cbte_tipo != 6)
+
             <td style="font-size:11px;text-align: right;"><span class="{{$p->class}}"> @if($p->total > 0){{$p->total}}@endif</span></td>
-          @else
-            <td style="font-size:11px;text-align: right;"><span class="{{$p->class}}"> @if($p->total > 0){{$p->total * (($p->iva / 100)+1)}}@endif</span></td>
+
           @endif
           </tr>
 

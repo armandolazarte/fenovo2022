@@ -115,9 +115,11 @@ class InvoiceController extends Controller
                 $objProduct->bultos     = $producto->bultos;
                 $objProduct->cod_fenovo = ($cyo)?'* '.$producto->product->cod_fenovo:$producto->product->cod_fenovo;
                 $objProduct->cant       = $producto->bultos * $producto->unit_package;
-                $objProduct->iva        = $producto->tasiva;
+                $objProduct->iva        = number_format($producto->tasiva, 2, ',', '.');
                 $objProduct->unit_price = $producto->unit_price;
-                $objProduct->total      = number_format($producto->bultos * $producto->unit_price * $producto->unit_package, 2, ',', '.');
+                $total                  = $producto->bultos * $producto->unit_price * $producto->unit_package;
+                $total                  = ($invoice->cbte_tipo != 6)?$total:$total * (($producto->tasiva / 100)+1);
+                $objProduct->total      = number_format($total, 2, ',', '.');
                 $objProduct->name       =  $producto->product->name;
                 $objProduct->unity      = $producto->product->unit_type;
                 $objProduct->class      = '';
