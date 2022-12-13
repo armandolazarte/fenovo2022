@@ -117,7 +117,13 @@ class InvoiceController extends Controller
                 $objProduct->cant       = $producto->bultos * $producto->unit_package;
                 $objProduct->iva        = number_format($producto->tasiva, 2, ',', '.');
                 $objProduct->unit_price = $producto->unit_price;
-                $objProduct->total      = number_format($producto->bultos * $producto->unit_price * $producto->unit_package, 2, ',', '.');
+
+                if($invoice->cbte_tipo != 6){
+                    $objProduct->total      = number_format($producto->bultos * $producto->unit_price * $producto->unit_package, 2, ',', '.');
+                }else{
+                    $total                 = $producto->bultos * $producto->unit_price * $producto->unit_package;
+                    $objProduct->total      = $total * (($producto->tasiva / 100)+1);
+                }
                 $objProduct->name       =  $producto->product->name;
                 $objProduct->unity      = $producto->product->unit_type;
                 $objProduct->class      = '';
@@ -152,7 +158,7 @@ class InvoiceController extends Controller
                 $objProduct->cod_fenovo = 0;
                 $objProduct->iva        = 'none';
                 $objProduct->name       = 'none';
-                $objProduct->total      = 'none';
+                $objProduct->total      = '0';
                 $objProduct->unit_price = 0;
                 $objProduct->unity      = 'none';
                 $objProduct->class      = 'no-visible';
@@ -166,7 +172,7 @@ class InvoiceController extends Controller
                 $objProduct->cant       = 0;
                 $objProduct->iva        = 0;
                 $objProduct->unit_price = 0;
-                $objProduct->total      = 0;
+                $objProduct->total      = '0';
                 $objProduct->name       = 'Mercadería vendida por cuenta y orden de: <br>'.strtoupper($proveedor_nombre) .' - CUIT N°: '.$producto->product->proveedor->cuit;
                 $objProduct->unity      = ' ';
                 $objProduct->class      = '';
@@ -474,16 +480,21 @@ class InvoiceController extends Controller
                 $fecha             = date('Y-m-d');
                 $iibb              = Iibb::where('state', $this->client->state)->first();
 
-                if(isset($this->client->inscripto_convenio_multilateral)){
-                    if($iibb && $this->client->inscripto_convenio_multilateral){
-                        $iibb = $iibb->value;
-                    }elseif($iibb && !$this->client->inscripto_convenio_multilateral){
-                        $iibb = $iibb->value_no_convenio;
-                    }else{
-                        $iibb  = 0;
-                    }
+                // Tipo factura 6 es Factura B no se calcula IIBB
+                if($tipo_de_factura == 6){
+                    $iibb = 0;
                 }else{
-                    $iibb  = ($iibb) ? $iibb->value : 0;
+                    if(isset($this->client->inscripto_convenio_multilateral)){
+                        if($iibb && $this->client->inscripto_convenio_multilateral){
+                            $iibb = $iibb->value;
+                        }elseif($iibb && !$this->client->inscripto_convenio_multilateral){
+                            $iibb = $iibb->value_no_convenio;
+                        }else{
+                            $iibb  = 0;
+                        }
+                    }else{
+                        $iibb  = ($iibb) ? $iibb->value : 0;
+                    }
                 }
 
                 $importe            = $this->importes($movement, $circuito);

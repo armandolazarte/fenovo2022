@@ -245,8 +245,10 @@
           <th style="font-size:11px;width: 20px;">Bultos</th>
           <th style="font-size:11px;width: 30px;">Cant</th>
           <th style="font-size:11px; ">Producto / Servicio</th>
-          <th style="font-size:11px; width: 30px;">IVA</th>
-          <th style="font-size:11px; width: 70px; ">Precio Unit.</th>
+          @if($invoice->cbte_tipo != 6)
+            <th style="font-size:11px; width: 30px;">IVA</th>
+            <th style="font-size:11px; width: 70px; ">Precio Unit.</th>
+          @endif
           <th style="font-size:11px; width: 70px; ">Importe</th>
         </tr>
 
@@ -263,9 +265,13 @@
           <td style="font-size:11px;text-align: center;"><span class="{{$p->class}}">@if($p->bultos > 0){{$p->bultos}}@endif</span></td>
           <td style="font-size:11px;text-align: right;"><span class="{{$p->class}}"> @if($p->cant > 0)  {{$p->cant}} {{$p->unity}}@endif</span></td>
           <td style="font-size:11px;text-align: left;"><span class="{{$p->class}}">  <strong> {{$p->cod_fenovo}} </strong> - {!!$p->name!!} </span></td>
-          <td style="font-size:11px;text-align: center;"><span class="{{$p->class}}">@if($p->iva > 0){{$p->iva}}@endif</span></td>
-          <td style="font-size:11px;text-align: right;"><span class="{{$p->class}}"> @if($p->unit_price > 0){{number_format($p->unit_price, 2, ',', '.')}}@endif</span></td>
-          <td style="font-size:11px;text-align: right;"><span class="{{$p->class}}"> @if($p->total > 0){{$p->total}}@endif</span></td>
+          @if($invoice->cbte_tipo != 6)
+            <td style="font-size:11px;text-align: center;"><span class="{{$p->class}}">@if($p->iva > 0){{$p->iva}}@endif</span></td>
+            <td style="font-size:11px;text-align: right;"><span class="{{$p->class}}"> @if($p->unit_price > 0){{number_format($p->unit_price, 2, ',', '.')}}@endif</span></td>
+          @endif
+
+            <td style="font-size:11px;text-align: right;"><span class="{{$p->class}}"> @if($p->total != '0'){{$p->total}}@endif</span></td>
+
           </tr>
 
           @endfor
@@ -292,12 +298,19 @@
 
             <td style="text-align:left; width: 140px;">
               @if($pag + 1 == $paginas)
-              <span style="font-size:14px; font-weight: bold;line-height: 22px;">Importe Neto</span><br>
-              @foreach ($alicuotas_array as $item)
-              <span style="font-size:14px; font-weight: bold;line-height: 22px;">I.V.A {{$item->name}}</span><br>
-              @endforeach
-              <span style="font-size:14px; font-weight: bold;line-height: 22px;">Perc IB {{round($invoice->iibb,2)}}%</span><br>
-              <span style="font-size:14px; font-weight: bold;line-height: 22px;">Total Final</span>
+
+              @if($invoice->cbte_tipo != 6)
+                <span style="font-size:14px; font-weight: bold;line-height: 22px;">Importe Neto</span><br>
+                @foreach ($alicuotas_array as $item)
+                  <span style="font-size:14px; font-weight: bold;line-height: 22px;">I.V.A {{$item->name}}</span><br>
+                @endforeach
+              @endif
+
+              @if($invoice->cbte_tipo != 6)
+                <span style="font-size:14px; font-weight: bold;line-height: 22px;">Perc IB {{round($invoice->iibb,2)}}%</span><br>
+              @endif
+
+              <span style="font-size:14px; font-weight: bold;line-height: 22px;">Total @if($invoice->cbte_tipo != 6) Final @endif</span>
               @else
               <span style="font-size:14px; font-weight: bold;line-height: 22px;">Subtotal</span>
               @endif
@@ -305,11 +318,18 @@
 
             <td style="text-align:right;  width: 143px;">
               @if($pag + 1 == $paginas)
-              <span style="font-size:13px;line-height: 22px;margin-right:32px">${{number_format($invoice->imp_neto, 2, ',', '.')}} </span><br>
-              @foreach ($alicuotas_array as $item)
-              <span style="font-size:13px;line-height: 22px;text-align:right">${{$item->value}} </span><br>
-              @endforeach
-              <span style="font-size:13px;line-height: 22px;text-align:right">${{number_format($invoice->imp_trib, 2, ',', '.')}} </span><br>
+
+              @if($invoice->cbte_tipo != 6)
+                <span style="font-size:13px;line-height: 22px;margin-right:32px">${{number_format($invoice->imp_neto, 2, ',', '.')}} </span><br>
+                @foreach ($alicuotas_array as $item)
+                  <span style="font-size:13px;line-height: 22px;text-align:right">${{$item->value}} </span><br>
+                @endforeach
+              @endif
+
+              @if($invoice->cbte_tipo != 6)
+                <span style="font-size:13px;line-height: 22px;text-align:right">${{number_format($invoice->imp_trib, 2, ',', '.')}} </span><br>
+              @endif
+
               <span style="font-size:13px;line-height: 22px;text-align:right">${{number_format($invoice->imp_total, 2, ',', '.')}}</span>
               @else
               <span style="font-size:13px;line-height: 22px;text-align:right">${{number_format($subtotal_pagina, 2, ',', '.')}}</span>
