@@ -523,7 +523,7 @@ class IngresosController extends Controller
                         $prices = $product->product_price;
                     }
 
-                    $invoice = 1;
+                   // $invoice = 1; Lo comento , no se porque lo puso siempre facturado
 
                     // Movimiento SALIDA FENOVO
                     MovementProduct::create([
@@ -532,13 +532,14 @@ class IngresosController extends Controller
                         'entidad_tipo' => 'S',
                         'product_id'   => $movimiento['product_id'],
                         'unit_package' => $movimiento['unit_package'],
-                        'invoice'      => $invoice,
+                        //'invoice'      => $invoice,
                         'iibb'         => $product->iibb,
                         'unit_price'   => $prices->plist0neto,       //
                         'cost_fenovo'  => $prices->costfenovo,
                         'tasiva'       => $prices->tasiva,
                         'unit_type'    => $movimiento['unit_type'],
                         'entry'        => 0,
+                        'invoice'      => $movimiento['invoice'],
                         'bultos'       => $movimiento['bultos'],
                         'egress'       => $movimiento['entry'],
                         'balance'      => $balance_nave,
