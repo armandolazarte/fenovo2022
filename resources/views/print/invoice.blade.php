@@ -294,13 +294,13 @@
               @if($pag + 1 == $paginas)
               <span style="font-size:14px; font-weight: bold;line-height: 22px;">Importe Neto</span><br>
 
-              @if($invoice->cbte_tipo > 0)
+              @if($invoice->cbte_tipo != 6)
                 @foreach ($alicuotas_array as $item)
                   <span style="font-size:14px; font-weight: bold;line-height: 22px;">I.V.A {{$item->name}}</span><br>
                 @endforeach
               @endif
 
-              @if($invoice->cbte_tipo > 0)
+              @if($invoice->cbte_tipo != 6)
                 <span style="font-size:14px; font-weight: bold;line-height: 22px;">Perc IB {{round($invoice->iibb,2)}}%</span><br>
               @endif
 
@@ -314,13 +314,13 @@
               @if($pag + 1 == $paginas)
               <span style="font-size:13px;line-height: 22px;margin-right:32px">${{number_format($invoice->imp_neto, 2, ',', '.')}} </span><br>
 
-              @if($invoice->cbte_tipo > 0)
+              @if($invoice->cbte_tipo != 6)
                 @foreach ($alicuotas_array as $item)
                   <span style="font-size:13px;line-height: 22px;text-align:right">${{$item->value}} </span><br>
                 @endforeach
               @endif
 
-              @if($invoice->cbte_tipo > 0)
+              @if($invoice->cbte_tipo != 6)
                 <span style="font-size:13px;line-height: 22px;text-align:right">${{number_format($invoice->imp_trib, 2, ',', '.')}} </span><br>
               @endif
 
