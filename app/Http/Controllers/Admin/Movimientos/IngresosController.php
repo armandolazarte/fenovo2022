@@ -83,7 +83,7 @@ class IngresosController extends Controller
                 })
                 ->addColumn('edit', function ($movement) {
                     //if ($movement->categoria == 1) {
-                        return '<a href="' . route('ingresos.edit', ['id' => $movement->id]) . '"> <i class="fa fa-pencil-alt"></i></a>';
+                    return '<a href="' . route('ingresos.edit', ['id' => $movement->id]) . '"> <i class="fa fa-pencil-alt"></i></a>';
                     //}
                     //return '<a href="' . route('ingresos.editNocongelados', ['id' => $movement->id]) . '"> <i class="fa fa-pencil-alt"></i></a>' . $movement->categoria;
                 })
@@ -396,7 +396,6 @@ class IngresosController extends Controller
 
             // Considerar cada uno de los movimientos
             foreach ($movement_temp->movement_ingreso_products as $movimiento) {
-
                 // Ajusto el STOCK DEL PRODUCTO luego de la compra
                 $product        = Product::find($movimiento['product_id']);
                 $latest         = $product->stockReal();
@@ -405,7 +404,7 @@ class IngresosController extends Controller
 
                 if ($movimiento['cyo'] == 1) {
                     $product->stock_cyo = $product->stock_cyo + $movimiento['entry'];
-                } elseif ($movimiento['invoice']  == 1 ) {
+                } elseif ($movimiento['invoice']  == 1) {
                     $product->stock_f = $product->stock_f + $movimiento['entry'];
                 } else {
                     $product->stock_r = $product->stock_r + $movimiento['entry'];
@@ -463,9 +462,8 @@ class IngresosController extends Controller
 
                 // Generar la venta directa si viene el Id de Store
                 if ($tienda) {
-
                     // Ajusto STOCK DE NAVE - "RESTO ENTRADA"
-                    if ($movimiento['cyo']  == 1 ) {
+                    if ($movimiento['cyo']  == 1) {
                         $product->stock_cyo = $product->stock_cyo - $movimiento['entry'];
                     } elseif ($movimiento['invoice']  == 1) {
                         $product->stock_f = $product->stock_f - $movimiento['entry'];
@@ -860,14 +858,16 @@ class IngresosController extends Controller
             // Recorro el arreglo y voy guardando
             foreach ($movement_temp->movement_products as $movimiento) {
                 $cantidad = $movimiento['entry'];
-                $latest   = 0;
+
+                $latest_tienda_egreso   = 0;
+                $latest_tienda_ingreso   = 0;
 
                 // Ajustar tiendaEgreso
                 if ($tiendaEgreso == 1) {
                     $product          = Product::find($movimiento['product_id']);
                     $product->stock_f = $product->stock_f - $cantidad;
                     $product->save();
-                    $latest = $product->stockReal();
+                    $latest_tienda_egreso = $product->stockReal();
                 } else {
                     $product_store = ProductStore::whereProductId($movimiento['product_id'])->whereStoreId($tiendaEgreso)->first();
 
@@ -884,12 +884,12 @@ class IngresosController extends Controller
                         }
 
                         $product_store->save();
-                        $latest = $product_store->stock_f;
+                        $latest_tienda_egreso = $product_store->stock_f + $product_store->stock_r + $product_store->stock_cyo;
                     } else {
-                        $latest                        = 0 - $cantidad;
+                        $latest_tienda_egreso          = 0 - $cantidad;
                         $data_prod_store['product_id'] = $movimiento['product_id'];
                         $data_prod_store['store_id']   = $tiendaEgreso;
-                        $data_prod_store['stock_f']    = $latest;
+                        $data_prod_store['stock_f']    = $latest_tienda_egreso;
                         $data_prod_store['stock_r']    = 0;
                         $data_prod_store['stock_cyo']  = 0;
                         ProductStore::create($data_prod_store);
@@ -913,7 +913,7 @@ class IngresosController extends Controller
                     'bultos'       => $movimiento['bultos'],
                     'entry'        => 0,
                     'egress'       => $cantidad,
-                    'balance'      => $latest,
+                    'balance'      => $latest_tienda_egreso,
                 ]);
 
                 // Ajustar tiendaIngreso
@@ -921,18 +921,19 @@ class IngresosController extends Controller
                     $product          = Product::find($movimiento['product_id']);
                     $product->stock_f = $product->stock_f + $cantidad;
                     $product->save();
-                    $latest = $product->stockReal();
-                } else {
+                    $latest_tienda_ingreso = $product->stockReal();
+                } else {                    
+
                     $product_store = ProductStore::whereProductId($movimiento['product_id'])->whereStoreId($tiendaIngreso)->first();
                     if ($product_store) {
                         $product_store->stock_f = $product_store->stock_f + $cantidad;
                         $product_store->save();
-                        $latest = $product_store->stock_f;
+                        $latest_tienda_ingreso = $product_store->stock_f + $product_store->stock_r + $product_store->stock_cyo;
                     } else {
-                        $latest                        = $cantidad;
+                        $latest_tienda_ingreso         = $cantidad;
                         $data_prod_store['product_id'] = $movimiento['product_id'];
                         $data_prod_store['store_id']   = $tiendaIngreso;
-                        $data_prod_store['stock_f']    = $latest;
+                        $data_prod_store['stock_f']    = $latest_tienda_ingreso;
                         $data_prod_store['stock_r']    = 0;
                         $data_prod_store['stock_cyo']  = 0;
                         ProductStore::create($data_prod_store);
@@ -955,7 +956,7 @@ class IngresosController extends Controller
                     'bultos'       => $movimiento['bultos'],
                     'entry'        => $cantidad,
                     'egress'       => 0,
-                    'balance'      => $latest,
+                    'balance'      => $latest_tienda_ingreso,
                 ]);
             }
 
