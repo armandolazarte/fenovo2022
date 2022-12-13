@@ -524,7 +524,7 @@ class IngresosController extends Controller
                     }
 
                    // $invoice = 1; Lo comento , no se porque lo puso siempre facturado
-                    $invoice =$movimiento['invoice'];
+                    $invoice = ($circuito == 'CyO')?1:$movimiento['invoice'];
                     // Movimiento SALIDA FENOVO
                     MovementProduct::create([
                         'movement_id'  => $movement_venta->id,
