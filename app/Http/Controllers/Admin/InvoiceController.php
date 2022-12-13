@@ -154,7 +154,7 @@ class InvoiceController extends Controller
                 $objProduct->cod_fenovo = 0;
                 $objProduct->iva        = 'none';
                 $objProduct->name       = 'none';
-                $objProduct->total      = 0;
+                $objProduct->total      = '0';
                 $objProduct->unit_price = 0;
                 $objProduct->unity      = 'none';
                 $objProduct->class      = 'no-visible';
@@ -168,13 +168,13 @@ class InvoiceController extends Controller
                 $objProduct->cant       = 0;
                 $objProduct->iva        = 0;
                 $objProduct->unit_price = 0;
-                $objProduct->total      = 0;
+                $objProduct->total      = '0';
                 $objProduct->name       = 'Mercadería vendida por cuenta y orden de: <br>'.strtoupper($proveedor_nombre) .' - CUIT N°: '.$producto->product->proveedor->cuit;
                 $objProduct->unity      = ' ';
                 $objProduct->class      = '';
                 array_push($array_productos, $objProduct);
             }
-            dd($array_productos);
+
             $alicuotas = json_decode($invoice->ivas);
             foreach ($alicuotas as $alicuota) {
                 $objAlicuota        = new stdClass();
