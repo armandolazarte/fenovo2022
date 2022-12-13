@@ -272,7 +272,7 @@
           @if($invoice->cbte_tipo != 6)
             <td style="font-size:11px;text-align: right;"><span class="{{$p->class}}"> @if($p->total > 0){{$p->total}}@endif</span></td>
           @else
-            <td style="font-size:11px;text-align: right;"><span class="{{$p->class}}"> @if($p->total > 0){{$p->total * (($p->iva / 100)+1)}}@endif</span></td>
+            <td style="font-size:11px;text-align: right;"><span class="{{$p->class}}"> @if($p->total > 0){{$p->total * (((float)$p->iva / 100)+1)}}@endif</span></td>
           @endif
           </tr>
 
