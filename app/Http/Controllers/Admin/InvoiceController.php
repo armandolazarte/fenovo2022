@@ -117,8 +117,8 @@ class InvoiceController extends Controller
                 $objProduct->cant       = $producto->bultos * $producto->unit_package;
                 $objProduct->iva        = number_format($producto->tasiva, 2, ',', '.');
                 $objProduct->unit_price = $producto->unit_price;
-                $total                  = $producto->bultos * $producto->unit_price * $producto->unit_package;
-                $total                  = ($invoice->cbte_tipo != 6)?$total:$total * (($producto->tasiva / 100)+1);
+                $_total                 = $producto->bultos * $producto->unit_price * $producto->unit_package;
+                $total                  = ($invoice->cbte_tipo != 6)?$_total:$_total * (($producto->tasiva / 100)+1);
                 $objProduct->total      = number_format($total, 2, ',', '.');
                 $objProduct->name       =  $producto->product->name;
                 $objProduct->unity      = $producto->product->unit_type;
@@ -190,7 +190,7 @@ class InvoiceController extends Controller
 
             $qr_url      = 'images/' . $invoice->voucher_number . '.svg';
             $voucherType = VoucherType::where('afip_id', $invoice->cbte_tipo)->first();
-
+            dd($titulo,$cyo, $invoice, $array_productos, $alicuotas_array, $voucherType, $qr_url, $paginas, $total_lineas)
             $path = 'facturas/'.$invoice->voucher_number;
             $pdf = PDF::loadView('print.invoice', compact('titulo','cyo', 'invoice', 'array_productos', 'alicuotas_array', 'voucherType', 'qr_url', 'paginas', 'total_lineas'));
             $link = Storage::disk('spaces-do')->put($path , $pdf->output(),'public');
