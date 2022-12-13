@@ -154,7 +154,7 @@ class InvoiceController extends Controller
                 $objProduct->cod_fenovo = 0;
                 $objProduct->iva        = 'none';
                 $objProduct->name       = 'none';
-                $objProduct->total      = 'none';
+                $objProduct->total      = 0;
                 $objProduct->unit_price = 0;
                 $objProduct->unity      = 'none';
                 $objProduct->class      = 'no-visible';
