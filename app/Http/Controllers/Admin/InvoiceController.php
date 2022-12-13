@@ -474,16 +474,21 @@ class InvoiceController extends Controller
                 $fecha             = date('Y-m-d');
                 $iibb              = Iibb::where('state', $this->client->state)->first();
 
-                if(isset($this->client->inscripto_convenio_multilateral)){
-                    if($iibb && $this->client->inscripto_convenio_multilateral){
-                        $iibb = $iibb->value;
-                    }elseif($iibb && !$this->client->inscripto_convenio_multilateral){
-                        $iibb = $iibb->value_no_convenio;
-                    }else{
-                        $iibb  = 0;
-                    }
+                // Tipo factura 6 es Factura B no se calcula IIBB
+                if($tipo_de_factura == 6){
+                    $iibb = 0;
                 }else{
-                    $iibb  = ($iibb) ? $iibb->value : 0;
+                    if(isset($this->client->inscripto_convenio_multilateral)){
+                        if($iibb && $this->client->inscripto_convenio_multilateral){
+                            $iibb = $iibb->value;
+                        }elseif($iibb && !$this->client->inscripto_convenio_multilateral){
+                            $iibb = $iibb->value_no_convenio;
+                        }else{
+                            $iibb  = 0;
+                        }
+                    }else{
+                        $iibb  = ($iibb) ? $iibb->value : 0;
+                    }
                 }
 
                 $importe            = $this->importes($movement, $circuito);
