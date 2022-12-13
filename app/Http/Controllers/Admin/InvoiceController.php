@@ -190,7 +190,7 @@ class InvoiceController extends Controller
 
             $qr_url      = 'images/' . $invoice->voucher_number . '.svg';
             $voucherType = VoucherType::where('afip_id', $invoice->cbte_tipo)->first();
-            dd($titulo,$cyo, $invoice, $array_productos, $alicuotas_array, $voucherType, $qr_url, $paginas, $total_lineas)
+            dd($titulo,$cyo, $invoice, $array_productos, $alicuotas_array, $voucherType, $qr_url, $paginas, $total_lineas);
             $path = 'facturas/'.$invoice->voucher_number;
             $pdf = PDF::loadView('print.invoice', compact('titulo','cyo', 'invoice', 'array_productos', 'alicuotas_array', 'voucherType', 'qr_url', 'paginas', 'total_lineas'));
             $link = Storage::disk('spaces-do')->put($path , $pdf->output(),'public');
