@@ -64,6 +64,8 @@ class CabeEleExport implements FromView {
                 $tipo_factura = 'FCA';
             }elseif($invoice->tipoFactura->afip_id == 2){
                 $tipo_factura = 'NDA';
+            }elseif($invoice->cbte_tipo == 6){
+                $tipo_factura = 'FCB';
             }
             $explodes = explode('-',$invoice->voucher_number);
             $ptoVta = str_pad((int)$explodes[0], 4, "0", STR_PAD_LEFT);
