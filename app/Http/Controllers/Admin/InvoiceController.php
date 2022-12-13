@@ -115,7 +115,7 @@ class InvoiceController extends Controller
                 $objProduct->bultos     = $producto->bultos;
                 $objProduct->cod_fenovo = ($cyo)?'* '.$producto->product->cod_fenovo:$producto->product->cod_fenovo;
                 $objProduct->cant       = $producto->bultos * $producto->unit_package;
-                $objProduct->iva        = number_format($producto->tasiva, 2, ',', '.');
+                $objProduct->iva        = $producto->tasiva;
                 $objProduct->unit_price = $producto->unit_price;
                 $objProduct->total      = number_format($producto->bultos * $producto->unit_price * $producto->unit_package, 2, ',', '.');
                 $objProduct->name       =  $producto->product->name;
