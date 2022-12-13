@@ -272,7 +272,6 @@
 
             <td style="font-size:11px;text-align: right;"><span class="{{$p->class}}"> @if($p->total > 0){{$p->total}}@endif</span></td>
 
-          @endif
           </tr>
 
           @endfor
