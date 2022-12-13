@@ -174,7 +174,7 @@ class InvoiceController extends Controller
                 $objProduct->class      = '';
                 array_push($array_productos, $objProduct);
             }
-
+            dd($array_productos);
             $alicuotas = json_decode($invoice->ivas);
             foreach ($alicuotas as $alicuota) {
                 $objAlicuota        = new stdClass();
