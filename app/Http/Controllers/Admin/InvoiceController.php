@@ -117,9 +117,13 @@ class InvoiceController extends Controller
                 $objProduct->cant       = $producto->bultos * $producto->unit_package;
                 $objProduct->iva        = number_format($producto->tasiva, 2, ',', '.');
                 $objProduct->unit_price = $producto->unit_price;
-                $_total                 = $producto->bultos * $producto->unit_price * $producto->unit_package;
-                $total                  = ($invoice->cbte_tipo != 6)?$_total:$_total * (($producto->tasiva / 100)+1);
-                $objProduct->total      = number_format($total, 2, ',', '.');
+
+                if($invoice->cbte_tipo != 6){
+                    $objProduct->total      = number_format($producto->bultos * $producto->unit_price * $producto->unit_package, 2, ',', '.');
+                }else{
+                    $total                 = $producto->bultos * $producto->unit_price * $producto->unit_package;
+                    $objProduct->total      = $total * (($producto->tasiva / 100)+1);
+                }
                 $objProduct->name       =  $producto->product->name;
                 $objProduct->unity      = $producto->product->unit_type;
                 $objProduct->class      = '';
