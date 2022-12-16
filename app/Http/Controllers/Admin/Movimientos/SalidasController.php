@@ -699,7 +699,7 @@ class SalidasController extends Controller
 
     public function show(Request $request)
     {
-        $movement = Movement::query()->where('id', $request->id)->with('movement_salida_products')->first();
+        $movement = Movement::query()->where('id', $request->id)->with('movement_salida_all_products')->first();
         $store    = Store::find($movement->to);
         return view('admin.movimientos.salidas.show', compact('movement', 'store'));
     }

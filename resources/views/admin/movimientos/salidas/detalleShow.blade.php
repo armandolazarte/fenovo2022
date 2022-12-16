@@ -20,7 +20,7 @@
             $subtotal = 0;
             @endphp
 
-            @foreach ($movement->movement_salida_products as $movimiento)
+            @foreach ($movement->movement_salida_all_products as $movimiento)
             <tr>
                 <td> {{ $loop->iteration }}</td>
                 <td> {{ $movimiento->product->cod_fenovo }} </td>
@@ -47,8 +47,8 @@
                 <th></th>
                 <th></th>
                 <th></th>
-                <th>{{ number_format($movement->movement_salida_products->sum('bultos'),2) }}</th>
-                <th>{{ number_format($movement->movement_salida_products->sum('egress'),2) }} Kgrs</th>
+                <th>{{ number_format($movement->movement_salida_all_products->sum('bultos'),2) }}</th>
+                <th>{{ number_format($movement->movement_salida_all_products->sum('egress'),2) }} Kgrs</th>
                 <th>{{ $subtotal }}</th>
             </tr>
             <tr>
