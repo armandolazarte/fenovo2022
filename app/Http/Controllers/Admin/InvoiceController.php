@@ -110,6 +110,7 @@ class InvoiceController extends Controller
                                             ->get();
             }
             $proveedor_nombre = '';
+            dd($productos);
             foreach ($productos as $producto) {
                 $objProduct             = new stdClass();
                 $objProduct->bultos     = $producto->bultos;
@@ -197,7 +198,6 @@ class InvoiceController extends Controller
 
             $path = 'facturas/'.$invoice->voucher_number;
 
-            dd($array_productos);
             $pdf = PDF::loadView('print.invoice', compact('titulo','cyo', 'invoice', 'array_productos', 'alicuotas_array', 'voucherType', 'qr_url', 'paginas', 'total_lineas'));
             $link = Storage::disk('spaces-do')->put($path , $pdf->output(),'public');
             $url = Storage::disk('spaces-do')->url($path);
