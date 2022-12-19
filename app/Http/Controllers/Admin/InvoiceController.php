@@ -282,7 +282,6 @@ class InvoiceController extends Controller
                 if($movement->type != 'TRASLADO'){
                     // Inicio creacion del invoice cta y orden
                     $movement = Movement::where('id', $movement_id)->with('salida_products_cyo')->firstOrFail();
-                    dd($movement);
                     if(isset($movement->salida_products_cyo) && count($movement->salida_products_cyo)){
                         $movements = $movement->salida_products_cyo->groupBy('punto_venta');
                         $invoice_cyo = null;
@@ -293,6 +292,7 @@ class InvoiceController extends Controller
 
                             $result  = $this->createVoucher($movement,$punto_venta,'CyO');
 
+                            dd($result);
                             if ($result['status']) {
                                 $invoice_cyo = $this->invoiceRepository->getByMovement($movement_id,$punto_venta);
                                 if (isset($invoice_cyo)) {
