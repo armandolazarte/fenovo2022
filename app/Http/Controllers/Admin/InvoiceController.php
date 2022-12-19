@@ -706,12 +706,14 @@ class InvoiceController extends Controller
     private function voucherType($type, $tipo_movimiento)
     {
         $factura = 6; //Por defecto FACTURA B
-        if (($type == 'RI' && $tipo_movimiento == 'VENTA') || $type == 'RI' && $tipo_movimiento == 'VENTACLIENTE') {
+        if (($type == 'RI' && $tipo_movimiento == 'VENTA') || ($type == 'RI' && $tipo_movimiento == 'VENTACLIENTE') || ($type == 'RI' && $tipo_movimiento == 'TRASLADOINTERNO')) {
             $factura = 1;
         } //FACTURA A
-        if (($type != 'RI' && $tipo_movimiento == 'VENTA') || $type != 'RI' && $tipo_movimiento == 'VENTACLIENTE') {
+
+        if (($type != 'RI' && $tipo_movimiento == 'VENTA') || ($type != 'RI' && $tipo_movimiento == 'VENTACLIENTE') || ($type == 'RI' && $tipo_movimiento == 'TRASLADOINTERNO')) {
             $factura = 6;
         } //FACTURA B
+
         if (($type == 'RI' && $tipo_movimiento == 'DEVOLUCION') || $type == 'RI' && $tipo_movimiento == 'DEVOLUCIONCLIENTE') {
             $factura = 3;
         } //NOTA CREDITO A
