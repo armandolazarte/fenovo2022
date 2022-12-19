@@ -695,22 +695,22 @@ class InvoiceController extends Controller
     private function dataClient($type, $id)
     {
         switch ($type) {
-          case 'VENTA':
-          case 'TRASLADO':
-          case 'TRASLADOINTERNO':
-            $this->client = Store::where('id', 1)->where('active', 1)->with('region')->first();
-            return true;
-          case 'DEVOLUCION':
-          case 'DEBITO':
-            $this->client = Store::where('id', $id)->where('active', 1)->with('region')->first();
-            return true;
-          case 'VENTACLIENTE':
-          case 'DEBITOCLIENTE':
-          case 'DEVOLUCIONCLIENTE':
-            $this->client = Customer::where('id', $id)->where('active', 1)->with('store')->first();
-            return true;
-          default:
-            return false;
+            case 'TRASLADOINTERNO':
+                $this->client = Store::where('id', 1)->where('active', 1)->with('region')->first();
+                return true;
+            case 'VENTA':
+            case 'TRASLADO':
+            case 'DEVOLUCION':
+            case 'DEBITO':
+                $this->client = Store::where('id', $id)->where('active', 1)->with('region')->first();
+                return true;
+            case 'VENTACLIENTE':
+            case 'DEBITOCLIENTE':
+            case 'DEVOLUCIONCLIENTE':
+                $this->client = Customer::where('id', $id)->where('active', 1)->with('store')->first();
+                return true;
+            default:
+                return false;
         }
     }
 

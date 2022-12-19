@@ -188,7 +188,8 @@ class SalidasController extends Controller
                     if (isset($movimiento->invoice) && count($movimiento->invoice)) {
                         $urls = '';
                         foreach ($movimiento->invoice as $invoice) {
-                            if ((!is_null($invoice->cae) && !is_null($invoice->url) && $movimiento->status == 'FINISHED') || !is_null($invoice->cae) && !is_null($invoice->url) && $movimiento->status == 'FINISHED_AND_GENERATED_FACT') {
+                            if ((!is_null($invoice->cae) && !is_null($invoice->url) && $movimiento->status == 'FINISHED') ||
+                                 !is_null($invoice->cae) && !is_null($invoice->url) && $movimiento->status == 'FINISHED_AND_GENERATED_FACT') {
                                 $number = ($invoice->cyo) ? 'CyO - ' . $invoice->voucher_number : $invoice->voucher_number;
                                 $urls .= '<a class="text-primary" title="Descargar factura" target="_blank" href="' . $invoice->url . '"> ' . $number . ' </a><br>';
                             } elseif (!is_null($invoice->cae) && is_null($invoice->url)) {
