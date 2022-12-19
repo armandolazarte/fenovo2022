@@ -196,6 +196,8 @@ class InvoiceController extends Controller
             $voucherType = VoucherType::where('afip_id', $invoice->cbte_tipo)->first();
 
             $path = 'facturas/'.$invoice->voucher_number;
+
+            dd($array_productos);
             $pdf = PDF::loadView('print.invoice', compact('titulo','cyo', 'invoice', 'array_productos', 'alicuotas_array', 'voucherType', 'qr_url', 'paginas', 'total_lineas'));
             $link = Storage::disk('spaces-do')->put($path , $pdf->output(),'public');
             $url = Storage::disk('spaces-do')->url($path);
@@ -294,7 +296,7 @@ class InvoiceController extends Controller
 
                             if ($result['status']) {
                                 $invoice_cyo = $this->invoiceRepository->getByMovement($movement_id,$punto_venta);
-                                dd($invoice_cyo);
+
                                 if (isset($invoice_cyo)) {
                                     $inv   = Invoice::whereNotNull('cae')->orderBy('orden', 'DESC')->first();
                                     $orden = (isset($inv)) ? $inv->orden + 1 : 1;
