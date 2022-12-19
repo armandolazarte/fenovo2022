@@ -22,8 +22,8 @@ class MovementsViewExport implements FromView
 
     public function view(): View
     {
-        
-        $arrTipos   = ['COMPRA', 'VENTA', 'VENTACLIENTE', 'TRASLADO', 'DEVOLUCION', 'DEVOLUCIONCLIENTE', 'AJUSTE'];
+
+        $arrTipos   = ['COMPRA', 'VENTA', 'VENTACLIENTE', 'TRASLADO', 'TRASLADOINTERNO', 'DEVOLUCION', 'DEVOLUCIONCLIENTE', 'AJUSTE'];
         $arrEntrada = ['COMPRA', 'VENTA', 'VENTACLIENTE', 'TRASLADO'];
 
         // Actualizo los movimientos como exportados

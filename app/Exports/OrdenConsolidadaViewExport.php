@@ -21,8 +21,8 @@ class OrdenConsolidadaViewExport implements FromView
     {
         // Tipos de movimientos
         $arrOtros = ['COMPRA', 'DEVOLUCION', 'DEVOLUCIONCLIENTE', 'AJUSTE'];
-        $arrTypes = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
-        $arrTodos = ['VENTA', 'VENTACLIENTE', 'TRASLADO', 'COMPRA', 'DEVOLUCION', 'DEVOLUCIONCLIENTE', 'AJUSTE'];
+        $arrTypes = ['VENTA', 'VENTACLIENTE', 'TRASLADO', 'TRASLADOINTERNO'];
+        $arrTodos = ['VENTA', 'VENTACLIENTE', 'TRASLADO', 'TRASLADOINTERNO', 'COMPRA', 'DEVOLUCION', 'DEVOLUCIONCLIENTE', 'AJUSTE'];
 
         // Tomo los movimientos de 15 dias atras
         $fecha = Carbon::now()->subDays(15)->toDateTimeString();
@@ -56,14 +56,14 @@ class OrdenConsolidadaViewExport implements FromView
             $panama2 = ($movimiento->hasFlete()) ? str_pad($cip, 4, '0', STR_PAD_LEFT) . '-' . str_pad($movimiento->getFlete()->orden, 8, '0', STR_PAD_LEFT) : '0.0';
 
             if($movimiento->type == 'VENTACLIENTE'){
-                $tipo = 'VENTA';   
+                $tipo = 'VENTA';
             }else{
                 if ($movimiento->type == 'VENTA' && $movimiento->observacion == 'VENTA DIRECTA') {
-                    $tipo = 'VENTA DIRECTA';   
+                    $tipo = 'VENTA DIRECTA';
                 }else{
                     $tipo = $movimiento->type;
                 }
-            } 
+            }
 
             /* 1  */ $objMovimiento->id         = str_pad($movimiento->id, 8, '0', STR_PAD_LEFT);
             /* 2  */ $objMovimiento->fecha      = date('d/m/Y', strtotime($movimiento->date));
