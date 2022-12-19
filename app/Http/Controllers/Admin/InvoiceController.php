@@ -83,8 +83,6 @@ class InvoiceController extends Controller
     {
         $titulo          = 'FACTURA ELECTRÓNICA';
         $array_productos = $alicuotas_array = [];
-
-        dd($movement_id,$pto_vta,$cyo);
         $invoice         = $this->invoiceRepository->getByMovement($movement_id,$pto_vta);
 
         if (!is_null($invoice->cae)) {
@@ -301,6 +299,7 @@ class InvoiceController extends Controller
                                 if (isset($invoice_cyo)) {
                                     $inv   = Invoice::whereNotNull('cae')->orderBy('orden', 'DESC')->first();
                                     $orden = (isset($inv)) ? $inv->orden + 1 : 1;
+                                    dd($inv ,$orden,$result);
                                     $this->invoiceRepository->fill($invoice_cyo->id, [
                                         'error'      => null,
                                         'orden'      => $orden,
