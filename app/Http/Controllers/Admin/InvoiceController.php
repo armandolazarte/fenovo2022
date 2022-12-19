@@ -222,7 +222,7 @@ class InvoiceController extends Controller
             $pto_vta       = $cuit = $iva_type = '';
             $cliente       = null;
 
-            if ($movement->type == 'VENTA' || $movement->type == 'TRASLADO') {
+            if ($movement->type == 'VENTA' || $movement->type == 'TRASLADO' || $movement->type == 'TRASLADOINTERNO') {
                 $cliente = Store::where('id', $movement->to)->with('region')->first();
                 $pto_vta = 'PVTA_' . str_pad($cliente->cod_fenovo, 3, '0', STR_PAD_LEFT);
             } elseif ($movement->type == 'VENTACLIENTE') {
@@ -251,7 +251,7 @@ class InvoiceController extends Controller
             $data_panama['cip']             = (is_null($store_from->cip))?8889:$store_from->cip;
 
             if(isset($movement->products) && count($movement->products)){
-                if($movement->verifSiFactura() && $movement->type != 'TRASLADO'){
+                if(($movement->verifSiFactura() && $movement->type != 'TRASLADO' && $movement->type != 'TRASLADOINTERNO')){
                     $result  = $this->createVoucher($movement,$this->pto_vta);
                     if ($result['status']) {
                         $invoice = $this->invoiceRepository->getByMovement($movement_id,$this->pto_vta);
@@ -279,7 +279,7 @@ class InvoiceController extends Controller
 
             // fin de creacion del invoice con punto de vta fenovo
             if(is_null($error)){
-                if($movement->type != 'TRASLADO'){
+                if($movement->type != 'TRASLADO' && $movement->type != 'TRASLADOINTERNO'){
                     // Inicio creacion del invoice cta y orden
                     $movement = Movement::where('id', $movement_id)->with('salida_products_cyo')->firstOrFail();
                     if(isset($movement->salida_products_cyo) && count($movement->salida_products_cyo)){
@@ -320,7 +320,7 @@ class InvoiceController extends Controller
             }
 
             if(is_null($error)){
-                if ($movement->verifSiCreatePanama() && $movement->type != 'TRASLADO') {
+                if (($movement->verifSiCreatePanama() && $movement->type != 'TRASLADO' && $movement->type != 'TRASLADOINTERNO')) {
                     $ordenPanama += 1;
                     $data_panama['tipo']               = 'PAN';
                     $data_panama['orden']              = $ordenPanama;
@@ -688,6 +688,7 @@ class InvoiceController extends Controller
         switch ($type) {
           case 'VENTA':
           case 'TRASLADO':
+          case 'TRASLADOINTERNO':
           case 'DEVOLUCION':
           case 'DEBITO':
             $this->client = Store::where('id', $id)->where('active', 1)->with('region')->first();
