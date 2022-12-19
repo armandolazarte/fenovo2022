@@ -120,7 +120,7 @@ class Movement extends Model
     {
         $kgrs = 0;
         $arrIngreso = ['COMPRA', 'DEVOLUCION', 'DEVOLUCIONCLIENTE'];
-        $arrEgreso  = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
+        $arrEgreso  = ['VENTA', 'VENTACLIENTE', 'TRASLADO','TRASLADOINTERNO'];
         $mp         = (in_array($this->type, $arrIngreso)) ? $this->movement_ingreso_products : $this->movement_salida_products;
 
         foreach ($mp as $m) {
@@ -223,6 +223,7 @@ class Movement extends Model
                 return $Proveedor->name;
             case 'VENTA':
             case 'TRASLADO':
+            case 'TRASLADOINTERNO':
             case 'AJUSTE':
             case 'DEVOLUCION':
             case 'DEBITO':
@@ -244,6 +245,7 @@ class Movement extends Model
             case 'COMPRA':
             case 'VENTA':
             case 'TRASLADO':
+            case 'TRASLADOINTERNO':
             case 'AJUSTE':
             case 'DEBITO':
             case 'DEVOLUCION':
@@ -270,7 +272,9 @@ class Movement extends Model
     public function origenData($type)
     {
         $typeTo = $this->to;
-        if (($type == 'TRASLADO' && Auth::user()->store_active == $typeTo) || $type == 'VENTA' && Auth::user()->store_active == $typeTo) {
+        if (($type == 'TRASLADO' && Auth::user()->store_active == $typeTo) ||
+            ($type == 'TRASLADOINTERNO' && Auth::user()->store_active == $typeTo) ||
+             $type == 'VENTA' && Auth::user()->store_active == $typeTo) {
             $typeTo = $this->from;
         }
 
@@ -280,6 +284,7 @@ class Movement extends Model
                 return $proveedor->name;
             case 'VENTA':
             case 'TRASLADO':
+            case 'TRASLADOINTERNO':
             case 'DEVOLUCION':
             case 'DEBITO':
                 $Store = Store::find($typeTo);
@@ -299,7 +304,7 @@ class Movement extends Model
 
     public function neto()
     {
-        $arrEgreso = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
+        $arrEgreso = ['VENTA', 'VENTACLIENTE', 'TRASLADO','TRASLADOINTERNO'];
 
         $netoInvoice = DB::table('movements as m')
             ->join('movement_products as mp', 'mp.movement_id', '=', 'm.id')
@@ -320,7 +325,7 @@ class Movement extends Model
 
     public function neto21($invoice)
     {
-        $arrEgreso = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
+        $arrEgreso = ['VENTA', 'VENTACLIENTE', 'TRASLADO','TRASLADOINTERNO'];
 
         $neto = DB::table('movements as m')
             ->join('movement_products as mp', 'mp.movement_id', '=', 'm.id')
@@ -344,7 +349,7 @@ class Movement extends Model
 
     public function neto105($invoice)
     {
-        $arrEgreso = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
+        $arrEgreso = ['VENTA', 'VENTACLIENTE', 'TRASLADO','TRASLADOINTERNO'];
 
         $neto = DB::table('movements as m')
             ->join('movement_products as mp', 'mp.movement_id', '=', 'm.id')
@@ -368,7 +373,7 @@ class Movement extends Model
 
     public function totalConIva($invoice)
     {
-        $arrEgreso = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
+        $arrEgreso = ['VENTA', 'VENTACLIENTE', 'TRASLADO','TRASLADOINTERNO'];
 
         $neto = DB::table('movements as m')
             ->join('movement_products as mp', 'mp.movement_id', '=', 'm.id')
@@ -390,7 +395,7 @@ class Movement extends Model
 
     public function totalIibb($invoice)
     {
-        $arrEgreso = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
+        $arrEgreso = ['VENTA', 'VENTACLIENTE', 'TRASLADO','TRASLADOINTERNO'];
 
         $neto = DB::table('movements as m')
             ->join('movement_products as mp', 'mp.movement_id', '=', 'm.id')
@@ -412,7 +417,7 @@ class Movement extends Model
 
     public function cosventa($invoice)
     {
-        $arrEgreso = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
+        $arrEgreso = ['VENTA', 'VENTACLIENTE', 'TRASLADO','TRASLADOINTERNO'];
 
         $neto = DB::table('movements as m')
             ->join('movement_products as mp', 'mp.movement_id', '=', 'm.id')

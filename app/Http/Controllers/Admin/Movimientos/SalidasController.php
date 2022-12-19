@@ -76,7 +76,7 @@ class SalidasController extends Controller
     {
         $totalFilteredRecord = $totalDataRecord = $draw = '';
 
-        $arrTypes        = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
+        $arrTypes        = ['VENTA', 'VENTACLIENTE', 'TRASLADO', 'TRASLADOINTERNO'];
         $fecha           = Carbon::now()->subDays(210)->toDateTimeString();
         $totalDataRecord = Movement::whereIn('type', $arrTypes)
             ->whereDate('movements.created_at', '>', $fecha)
@@ -125,7 +125,7 @@ class SalidasController extends Controller
 
             } elseif ($request->input('tipo') == 'TIENDAS') {
 
-                $arrTypes        = ['VENTA', 'TRASLADO'];
+                $arrTypes        = ['VENTA', 'TRASLADO', 'TRASLADOINTERNO'];
 
                 $movimientos = Movement::join('stores', 'movements.to', '=', 'stores.id')
                     ->whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
@@ -184,7 +184,7 @@ class SalidasController extends Controller
                 $movement['items'] = $count;
 
                 $factura = '--';
-                if ($movimiento->type == 'VENTA' || $movimiento->type == 'VENTACLIENTE' || $movimiento->type == 'TRASLADO') {
+                if ($movimiento->type == 'VENTA' || $movimiento->type == 'VENTACLIENTE' || $movimiento->type == 'TRASLADO' || $movimiento->type == 'TRASLADOINTERNO') {
                     if (isset($movimiento->invoice) && count($movimiento->invoice)) {
                         $urls = '';
                         foreach ($movimiento->invoice as $invoice) {
@@ -330,7 +330,7 @@ class SalidasController extends Controller
     {
         $total    = 0;
         $movement = Movement::query()->where('id', $request->input('movement_id'))->first();
-        $products = ($movement->type == 'TRASLADO') ? $movement->products_egress : $movement->movement_salida_products;
+        $products = ($movement->type == 'TRASLADO' || $movement->type == 'TRASLADOINTERNO') ? $movement->products_egress : $movement->movement_salida_products;
         foreach ($products as $product) {
             if ($product->invoice) {
                 $subtotal = $product->bultos * $product->unit_price * $product->unit_package;
@@ -378,7 +378,7 @@ class SalidasController extends Controller
         $movement = Movement::whereId($orden)->first();
 
         if ($movement) {
-            if ($movement->type == 'TRASLADO') {
+            if ($movement->type == 'TRASLADO' || $movement->type == 'TRASLADOINTERNO') {
                 $store = Store::find($movement->to);
                 if (isset($store) && ($store->store_type == 'B')) {
                     $mercaderia_en_transito = 'MERCADERIA EN TRANSITO';
@@ -418,7 +418,7 @@ class SalidasController extends Controller
         $movement = Movement::with(['panamas'])->whereId($orden)->first();
 
         if ($movement) {
-            if ($movement->type == 'TRASLADO') {
+            if ($movement->type == 'TRASLADO' || $movement->type == 'TRASLADOINTERNO') {
                 $store = Store::find($movement->to);
                 if (isset($store) && ($store->store_type == 'B')) {
                     $mercaderia_en_transito = 'MERCADERIA EN TRANSITO';
@@ -452,7 +452,7 @@ class SalidasController extends Controller
         $orden    = $request->id;
         $movement = Movement::with(['movement_salida_products'])->whereId($orden)->first();
 
-        if ($movement->type == 'TRASLADO') {
+        if ($movement->type == 'TRASLADO' || $movement->type == 'TRASLADOINERNO') {
             $store = Store::find($movement->to);
             if (isset($store) && ($store->store_type == 'B')) {
                 $mercaderia_en_transito = 'MERCADERIA EN TRANSITO';
@@ -483,7 +483,7 @@ class SalidasController extends Controller
         $pdf   = PDF::loadView('print.orden', compact('orden', 'destino', 'array_productos'));
         $pdf->save($orden);
 
-        if ($movement->type == 'TRASLADO') {
+        if ($movement->type == 'TRASLADO' || $movement->type == 'TRASLADOINTERNO') {
             $store = Store::find($movement->to);
             if (isset($store) && ($store->store_type == 'B')) {
                 $mercaderia_en_transito = 'MERCADERIA EN TRANSITO';
@@ -521,7 +521,7 @@ class SalidasController extends Controller
     public function indexOrdenConsolidada(Request $request)
     {
         if ($request->ajax()) {
-            $arrTypes = ['VENTA', 'VENTACLIENTE', 'TRASLADO'];
+            $arrTypes = ['VENTA', 'VENTACLIENTE', 'TRASLADO','TRASLADOINTERNO'];
             $movement = Movement::all()->whereIn('type', $arrTypes)->sortByDesc('id');
 
             return DataTables::of($movement)
@@ -612,7 +612,7 @@ class SalidasController extends Controller
         if ($movement) {
             // Ver si es un traslado a base
             $mercaderia_en_transito = null;
-            if ($movement->type == 'TRASLADO') {
+            if ($movement->type == 'TRASLADO' || $movement->type == 'TRASLADOINTERNO') {
                 $store = Store::find($movement->to);
                 if (isset($store) && ($store->store_type == 'B')) {
                     $mercaderia_en_transito = 'MERCADERIA EN TRANSITO';
@@ -623,7 +623,7 @@ class SalidasController extends Controller
             $fecha           = \Carbon\Carbon::parse($movement->created_at)->format('d/m/Y');
             $neto            = $request->input('neto');
             $array_productos = [];
-            $productos       = ($movement->type == 'TRASLADO') ? $movement->group_products_egress : $movement->group_movement_salida_products;
+            $productos       = ($movement->type == 'TRASLADO' || $movement->type == 'TRASLADOINTERNO') ? $movement->group_products_egress : $movement->group_movement_salida_products;
 
             foreach ($productos as $producto) {
                 if ($producto->invoice) {
@@ -717,7 +717,13 @@ class SalidasController extends Controller
             foreach ($customers as $customer) {
                 $valid_names[] = ['id' => $customer->id, 'text' => $customer->displayName()];
             }
-        } else {
+        } else if($request->to_type == 'TRASLADOINTERNO'){
+            $ids = [2,61]; //Ramirez y Produccion
+            $stores = Store::whereIn('id',$ids)->get();
+            foreach ($stores as $store) {
+                $valid_names[] = ['id' => $store->id, 'text' => $store->displayName()];
+            }
+        }else{
             $stores = $this->storeRepository->search($term, $request->to_type);
             foreach ($stores as $store) {
                 $valid_names[] = ['id' => $store->id, 'text' => $store->displayName()];
@@ -843,7 +849,7 @@ class SalidasController extends Controller
                 $list_id               = $request->input('list_id') . '_' . \Auth::user()->store_active;
                 $devolucion            = str_contains($list_id, 'DEVOLUCION_');
                 $debito                = str_contains($list_id, 'DEBITO_');
-                $es_traslado           = str_contains($list_id, 'TRASLADO_');
+                $es_traslado           = str_contains($list_id, 'TRASLADO_') || str_contains($list_id, 'TRASLADOINTERNO_');
                 $depositos             = $desposito_desde_seleccionado = null;
 
                 if ($product) {
@@ -922,7 +928,9 @@ class SalidasController extends Controller
                 $list_id .= '_' . Auth::user()->store_active;
             }
 
-            if ((\Auth::user()->rol() != 'contable' && !$to) || (\Auth::user()->rol() == 'contable' && !$to && $to_type != 'TRASLADO')) {
+            if ((\Auth::user()->rol() != 'contable' && !$to) ||
+                (\Auth::user()->rol() == 'contable' && !$to && $to_type != 'TRASLADO') ||
+                (\Auth::user()->rol() == 'contable' && !$to && $to_type != 'TRASLADOINTERNO')) {
                 return new JsonResponse(['msj' => 'Ingrese el cliente o tienda según corresponda.', 'type' => 'error', 'index' => 'to']);
             }
 
@@ -939,7 +947,8 @@ class SalidasController extends Controller
                 return new JsonResponse(['msj' => 'Ingrese una cantidad a enviar.', 'type' => 'error', 'index' => 'quantity']);
             }
 
-            if (\Auth::user()->rol() == 'contable' && is_null($deposito) && $to_type != 'TRASLADO') {
+            if ((\Auth::user()->rol() == 'contable' && is_null($deposito) && $to_type != 'TRASLADO') ||
+                (\Auth::user()->rol() == 'contable' && is_null($deposito) && $to_type != 'TRASLADOINTERNO')) {
                 return new JsonResponse(['msj' => 'Debe seleccionar despósito de origen.', 'type' => 'error', 'index' => 'deposito']);
             }
 
@@ -983,6 +992,7 @@ class SalidasController extends Controller
                 case 'DEVOLUCION':
                 case 'DEBITO':
                 case 'VENTA':
+                case 'TRASLADOINTERNO';
                 case 'TRASLADO':
                     //$ofertaStore = OfertaStore::where('store_id',$to)
                     $insert_data['unit_price'] = $prices->plist0neto;
@@ -1161,10 +1171,10 @@ class SalidasController extends Controller
 
             $categoria = $this->checkIfNoCongelado($session_products);
 
-            if ($explode[0] != 'TRASLADO') {
+            if ($explode[0] != 'TRASLADO' && $explode[0] != 'TRASLADOINTERNO') {
                 $count = Movement::where('from', $from)->whereIn('type', ['VENTA', 'VENTACLIENTE'])->count();
             } else {
-                $count = Movement::where('from', $from)->where('type', 'TRASLADO')->count();
+                $count = Movement::where('from', $from)->whereIn('type', ['TRASLADO', 'TRASLADOINTERNO'])->count();
             }
 
             $orden = ($count) ? $count + 1 : 1;

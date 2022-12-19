@@ -96,8 +96,9 @@ class SessionProductRepository extends BaseRepository
     public function getFlete($list_id)
     {
         $cadena = explode('_', $list_id);
-        if (isset($cadena[0]) && (($cadena[0] == 'VENTA') or ($cadena[0] == 'TRASLADO'))) {
+        if (isset($cadena[0]) && (($cadena[0] == 'VENTA') or ($cadena[0] == 'TRASLADO') or ($cadena[0] == 'TRASLADOINTERNO'))) {
             $store = Store::find($cadena[1]);
+            dd($cadena[1]);
             $km    = $store->delivery_km;
             return $km;
         }
