@@ -299,7 +299,7 @@ class InvoiceController extends Controller
                                 if (isset($invoice_cyo)) {
                                     $inv   = Invoice::whereNotNull('cae')->orderBy('orden', 'DESC')->first();
                                     $orden = (isset($inv)) ? $inv->orden + 1 : 1;
-                                    dd($inv ,$orden,$result);
+
                                     $this->invoiceRepository->fill($invoice_cyo->id, [
                                         'error'      => null,
                                         'orden'      => $orden,
@@ -784,6 +784,7 @@ class InvoiceController extends Controller
             case 'DEVOLUCIONCLIENTE':
             case 'DEBITO':
             case 'DEBITOCLIENTE':
+            case 'TRASLADOINTERNO':
               return true;
           default:
             return false;
