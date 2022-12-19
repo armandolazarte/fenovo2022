@@ -83,6 +83,8 @@ class InvoiceController extends Controller
     {
         $titulo          = 'FACTURA ELECTRÓNICA';
         $array_productos = $alicuotas_array = [];
+
+        dd($movement_id,$pto_vta,$cyo);
         $invoice         = $this->invoiceRepository->getByMovement($movement_id,$pto_vta);
 
         if (!is_null($invoice->cae)) {
@@ -110,7 +112,6 @@ class InvoiceController extends Controller
                                             ->get();
             }
             $proveedor_nombre = '';
-            dd($productos);
             foreach ($productos as $producto) {
                 $objProduct             = new stdClass();
                 $objProduct->bultos     = $producto->bultos;
