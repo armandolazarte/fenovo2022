@@ -292,9 +292,9 @@ class InvoiceController extends Controller
 
                             $result  = $this->createVoucher($movement,$punto_venta,'CyO');
 
-                            dd($result);
                             if ($result['status']) {
                                 $invoice_cyo = $this->invoiceRepository->getByMovement($movement_id,$punto_venta);
+                                dd($invoice_cyo);
                                 if (isset($invoice_cyo)) {
                                     $inv   = Invoice::whereNotNull('cae')->orderBy('orden', 'DESC')->first();
                                     $orden = (isset($inv)) ? $inv->orden + 1 : 1;
