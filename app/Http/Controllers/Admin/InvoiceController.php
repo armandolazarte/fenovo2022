@@ -713,9 +713,11 @@ class InvoiceController extends Controller
             $factura = 1;
         } //FACTURA A
 
-        if (($type != 'RI' && $tipo_movimiento == 'VENTA') || ($type != 'RI' && $tipo_movimiento == 'VENTACLIENTE') || ($type == 'RI' && $tipo_movimiento == 'TRASLADOINTERNO')) {
+        if (($type != 'RI' && $tipo_movimiento == 'VENTA') || ($type != 'RI' && $tipo_movimiento == 'VENTACLIENTE') || ($type != 'RI' && $tipo_movimiento == 'TRASLADOINTERNO')) {
             $factura = 6;
         } //FACTURA B
+
+
 
         if (($type == 'RI' && $tipo_movimiento == 'DEVOLUCION') || $type == 'RI' && $tipo_movimiento == 'DEVOLUCIONCLIENTE') {
             $factura = 3;
