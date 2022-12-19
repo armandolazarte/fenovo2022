@@ -279,7 +279,7 @@ class InvoiceController extends Controller
 
             // fin de creacion del invoice con punto de vta fenovo
             if(is_null($error)){
-                if($movement->type != 'TRASLADO' && $movement->type != 'TRASLADOINTERNO'){
+                if($movement->type != 'TRASLADO'){
                     // Inicio creacion del invoice cta y orden
                     $movement = Movement::where('id', $movement_id)->with('salida_products_cyo')->firstOrFail();
                     if(isset($movement->salida_products_cyo) && count($movement->salida_products_cyo)){
