@@ -438,8 +438,14 @@ class InvoiceController extends Controller
                 $more_data       = new stdClass();
 
                 $more_data->movement_id        = $movement->id;
-                $more_data->client_name        = strtoupper($data_invoice['client']->razon_social);
-                $more_data->client_address     = strtoupper($data_invoice['client']->address . ' ' . $data_invoice['client']->city . ' ' . $data_invoice['client']->state);
+                if($movement->type == 'TRASLADOINTERNO'){
+                    $more_data->client_name        = 'FENOVO S.A.';
+                    $more_data->client_address     = 'ROQUE SAENZ PEÑA 4984 (3100) PARANA, ENTRE RÍOS';
+                }else{
+                    $more_data->client_name        = strtoupper($data_invoice['client']->razon_social);
+                    $more_data->client_address     = strtoupper($data_invoice['client']->address . ' ' . $data_invoice['client']->city . ' ' . $data_invoice['client']->state);
+                }
+
                 $more_data->jurisdiccion       = $this->getJurisdiccion($data_invoice['client']->state);
                 $more_data->client_cuit        = $data_invoice['client']->cuit;
                 $more_data->client_iva_type    = $this->get_iva_type($data_invoice['client']->iva_type);
@@ -692,6 +698,8 @@ class InvoiceController extends Controller
           case 'VENTA':
           case 'TRASLADO':
           case 'TRASLADOINTERNO':
+            $this->client = Store::where('id', 1)->where('active', 1)->with('region')->first();
+            return true;
           case 'DEVOLUCION':
           case 'DEBITO':
             $this->client = Store::where('id', $id)->where('active', 1)->with('region')->first();
