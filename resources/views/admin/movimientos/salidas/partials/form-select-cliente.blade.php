@@ -10,7 +10,8 @@
                             <option value="">Seleccione tipo de salida</option>
                             <option value="VENTA" @if(isset($tipo) && $tipo=='VENTA' ) selected @endif>Venta</option>
                             @if (in_array(\Auth::user()->rol(), ['admin', 'superadmin', 'contable','deposito']))
-                            <option value="TRASLADO" @if(isset($tipo) && $tipo=='TRASLADO' ) selected @endif>Traslado</option>
+                                <option value="TRASLADO" @if(isset($tipo) && $tipo=='TRASLADO' ) selected @endif>Traslado</option>
+                                <option value="TRASLADOINTERNO" @if(isset($tipo) && $tipo=='TRASLADOINTERNO' ) selected @endif>Traslado interno</option>
                             @endif
                             <option value="VENTACLIENTE" @if(isset($tipo) && $tipo=='VENTACLIENTE' ) selected @endif>Venta a cliente</option>
                         </select>

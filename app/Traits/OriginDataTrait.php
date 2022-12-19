@@ -19,6 +19,7 @@ trait OriginDataTrait
                 return $proveedor->name . ' [' . $proveedor->cuit . ']';
             case 'VENTA':
             case 'TRASLADO':
+            case 'TRASLADOINTERNO':
                 $store = Store::find($id);
                 if ($returnObject) {
                     return $store;
@@ -45,6 +46,7 @@ trait OriginDataTrait
                 return $proveedor->name . ' [' . $proveedor->cuit . ']';
             case 'VENTA':
             case 'TRASLADO':
+            case 'TRASLADOINTERNO':
                 $store = Store::find($id);
                 if ($returnObject) {
                     return $store;

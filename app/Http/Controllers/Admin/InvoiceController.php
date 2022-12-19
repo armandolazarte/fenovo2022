@@ -196,6 +196,7 @@ class InvoiceController extends Controller
             $voucherType = VoucherType::where('afip_id', $invoice->cbte_tipo)->first();
 
             $path = 'facturas/'.$invoice->voucher_number;
+
             $pdf = PDF::loadView('print.invoice', compact('titulo','cyo', 'invoice', 'array_productos', 'alicuotas_array', 'voucherType', 'qr_url', 'paginas', 'total_lineas'));
             $link = Storage::disk('spaces-do')->put($path , $pdf->output(),'public');
             $url = Storage::disk('spaces-do')->url($path);
@@ -222,7 +223,7 @@ class InvoiceController extends Controller
             $pto_vta       = $cuit = $iva_type = '';
             $cliente       = null;
 
-            if ($movement->type == 'VENTA' || $movement->type == 'TRASLADO') {
+            if ($movement->type == 'VENTA' || $movement->type == 'TRASLADO' || $movement->type == 'TRASLADOINTERNO') {
                 $cliente = Store::where('id', $movement->to)->with('region')->first();
                 $pto_vta = 'PVTA_' . str_pad($cliente->cod_fenovo, 3, '0', STR_PAD_LEFT);
             } elseif ($movement->type == 'VENTACLIENTE') {
@@ -251,7 +252,7 @@ class InvoiceController extends Controller
             $data_panama['cip']             = (is_null($store_from->cip))?8889:$store_from->cip;
 
             if(isset($movement->products) && count($movement->products)){
-                if($movement->verifSiFactura() && $movement->type != 'TRASLADO'){
+                if(($movement->verifSiFactura() && $movement->type != 'TRASLADO' && $movement->type != 'TRASLADOINTERNO')){
                     $result  = $this->createVoucher($movement,$this->pto_vta);
                     if ($result['status']) {
                         $invoice = $this->invoiceRepository->getByMovement($movement_id,$this->pto_vta);
@@ -294,9 +295,11 @@ class InvoiceController extends Controller
 
                             if ($result['status']) {
                                 $invoice_cyo = $this->invoiceRepository->getByMovement($movement_id,$punto_venta);
+
                                 if (isset($invoice_cyo)) {
                                     $inv   = Invoice::whereNotNull('cae')->orderBy('orden', 'DESC')->first();
                                     $orden = (isset($inv)) ? $inv->orden + 1 : 1;
+
                                     $this->invoiceRepository->fill($invoice_cyo->id, [
                                         'error'      => null,
                                         'orden'      => $orden,
@@ -320,7 +323,7 @@ class InvoiceController extends Controller
             }
 
             if(is_null($error)){
-                if ($movement->verifSiCreatePanama() && $movement->type != 'TRASLADO') {
+                if (($movement->verifSiCreatePanama() && $movement->type != 'TRASLADO' && $movement->type != 'TRASLADOINTERNO')) {
                     $ordenPanama += 1;
                     $data_panama['tipo']               = 'PAN';
                     $data_panama['orden']              = $ordenPanama;
@@ -435,8 +438,14 @@ class InvoiceController extends Controller
                 $more_data       = new stdClass();
 
                 $more_data->movement_id        = $movement->id;
-                $more_data->client_name        = strtoupper($data_invoice['client']->razon_social);
-                $more_data->client_address     = strtoupper($data_invoice['client']->address . ' ' . $data_invoice['client']->city . ' ' . $data_invoice['client']->state);
+                if($movement->type == 'TRASLADOINTERNO'){
+                    $more_data->client_name        = 'FENOVO S.A.';
+                    $more_data->client_address     = 'ROQUE SAENZ PEÑA 4984 (3100) PARANA, ENTRE RÍOS';
+                }else{
+                    $more_data->client_name        = strtoupper($data_invoice['client']->razon_social);
+                    $more_data->client_address     = strtoupper($data_invoice['client']->address . ' ' . $data_invoice['client']->city . ' ' . $data_invoice['client']->state);
+                }
+
                 $more_data->jurisdiccion       = $this->getJurisdiccion($data_invoice['client']->state);
                 $more_data->client_cuit        = $data_invoice['client']->cuit;
                 $more_data->client_iva_type    = $this->get_iva_type($data_invoice['client']->iva_type);
@@ -688,6 +697,9 @@ class InvoiceController extends Controller
         switch ($type) {
           case 'VENTA':
           case 'TRASLADO':
+          case 'TRASLADOINTERNO':
+            $this->client = Store::where('id', 1)->where('active', 1)->with('region')->first();
+            return true;
           case 'DEVOLUCION':
           case 'DEBITO':
             $this->client = Store::where('id', $id)->where('active', 1)->with('region')->first();
@@ -705,12 +717,16 @@ class InvoiceController extends Controller
     private function voucherType($type, $tipo_movimiento)
     {
         $factura = 6; //Por defecto FACTURA B
-        if (($type == 'RI' && $tipo_movimiento == 'VENTA') || $type == 'RI' && $tipo_movimiento == 'VENTACLIENTE') {
+        if (($type == 'RI' && $tipo_movimiento == 'VENTA') || ($type == 'RI' && $tipo_movimiento == 'VENTACLIENTE') || ($type == 'RI' && $tipo_movimiento == 'TRASLADOINTERNO')) {
             $factura = 1;
         } //FACTURA A
-        if (($type != 'RI' && $tipo_movimiento == 'VENTA') || $type != 'RI' && $tipo_movimiento == 'VENTACLIENTE') {
+
+        if (($type != 'RI' && $tipo_movimiento == 'VENTA') || ($type != 'RI' && $tipo_movimiento == 'VENTACLIENTE') || ($type != 'RI' && $tipo_movimiento == 'TRASLADOINTERNO')) {
             $factura = 6;
         } //FACTURA B
+
+
+
         if (($type == 'RI' && $tipo_movimiento == 'DEVOLUCION') || $type == 'RI' && $tipo_movimiento == 'DEVOLUCIONCLIENTE') {
             $factura = 3;
         } //NOTA CREDITO A
@@ -778,6 +794,7 @@ class InvoiceController extends Controller
             case 'DEVOLUCIONCLIENTE':
             case 'DEBITO':
             case 'DEBITOCLIENTE':
+            case 'TRASLADOINTERNO':
               return true;
           default:
             return false;
