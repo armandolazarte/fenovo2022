@@ -82,7 +82,6 @@ class PrintController extends Controller
             $creado = false;
 
             if (in_array($movement->type, $arrEntrada)) {
-
                 // Venta o traslado
 
                 if ($movement->entry > 0) {
@@ -98,7 +97,6 @@ class PrintController extends Controller
                     $objMovement->unidad      = $movement->unidad;
                 }
             } else {
-
                 // Analizar las devoluciones
 
                 $tipo = ($movement->entry > 0) ? 'E' : 'S';
@@ -198,24 +196,31 @@ class PrintController extends Controller
     {
         // $proveedor  = Proveedor::find($request->proveedorId);
 
-        // return DB::table('invoices as t1')
-        //     ->join('movements as t2', 't1.movement_id', '=', 't2.id')
-        //     ->join('movement_products as t3', 't3.movement_id', '=', 't2.id')
-        //     ->join('products as t4', 't3.product_id', '=', 't4.id')
-        //     ->select(
-        //         't1.created_at', 't1.voucher_number', 
-        //         't3.bultos', 't3.unit_price', 't3.tasiva',
-        //         't1.imp_neto', 't1.imp_iva',
-        //         't4.name',
-        //     )
-        //     ->selectRaw('(t4.unit_weight * t3.bultos * t4.unit_package) as kilos')
-        //     ->where('t1.pto_vta', '=', $proveedor->punto_venta)
-        //     ->where('t4.proveedor_id', '=', $proveedor->id)
-        //     ->where('t3.circuito', '=', 'CyO')
-        //     ->where('t3.egress', '>', 0)
-        //     ->orderBy('t1.created_at')
-        //     ->get();
-
+        // DB::table('invoices as t1')
+        // ->join('movements as t2', 't1.movement_id', '=', 't2.id')
+        // ->join('movement_products as t3', 't3.movement_id', '=', 't2.id')
+        // ->join('products as t4', 't3.product_id', '=', 't4.id')
+        // ->select(
+        //     't1.created_at',
+        //     't1.voucher_number as comprobante',
+        //     't1.imp_total as importeTotal',
+        //     't1.pto_vta',
+        //     't1.cyo',
+        //     't1.imp_iva as importeIva',
+        //     't3.bultos',
+        //     't3.egress as kilos',
+        //     't3.unit_price as precioUnitario',
+        //     't3.tasiva',
+        //     't4.name as producto',
+        // )
+        // ->selectRaw('t3.egress * t3.unit_price as neto')
+        // ->selectRaw('t3.egress * t3.unit_price * t3.tasiva as impoIva')
+        // ->where('t1.pto_vta', '=', $proveedor->punto_venta)
+        // ->where('t3.circuito', '=', 'CyO')
+        // ->where('t3.cyo', '=', 1)
+        // ->where('t3.egress', '>', 0)
+        // ->orderBy('t1.created_at')
+        // ->get();
 
         return Excel::download(new VentasProveedorViewExport($request->proveedorId), 'VentasProveedor.csv', \Maatwebsite\Excel\Excel::CSV, ['Content-Type' => 'text/csv']);
     }
@@ -227,7 +232,8 @@ class PrintController extends Controller
         return Excel::download(new StoreViewStocks($request->id), $archivo, \Maatwebsite\Excel\Excel::CSV, ['Content-Type' => 'text/csv']);
     }
 
-    public function exportarMovimientos(){
+    public function exportarMovimientos()
+    {
         return Excel::download(new RegistrosMovimientosExport(), 'registros-' . date('d-m-Y') . '.xlsx');
     }
 }

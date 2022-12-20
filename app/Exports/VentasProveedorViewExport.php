@@ -37,17 +37,20 @@ class VentasProveedorViewExport implements FromView
         ->select(
             't1.created_at',
             't1.voucher_number as comprobante',
+            't1.imp_total as importeTotal',
+            't1.pto_vta',
+            't1.cyo',
             't3.bultos',
+            't3.egress as kilos',
             't3.unit_price as precioUnitario',
             't3.tasiva',
-            't1.imp_neto as neto',
-            't1.imp_iva as importeIva',
             't4.name as producto',
         )
-        ->selectRaw('(t4.unit_weight * t3.bultos * t4.unit_package) as kilos')
+        ->selectRaw('t3.egress * t3.unit_price as neto')
+        ->selectRaw('(t3.egress * t3.unit_price * t3.tasiva)/100 as importeIva')
         ->where('t1.pto_vta', '=', $proveedor->punto_venta)
-        ->where('t4.proveedor_id', '=', $proveedor->id)
         ->where('t3.circuito', '=', 'CyO')
+        ->where('t3.cyo', '=', 1)
         ->where('t3.egress', '>', 0)
         ->orderBy('t1.created_at')
         ->get();
