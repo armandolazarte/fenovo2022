@@ -404,7 +404,7 @@ class IngresosController extends Controller
 
                 if ($movimiento['cyo'] == 1) {
                     $product->stock_cyo = $product->stock_cyo + $movimiento['entry'];
-                } elseif ($movimiento['invoice']  == 1) {
+                } elseif ($movimiento['invoice'] == 1) {
                     $product->stock_f = $product->stock_f + $movimiento['entry'];
                 } else {
                     $product->stock_r = $product->stock_r + $movimiento['entry'];
@@ -463,9 +463,9 @@ class IngresosController extends Controller
                 // Generar la venta directa si viene el Id de Store
                 if ($tienda) {
                     // Ajusto STOCK DE NAVE - "RESTO ENTRADA"
-                    if ($movimiento['cyo']  == 1) {
+                    if ($movimiento['cyo'] == 1) {
                         $product->stock_cyo = $product->stock_cyo - $movimiento['entry'];
-                    } elseif ($movimiento['invoice']  == 1) {
+                    } elseif ($movimiento['invoice'] == 1) {
                         $product->stock_f = $product->stock_f - $movimiento['entry'];
                     }
 
@@ -521,8 +521,8 @@ class IngresosController extends Controller
                         $prices = $product->product_price;
                     }
 
-                   // $invoice = 1; Lo comento , no se porque lo puso siempre facturado
-                    $invoice = ($circuito == 'CyO')?1:$movimiento['invoice'];
+                    // $invoice = 1; Lo comento , no se porque lo puso siempre facturado
+                    $invoice = ($circuito == 'CyO') ? 1 : $movimiento['invoice'];
                     // Movimiento SALIDA FENOVO
                     MovementProduct::create([
                         'movement_id'  => $movement_venta->id,
@@ -540,8 +540,10 @@ class IngresosController extends Controller
                         'bultos'       => $movimiento['bultos'],
                         'egress'       => $movimiento['entry'],
                         'balance'      => $balance_nave,
-                        'punto_venta'  => ($circuito == 'CyO')?$product->proveedor->punto_venta:18,
+                        'punto_venta'  => ($circuito == 'CyO') ? $product->proveedor->punto_venta : 18,
                         'circuito'     => $circuito,
+                        'cyo'          => ($circuito == 'CyO') ? 1 : 0,
+
                     ]);
 
                     // MOVIMIENTO ENTRADA TIENDA DESTINO
@@ -560,8 +562,9 @@ class IngresosController extends Controller
                         'entry'        => $movimiento['entry'],
                         'egress'       => 0,
                         'balance'      => $balance_tienda,
-                        'punto_venta'  => ($circuito == 'CyO')?$product->proveedor->punto_venta:18,
+                        'punto_venta'  => ($circuito == 'CyO') ? $product->proveedor->punto_venta : 18,
                         'circuito'     => $circuito,
+                        'cyo'          => ($circuito == 'CyO') ? 1 : 0,
                     ]);
 
                     // Acumulo el total de ventas
@@ -629,7 +632,7 @@ class IngresosController extends Controller
         $movement = (!$request->is_cerrada)
             ? MovementTemp::query()->where('id', $request->id)->with('movement_ingreso_products')->first()
             : Movement::query()->where('id', $request->id)->with('movement_ingreso_products')->first();
-        $ajustes     = $this->enumRepository->getType('ajustes');
+        $ajustes = $this->enumRepository->getType('ajustes');
 
         $productos   = $this->productRepository->getByProveedorIdPluck($movement->from);
         $movimientos = $movement->movement_ingreso_products;
@@ -859,8 +862,8 @@ class IngresosController extends Controller
             foreach ($movement_temp->movement_products as $movimiento) {
                 $cantidad = $movimiento['entry'];
 
-                $latest_tienda_egreso   = 0;
-                $latest_tienda_ingreso   = 0;
+                $latest_tienda_egreso  = 0;
+                $latest_tienda_ingreso = 0;
 
                 // Ajustar tiendaEgreso
                 if ($tiendaEgreso == 1) {
@@ -922,8 +925,7 @@ class IngresosController extends Controller
                     $product->stock_f = $product->stock_f + $cantidad;
                     $product->save();
                     $latest_tienda_ingreso = $product->stockReal();
-                } else {                    
-
+                } else {
                     $product_store = ProductStore::whereProductId($movimiento['product_id'])->whereStoreId($tiendaIngreso)->first();
                     if ($product_store) {
                         $product_store->stock_f = $product_store->stock_f + $cantidad;
