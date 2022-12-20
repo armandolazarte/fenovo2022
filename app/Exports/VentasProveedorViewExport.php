@@ -50,7 +50,7 @@ class VentasProveedorViewExport implements FromView
         ->selectRaw('(t3.egress * t3.unit_price * t3.tasiva)/100 as importeIva')
         ->where('t1.pto_vta', '=', $proveedor->punto_venta)
         ->where('t3.circuito', '=', 'CyO')
-        ->where('t3.cyo', '=', 1)
+       // ->where('t3.cyo', '=', 1)
         ->where('t3.egress', '>', 0)
         ->orderBy('t1.created_at')
         ->get();
@@ -67,7 +67,7 @@ class VentasProveedorViewExport implements FromView
             $objMovimiento->tasiva          = $movimiento->tasiva;
             $objMovimiento->neto            = $movimiento->neto;
             $objMovimiento->importeIva      = $movimiento->importeIva;
-           
+
             array_push($arrMovimientos, $objMovimiento);
         }
 
