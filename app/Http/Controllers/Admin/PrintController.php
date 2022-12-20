@@ -196,7 +196,7 @@ class PrintController extends Controller
     {
         // $proveedor  = Proveedor::find($request->proveedorId);
 
-        // DB::table('invoices as t1')
+        // return DB::table('invoices as t1')
         // ->join('movements as t2', 't1.movement_id', '=', 't2.id')
         // ->join('movement_products as t3', 't3.movement_id', '=', 't2.id')
         // ->join('products as t4', 't3.product_id', '=', 't4.id')
@@ -206,7 +206,6 @@ class PrintController extends Controller
         //     't1.imp_total as importeTotal',
         //     't1.pto_vta',
         //     't1.cyo',
-        //     't1.imp_iva as importeIva',
         //     't3.bultos',
         //     't3.egress as kilos',
         //     't3.unit_price as precioUnitario',
@@ -214,7 +213,7 @@ class PrintController extends Controller
         //     't4.name as producto',
         // )
         // ->selectRaw('t3.egress * t3.unit_price as neto')
-        // ->selectRaw('t3.egress * t3.unit_price * t3.tasiva as impoIva')
+        // ->selectRaw('(t3.egress * t3.unit_price * t3.tasiva)/100 as importeIva')
         // ->where('t1.pto_vta', '=', $proveedor->punto_venta)
         // ->where('t3.circuito', '=', 'CyO')
         // ->where('t3.cyo', '=', 1)

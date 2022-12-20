@@ -21,7 +21,7 @@
             <td>{{ $movimiento->precioUnitario }}</td>
             <td>{{ $movimiento->tasiva }}</td>
             <td>{{ $movimiento->neto }}</td>
-            <td>{{ $movimiento->importeIva }}</td>
+            <td>{{ round($movimiento->importeIva,2) }}</td>
         </tr>
     @endforeach
 </table>
