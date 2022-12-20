@@ -118,8 +118,9 @@
                                         class="form-control">
                                     <div class="input-group-append">
                                         <span class="input-group-text" id="basic-addon2">
-                                            <a href="#" onclick="javascript:printIIBB()" title="Exportar Ingresos Brutos">
-                                                Exportar <i class=" fa fa-file-csv"></i> 
+                                            <a href="#" onclick="javascript:printIIBB()"
+                                                title="Exportar Ingresos Brutos">
+                                                Exportar <i class=" fa fa-file-csv"></i>
                                             </a>
                                         </span>
                                     </div>
@@ -134,7 +135,7 @@
                         </div>
                         <div class="row mb-5 ml-2 border-bottom-dark text-center">
 
-                            <div class="col-3">
+                            <div class="col-4">
                                 <div class="input-group mb-3">
                                     <input type="month" id="ventasFecha" name="ventasFecha" value="{{ date('Y-m') }}"
                                         class="form-control">
@@ -147,6 +148,26 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <div class="col-4">
+                                <div class="input-group mb-3">
+                                    <select class="js-example-basic-single js-states form-control bg-transparent" name="proveedorId" id="proveedorId">
+                                        <option value="">Elija un proveedor para ver Vtas</option>
+                                        @foreach ($proveedores as $proveedor)
+                                            <option value="{{ $proveedor->id }}">
+                                                {{ $proveedor->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="input-group-append">
+                                        <span class="input-group-text" id="basic-addon2">
+                                            <a href="#" onclick="javascript:printVentasProv()" title="Exportar Ventas">
+                                                Exportar <i class="fa fa-file-csv"></i>
+                                            </a>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                         <div class="row mt-3 mb-4 font-weight-bolder">
                             <div class="col-3">
@@ -172,6 +193,12 @@
             let hasta;
             let iibbMes;
             let iibbAnio
+
+            const printVentasProv = ()=>{
+                let proveedorId = jQuery("#proveedorId").val();
+                let url = "{{ route('export.ventas.proveedores', '') }}" + "?proveedorId=" + proveedorId;
+                window.open(url, '_blank');
+            }
 
             const leerDatos = () => {
                 desde = jQuery("#salidaDesde").val();

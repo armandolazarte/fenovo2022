@@ -21,6 +21,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\RegistrosMovimientosExport;
+use App\Exports\VentasProveedorViewExport;
+use App\Models\Proveedor;
 use stdClass;
 
 class PrintController extends Controller
@@ -50,7 +52,8 @@ class PrintController extends Controller
     {
         $tiposalidas = $this->enumRepository->getType('movimientos');
         $stores      = $this->storeRepository->getActives();
-        return view('admin.print.print', compact('tiposalidas', 'stores'));
+        $proveedores = Proveedor::select('id', 'name')->where('punto_venta', '!=', 1)->orderBy('name')->get();
+        return view('admin.print.print', compact('tiposalidas', 'stores', 'proveedores'));
     }
 
     public function printMovimientosPDF(Request $request)
@@ -189,6 +192,32 @@ class PrintController extends Controller
         // return $arrMovimientos;
 
         return Excel::download(new MoviVentasViewExport($mes, $anio), 'MoviVentas.csv', \Maatwebsite\Excel\Excel::CSV, ['Content-Type' => 'text/csv']);
+    }
+
+    public function exportVentasProveedoresCsv(Request $request)
+    {
+        // $proveedor  = Proveedor::find($request->proveedorId);
+
+        // return DB::table('invoices as t1')
+        //     ->join('movements as t2', 't1.movement_id', '=', 't2.id')
+        //     ->join('movement_products as t3', 't3.movement_id', '=', 't2.id')
+        //     ->join('products as t4', 't3.product_id', '=', 't4.id')
+        //     ->select(
+        //         't1.created_at', 't1.voucher_number', 
+        //         't3.bultos', 't3.unit_price', 't3.tasiva',
+        //         't1.imp_neto', 't1.imp_iva',
+        //         't4.name',
+        //     )
+        //     ->selectRaw('(t4.unit_weight * t3.bultos * t4.unit_package) as kilos')
+        //     ->where('t1.pto_vta', '=', $proveedor->punto_venta)
+        //     ->where('t4.proveedor_id', '=', $proveedor->id)
+        //     ->where('t3.circuito', '=', 'CyO')
+        //     ->where('t3.egress', '>', 0)
+        //     ->orderBy('t1.created_at')
+        //     ->get();
+
+
+        return Excel::download(new VentasProveedorViewExport($request->proveedorId), 'VentasProveedor.csv', \Maatwebsite\Excel\Excel::CSV, ['Content-Type' => 'text/csv']);
     }
 
     public function exportStoreStocks(Request $request)
