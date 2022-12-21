@@ -71,29 +71,4 @@ class ComprasProveedorViewExport implements FromView
 
         return view('exports.comprasProveedor', compact('movimientos','grupos'));
     }
-
-    private function getImporteIva($importe, $iva, $voucher)
-    {
-        if (strlen($voucher) == 0) {
-            $iva = '0.0';
-        } else {
-            $iva = ($importe * json_decode($iva)) / 100;
-        }
-        return round($iva, 2);
-    }
-
-    private function getImporteBruto($importe, $iva)
-    {
-        return json_decode($importe) + json_decode($iva);
-    }
-
-    private function getCostoTotal($importe, $cantidad)
-    {
-        return json_decode($importe) * json_decode($cantidad);
-    }
-
-    private function getVentaTotal($importe, $cantidad)
-    {
-        return json_decode($importe) * json_decode($cantidad);
-    }
 }
