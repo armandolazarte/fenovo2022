@@ -41,13 +41,13 @@ class ComprasProveedorViewExport implements FromView
                                 'mp.unit_price as precio',
                                 'mp.cost_fenovo as costo_ftk',
                             )
-                            ->selectRaw('mp.entry * mp.unit_price as neto')
-                            ->selectRaw('(mp.entry * mp.unit_price * mp.tasiva)/100 as importeIva')
+                            ->selectRaw('mp.entry * mp.cost_fenovo as neto')
+                            ->selectRaw('(mp.entry * mp.cost_fenovo * mp.tasiva)/100 as importeIva')
                             ->where('mov.type','COMPRA')
                             ->where('mov.subtype','CyO')
                             ->where('prod.proveedor_id', '=', $proveedorId)
-                            ->whereDate('mov.date','>',$this->fechaCompraDesde)
-                            ->whereDate('mov.date','<',$this->fechaCompraHasta)
+                            ->whereDate('mov.date','>=',$this->fechaCompraDesde)
+                            ->whereDate('mov.date','<=',$this->fechaCompraHasta)
                             ->get();
 
         $grupos = DB::table('movements as mov')
@@ -59,13 +59,13 @@ class ComprasProveedorViewExport implements FromView
                                 'prod.name as nombre'
                             )
                             ->selectRaw('SUM(entry) as kgs')
-                            ->selectRaw('SUM(mp.entry * mp.unit_price) as neto')
-                            ->selectRaw('SUM((mp.entry * mp.unit_price * mp.tasiva)/100) as importeIva')
+                            ->selectRaw('SUM(mp.entry * mp.cost_fenovo) as neto')
+                            ->selectRaw('SUM((mp.entry * mp.cost_fenovo * mp.tasiva)/100) as importeIva')
                             ->where('mov.type','COMPRA')
                             ->where('mov.subtype','CyO')
                             ->where('prod.proveedor_id', '=', $proveedorId)
-                            ->whereDate('mov.date','>',$this->fechaCompraDesde)
-                            ->whereDate('mov.date','<',$this->fechaCompraHasta)
+                            ->whereDate('mov.date','>=',$this->fechaCompraDesde)
+                            ->whereDate('mov.date','<=',$this->fechaCompraHasta)
                             ->groupBy('cod_producto')
                             ->get();
 
