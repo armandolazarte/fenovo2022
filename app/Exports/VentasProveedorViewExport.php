@@ -16,14 +16,17 @@ class VentasProveedorViewExport implements FromView
 
     use Exportable;
 
-    public function __construct(string $proveedorId)
+    public function __construct(string $proveedorId, string $fechaVentaDesde, string $fechaVentaHasta)
     {
-        $this->proveedorId  = $proveedorId;
+        $this->proveedorId      = $proveedorId;
+        $this->fechaVentaDesde  = $fechaVentaDesde;
+        $this->fechaVentaHasta  = $fechaVentaHasta;
     }
 
     public function view(): View
     {
         $proveedorId    = $this->proveedorId;
+
         $proveedor      =  Proveedor::find($proveedorId);
 
         $arrTipos = ['VENTA'];
@@ -50,7 +53,8 @@ class VentasProveedorViewExport implements FromView
         ->selectRaw('(t3.egress * t3.unit_price * t3.tasiva)/100 as importeIva')
         ->where('t1.pto_vta', '=', $proveedor->punto_venta)
         ->where('t3.circuito', '=', 'CyO')
-       // ->where('t3.cyo', '=', 1)
+        ->whereDate('t2.date','>',$this->fechaVentaDesde)
+        ->whereDate('t2.date','<',$this->fechaVentaHasta)
         ->where('t3.egress', '>', 0)
         ->orderBy('t1.created_at')
         ->get();

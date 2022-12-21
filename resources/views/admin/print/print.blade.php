@@ -114,7 +114,8 @@
                         <div class="row mb-2 ml-2 border-bottom-dark text-center">
                             <div class="col-3">
                                 <div class="input-group mb-3">
-                                    <input type="month" id="iibbFecha" name="iibbFecha" value="{{ date('Y-m') }}"  class="form-control">
+                                    <input type="month" id="iibbFecha" name="iibbFecha" value="{{ date('Y-m') }}"
+                                        class="form-control">
                                     <div class="input-group-append">
                                         <span class="input-group-text" id="basic-addon2">
                                             <a href="#" onclick="javascript:printIIBB()"
@@ -136,20 +137,23 @@
                             <div class="col-2">
                                 <div class="form-group mb-3">
                                     <label style="float:left">Desde</label>
-                                    <input type="date" id="fechaCompraDesde" name="fechaCompraDesde" value="{{ date("Y-m-d", strtotime("-30 days")) }}"  class="form-control">
+                                    <input type="date" id="fechaCompraDesde" name="fechaCompraDesde"
+                                        value="{{ date('Y-m-d', strtotime('-30 days')) }}" class="form-control">
                                 </div>
                             </div>
 
                             <div class="col-2">
                                 <div class="form-group mb-3">
                                     <label style="float:left">Hasta</label>
-                                    <input type="date" id="fechaCompraHasta" name="fechaCompraHasta" value="{{ date('Y-m-d') }}"  class="form-control">
+                                    <input type="date" id="fechaCompraHasta" name="fechaCompraHasta"
+                                        value="{{ date('Y-m-d') }}" class="form-control">
                                 </div>
                             </div>
                             <div class="col-4">
                                 <label style="float:left">Proveedor</label>
                                 <div class="input-group mb-3">
-                                    <select class="js-example-basic-single js-states form-control bg-transparent" name="proveedorCompraId" id="proveedorCompraId">
+                                    <select class="js-example-basic-single js-states form-control bg-transparent"
+                                        name="proveedorCompraId" id="proveedorCompraId">
                                         <option value="">Elija un proveedor para ver Compras</option>
                                         @foreach ($proveedores as $proveedor)
                                             <option value="{{ $proveedor->id }}">
@@ -173,11 +177,59 @@
                                 Ventas detalladas
                             </div>
                         </div>
-                        <div class="row mb-5 ml-2 border-bottom-dark text-center">
 
+                        <div class="row mb-5 ml-2 border-bottom-dark text-center">
+                            <div class="col-2">
+                                <div class="form-group mb-3">
+                                    <label style="float:left">Desde</label>
+                                    <input type="date" id="fechaVentaDesde" name="fechaVentaDesde"
+                                        value="{{ date('Y-m-d', strtotime('-30 days')) }}" class="form-control">
+                                </div>
+                            </div>
+
+                            <div class="col-2">
+                                <div class="form-group mb-3">
+                                    <label style="float:left">Hasta</label>
+                                    <input type="date" id="fechaVentaHasta" name="fechaVentaHasta"
+                                        value="{{ date('Y-m-d') }}" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <label style="float:left">Proveedor</label>
+                                <div class="input-group mb-3">
+                                    <select class="js-example-basic-single js-states form-control bg-transparent"
+                                        name="proveedorId" id="proveedorId">
+                                        <option value="">Elija un proveedor para ver Vtas</option>
+                                        @foreach ($proveedores as $proveedor)
+                                            <option value="{{ $proveedor->id }}">
+                                                {{ $proveedor->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="input-group-append">
+                                        <span class="input-group-text" id="basic-addon2">
+                                            <a href="#" onclick="javascript:printVentasProv()"
+                                                title="Exportar Ventas">
+                                                Exportar <i class="fa fa-file-csv"></i>
+                                            </a>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="row mt-3 mb-4 font-weight-bolder">
+                            <div class="col-3">
+                                Movimientos de Ventas detalladas
+                            </div>
+                        </div>
+                        <div class="row mb-5 ml-2 border-bottom-dark text-center">
                             <div class="col-4">
                                 <div class="input-group mb-3">
-                                    <input type="month" id="ventasFecha" name="ventasFecha" value="{{ date('Y-m') }}" class="form-control">
+                                    <input type="month" id="ventasFecha" name="ventasFecha"
+                                        value="{{ date('Y-m') }}" class="form-control">
                                     <div class="input-group-append">
                                         <span class="input-group-text" id="basic-addon2">
                                             <a href="#" onclick="javascript:printVENTAS()" title="Exportar Ventas">
@@ -187,27 +239,8 @@
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="col-4">
-                                <div class="input-group mb-3">
-                                    <select class="js-example-basic-single js-states form-control bg-transparent" name="proveedorId" id="proveedorId">
-                                        <option value="">Elija un proveedor para ver Vtas</option>
-                                        @foreach ($proveedores as $proveedor)
-                                            <option value="{{ $proveedor->id }}">
-                                                {{ $proveedor->name }}</option>
-                                        @endforeach
-                                    </select>
-                                    <div class="input-group-append">
-                                        <span class="input-group-text" id="basic-addon2">
-                                            <a href="#" onclick="javascript:printVentasProv()" title="Exportar Ventas">
-                                                Exportar <i class="fa fa-file-csv"></i>
-                                            </a>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
                         </div>
+
                         <div class="row mt-3 mb-4 font-weight-bolder">
                             <div class="col-3">
                                 Productos
@@ -233,17 +266,18 @@
             let iibbMes;
             let iibbAnio
 
-            const printVentasProv = ()=>{
+            const printVentasProv = () => {
                 let proveedorId = jQuery("#proveedorId").val();
                 let url = "{{ route('export.ventas.proveedores', '') }}" + "?proveedorId=" + proveedorId;
                 window.open(url, '_blank');
             }
 
-            const printComprasProv = ()=>{
+            const printComprasProv = () => {
                 let proveedorId = jQuery("#proveedorCompraId").val();
                 let fechaCompraDesde = jQuery("#fechaCompraDesde").val();
                 let fechaCompraHasta = jQuery("#fechaCompraHasta").val();
-                let url = "{{ route('export.compras.proveedores', '') }}" + "?proveedorId=" + proveedorId+ "&fechaCompraDesde=" + fechaCompraDesde+ "&fechaCompraHasta=" + fechaCompraHasta;
+                let url = "{{ route('export.compras.proveedores', '') }}" + "?proveedorId=" + proveedorId +
+                    "&fechaCompraDesde=" + fechaCompraDesde + "&fechaCompraHasta=" + fechaCompraHasta;
                 window.open(url, '_blank');
             }
 

@@ -136,93 +136,12 @@ class PrintController extends Controller
     {
         $mes  = $request->mes;
         $anio = $request->anio;
-
-        // $arrTipos = ['VENTA', 'VENTACLIENTE'];
-
-        // $arrMovimientos = [];
-
-        // $movimientos = DB::table('movements as t1')
-        //     ->join('movement_products as t2', 't1.id', '=', 't2.movement_id')
-        //     ->join('products as t3', 't2.product_id', '=', 't3.id')
-        //     ->join('stores as t4', 't2.entidad_id', '=', 't4.id')
-        //     ->leftJoin('invoices as t5', 't5.movement_id', '=', 't1.id')
-        //     ->select(
-        //         't1.id',
-        //         't1.type',
-        //         't1.date',
-        //         't5.voucher_number',
-        //         't3.cod_fenovo',
-        //         't3.name',
-        //         't3.unit_type',
-        //         't2.unit_price as precio_venta',
-        //         't2.cost_fenovo as precio_costo',
-        //         't2.egress as cantidad',
-        //         't2.tasiva as iva',
-        //     )
-        //     ->whereIn('t1.type', $arrTipos)
-        //     ->whereMonth('t1.created_at', '=', $mes)
-        //     ->whereYear('t1.created_at', '=', $anio)
-        //     ->where('t2.egress', '>', 0)
-        //     ->orderBy('t1.date')->orderBy('t1.id')->orderBy('t3.cod_fenovo')
-        //     ->get();
-
-        // foreach ($movimientos as $movimiento) {
-
-        //     $movement   = Movement::find($movimiento->id);
-        //     $destino    = $movement->origenData($movement->type);
-
-        //     $objMovimiento = new stdClass();
-
-        //     /* 1  */ $objMovimiento->id             = str_pad($movimiento->id, 8, '0', STR_PAD_LEFT);
-        //     /* 2  */ $objMovimiento->destino        = $destino;
-        //     /* 3  */ $objMovimiento->fecha          = date('d/m/Y', strtotime($movimiento->date));
-        //     /* 4  */ $objMovimiento->factura        = $movimiento->voucher_number;
-        //     /* 5  */ $objMovimiento->cod_fenovo     = $movimiento->cod_fenovo;
-        //     /* 6  */ $objMovimiento->producto       = $movimiento->name;
-        //     /* 7  */ $objMovimiento->unidad         = $movimiento->unit_type;
-        //     /* 8  */ $objMovimiento->precio_venta   = $movimiento->precio_venta;
-        //     /* 9  */ $objMovimiento->precio_costo   = $movimiento->precio_costo;
-        //     /* 10  */$objMovimiento->cantidad       = $movimiento->cantidad;
-        //     /* 11  */$objMovimiento->iva            = $movimiento->iva;
-
-        //     array_push($arrMovimientos, $objMovimiento);
-        // }
-
-        // return $arrMovimientos;
-
         return Excel::download(new MoviVentasViewExport($mes, $anio), 'MoviVentas.csv', \Maatwebsite\Excel\Excel::CSV, ['Content-Type' => 'text/csv']);
     }
 
     public function exportVentasProveedoresCsv(Request $request)
     {
-        // $proveedor  = Proveedor::find($request->proveedorId);
-
-        // return DB::table('invoices as t1')
-        // ->join('movements as t2', 't1.movement_id', '=', 't2.id')
-        // ->join('movement_products as t3', 't3.movement_id', '=', 't2.id')
-        // ->join('products as t4', 't3.product_id', '=', 't4.id')
-        // ->select(
-        //     't1.created_at',
-        //     't1.voucher_number as comprobante',
-        //     't1.imp_total as importeTotal',
-        //     't1.pto_vta',
-        //     't1.cyo',
-        //     't3.bultos',
-        //     't3.egress as kilos',
-        //     't3.unit_price as precioUnitario',
-        //     't3.tasiva',
-        //     't4.name as producto',
-        // )
-        // ->selectRaw('t3.egress * t3.unit_price as neto')
-        // ->selectRaw('(t3.egress * t3.unit_price * t3.tasiva)/100 as importeIva')
-        // ->where('t1.pto_vta', '=', $proveedor->punto_venta)
-        // ->where('t3.circuito', '=', 'CyO')
-        // ->where('t3.cyo', '=', 1)
-        // ->where('t3.egress', '>', 0)
-        // ->orderBy('t1.created_at')
-        // ->get();
-
-        return Excel::download(new VentasProveedorViewExport($request->proveedorId), 'VentasProveedor.csv', \Maatwebsite\Excel\Excel::CSV, ['Content-Type' => 'text/csv']);
+        return Excel::download(new VentasProveedorViewExport($request->proveedorId,$request->fechaVentaDesde,$request->fechaVentaHasta), 'VentasProveedor.csv', \Maatwebsite\Excel\Excel::CSV, ['Content-Type' => 'text/csv']);
     }
 
     public function exportComprasProveedoresCsv(Request $request){
