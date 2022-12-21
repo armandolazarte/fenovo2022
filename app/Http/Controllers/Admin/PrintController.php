@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\RegistrosMovimientosExport;
 use App\Exports\VentasProveedorViewExport;
+use App\Exports\ComprasProveedorViewExport;
 use App\Models\Proveedor;
 use stdClass;
 
@@ -222,6 +223,10 @@ class PrintController extends Controller
         // ->get();
 
         return Excel::download(new VentasProveedorViewExport($request->proveedorId), 'VentasProveedor.csv', \Maatwebsite\Excel\Excel::CSV, ['Content-Type' => 'text/csv']);
+    }
+
+    public function exportComprasProveedoresCsv(Request $request){
+        return Excel::download(new ComprasProveedorViewExport($request->proveedorId,$request->fechaCompraDesde,$request->fechaCompraHasta), 'ComprasProveedor.xlsx', \Maatwebsite\Excel\Excel::XLSX, ['Content-Type' => 'text/xlsx']);
     }
 
     public function exportStoreStocks(Request $request)

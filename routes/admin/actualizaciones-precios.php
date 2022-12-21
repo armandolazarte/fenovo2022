@@ -23,3 +23,4 @@ Route::get('exportar/cabe-ele', [ActualizacionController::class, 'exportCabeEle'
 Route::get('exportar/ingresos-brutos', [ExportarArchivosController::class, 'exportIIBB'])->name('export.iibb');
 Route::get('exportar/ventas', [PrintController::class, 'exportMoviVentasCsv'])->name('export.ventas');
 Route::get('exportar/ventas/proveedores', [PrintController::class, 'exportVentasProveedoresCsv'])->name('export.ventas.proveedores');
+Route::get('exportar/compras/proveedores', [PrintController::class, 'exportComprasProveedoresCsv'])->name('export.compras.proveedores');
