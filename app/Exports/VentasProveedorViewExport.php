@@ -2,7 +2,6 @@
 
 namespace App\Exports;
 
-use App\Models\Movement;
 use App\Models\Proveedor;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -18,64 +17,87 @@ class VentasProveedorViewExport implements FromView
 
     public function __construct(string $proveedorId, string $fechaVentaDesde, string $fechaVentaHasta)
     {
-        $this->proveedorId      = $proveedorId;
-        $this->fechaVentaDesde  = $fechaVentaDesde;
-        $this->fechaVentaHasta  = $fechaVentaHasta;
+        $this->proveedorId     = $proveedorId;
+        $this->fechaVentaDesde = $fechaVentaDesde;
+        $this->fechaVentaHasta = $fechaVentaHasta;
     }
 
     public function view(): View
     {
-        $proveedorId    = $this->proveedorId;
-
-        $proveedor      =  Proveedor::find($proveedorId);
+        $proveedorId = $this->proveedorId;
+        $proveedor   = Proveedor::find($proveedorId);
 
         $arrTipos = ['VENTA'];
 
         $arrMovimientos = [];
 
-        $movimientos = DB::table('invoices as t1')
-        ->join('movements as t2', 't1.movement_id', '=', 't2.id')
-        ->join('movement_products as t3', 't3.movement_id', '=', 't2.id')
-        ->join('products as t4', 't3.product_id', '=', 't4.id')
+        $movimientos = DB::table('invoices as facturas')
+        ->join('movements as mov', 'facturas.movement_id', '=', 'mov.id')
+        ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
+        ->join('products as prod', 'detalle.product_id', '=', 'prod.id')
+        ->join('stores as tienda', 'mov.to', '=', 'tienda.id')
         ->select(
-            't1.created_at',
-            't1.voucher_number as comprobante',
-            't1.imp_total as importeTotal',
-            't1.pto_vta',
-            't1.cyo',
-            't3.bultos',
-            't3.egress as kilos',
-            't3.unit_price as precioUnitario',
-            't3.tasiva',
-            't4.name as producto',
+            'mov.date as fecha',
+            'facturas.voucher_number as comprobante',
+            'facturas.imp_total as importeTotal',
+            'facturas.pto_vta',
+            'facturas.cyo',
+            'mov.observacion',
+            'detalle.bultos',
+            'detalle.egress as kilos',
+            'detalle.unit_price as precioUnitario',
+            'detalle.tasiva',
+            'prod.name as producto',
+            'tienda.description as destino',
         )
-        ->selectRaw('t3.egress * t3.unit_price as neto')
-        ->selectRaw('(t3.egress * t3.unit_price * t3.tasiva)/100 as importeIva')
-        ->where('t1.pto_vta', '=', $proveedor->punto_venta)
-        ->where('t3.circuito', '=', 'CyO')
-        ->whereDate('t2.date','>',$this->fechaVentaDesde)
-        ->whereDate('t2.date','<',$this->fechaVentaHasta)
-        ->where('t3.egress', '>', 0)
-        ->orderBy('t1.created_at')
+        ->selectRaw('detalle.egress * detalle.unit_price as neto')
+        ->selectRaw('(detalle.egress * detalle.unit_price * detalle.tasiva)/100 as importeIva')
+        ->where('facturas.pto_vta', '=', $proveedor->punto_venta)
+        ->where('detalle.circuito', '=', 'CyO')
+        ->whereDate('mov.date', '>=', $this->fechaVentaDesde)
+        ->whereDate('mov.date', '<=', $this->fechaVentaHasta)
+        ->where('detalle.egress', '>', 0)
+        ->orderBy('facturas.created_at')
         ->get();
 
         foreach ($movimientos as $movimiento) {
             $objMovimiento = new stdClass();
 
-            $objMovimiento->fecha           = date('d/m/Y', strtotime($movimiento->created_at));
-            $objMovimiento->comprobante     = $movimiento->comprobante;
-            $objMovimiento->producto        = $movimiento->producto;
-            $objMovimiento->bultos          = $movimiento->bultos;
-            $objMovimiento->kilos           = $movimiento->kilos;
-            $objMovimiento->precioUnitario  = $movimiento->precioUnitario;
-            $objMovimiento->tasiva          = $movimiento->tasiva;
-            $objMovimiento->neto            = $movimiento->neto;
-            $objMovimiento->importeIva      = $movimiento->importeIva;
+            $objMovimiento->fecha          = date('d/m/Y', strtotime($movimiento->fecha));
+            $objMovimiento->comprobante    = $movimiento->comprobante;
+            $objMovimiento->ventaDirecta   = ($movimiento->observacion == 'VENTA DIRECTA') ? 'SI' : '';
+            $objMovimiento->producto       = $movimiento->producto;
+            $objMovimiento->bultos         = $movimiento->bultos;
+            $objMovimiento->kilos          = $movimiento->kilos;
+            $objMovimiento->precioUnitario = $movimiento->precioUnitario;
+            $objMovimiento->tasiva         = $movimiento->tasiva;
+            $objMovimiento->neto           = $movimiento->neto;
+            $objMovimiento->importeIva     = $movimiento->importeIva;
+            $objMovimiento->destino        = $movimiento->destino;
 
             array_push($arrMovimientos, $objMovimiento);
         }
 
-        return view('exports.ventasProveedor', compact('arrMovimientos'));
+        $grupos = DB::table('movements as mov')
+        ->join('movement_products as mp', 'mp.movement_id', '=', 'mov.id')
+        ->join('products as prod', 'mp.product_id', '=', 'prod.id')
+        ->join('product_prices as price', 'price.product_id', '=', 'prod.id')
+        ->select(
+            'prod.cod_fenovo as cod_producto',
+            'prod.name as nombre'
+        )
+        ->selectRaw('SUM(egress) as kgs')
+        ->selectRaw('SUM(mp.egress * mp.unit_price) as neto')
+        ->selectRaw('SUM(mp.egress * mp.unit_price * mp.tasiva)/100 as importeIva')
+        ->where('mov.type','VENTA')
+        ->where('mp.circuito', '=', 'CyO')
+        ->where('prod.proveedor_id', '=', $proveedorId)
+        ->whereDate('mov.date','>=',$this->fechaVentaDesde)
+        ->whereDate('mov.date','<=',$this->fechaVentaHasta)
+        ->groupBy('cod_producto')
+        ->get();
+
+        return view('exports.ventasProveedor', compact('arrMovimientos', 'grupos'));
     }
 
     private function getImporteIva($importe, $iva, $voucher)
