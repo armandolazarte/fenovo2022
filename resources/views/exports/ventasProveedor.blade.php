@@ -11,6 +11,7 @@
         <td>Neto</td>
         <td>IvaCalculado</td>
         <td>Destino</td>
+        <td>Provincia</td>
 
     </tr>
     @foreach ($arrMovimientos as $movimiento)
@@ -26,6 +27,7 @@
             <td>{{ $movimiento->neto }}</td>
             <td>{{ round($movimiento->importeIva, 2) }}</td>
             <td>{{ $movimiento->destino }}</td>
+            <td>{{ $movimiento->provincia }}</td>
         </tr>
     @endforeach
     <tr>
@@ -40,8 +42,10 @@
         <td>&nbsp;</td>
         <td>&nbsp;</td>
         <td>&nbsp;</td>
+        <td>&nbsp;</td>
     </tr>
     <tr>
+        <td>*********************</td>
         <td>*********************</td>
         <td>*********************</td>
         <td>*********************</td>
