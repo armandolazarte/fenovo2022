@@ -14,6 +14,7 @@ use App\Models\Store;
 use App\Models\VoucherType;
 use App\Repositories\InvoicesRepository;
 use Barryvdh\DomPDF\Facade as PDF;
+use Exception;
 use Illuminate\Http\Request;
 use stdClass;
 use Storage;
@@ -378,30 +379,37 @@ class InvoiceController extends Controller
     {
         try {
             $movement = Movement::where('id', $movement_id)->with('products_egress')->firstOrFail();
-            $store = Store::where('id',$movement->from)->first();
-            if($store && !is_null($store->punto_venta)){
-                $this->pto_vta = $store->punto_venta;
-            }
-            $result  = $this->createVoucher($movement,$this->pto_vta);
-            if ($result['status']) {
-                $invoice = $this->invoiceRepository->getByMovement($movement_id);
-                if (isset($invoice)) {
-                    $inv   = Invoice::whereNotNull('cae')->orderBy('orden', 'DESC')->first();
-                    $orden = (isset($inv)) ? $inv->orden + 1 : 1;
-                    $this->invoiceRepository->fill($invoice->id, [
-                        'error'      => null,
-                        'orden'      => $orden,
-                        'cae'        => $result['response_afip']['CAE'],
-                        'expiration' => $result['response_afip']['CAEFchVto'],
-                    ]);
-                }
+            if(count($movement->products_egress)){
+               /*  $store = Store::where('id',$movement->from)->first();
+                if($store && !is_null($store->punto_venta)){
+                    $this->pto_vta = $store->punto_venta;
+                } */
+                $this->pto_vta = $movement->products_egress[0]->punto_venta;
+                $result  = $this->createVoucher($movement,$this->pto_vta);
+                if ($result['status']) {
+                    $invoice = $this->invoiceRepository->getByMovement($movement_id);
+                    if (isset($invoice)) {
+                        $inv   = Invoice::whereNotNull('cae')->orderBy('orden', 'DESC')->first();
+                        $orden = (isset($inv)) ? $inv->orden + 1 : 1;
+                        $this->invoiceRepository->fill($invoice->id, [
+                            'error'      => null,
+                            'orden'      => $orden,
+                            'cae'        => $result['response_afip']['CAE'],
+                            'expiration' => $result['response_afip']['CAEFchVto'],
+                        ]);
+                    }
 
-                return redirect()->back()->withInput();
+                    return redirect()->back()->withInput();
+                }
+                if (isset($invoice)) {
+                    $this->invoiceRepository->fill($invoice->id, ['error' => $result['error']]);
+                }
+                return $result['error'];
+
+            }else{
+                throw new Exception("El movimiento no tiene productos");
+
             }
-            if (isset($invoice)) {
-                $this->invoiceRepository->fill($invoice->id, ['error' => $result['error']]);
-            }
-            return $result['error'];
         } catch (\Exception $e) {
             return $e->getMessage();
         }
