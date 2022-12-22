@@ -141,7 +141,7 @@ class PrintController extends Controller
 
     public function exportVentasProveedoresCsv(Request $request)
     {
-        return Excel::download(new VentasProveedorViewExport($request->proveedorId, $request->fechaVentaDesde, $request->fechaVentaHasta), 'VentasProveedor.xlsx', \Maatwebsite\Excel\Excel::XLSX, ['Content-Type' => 'text/.xlsx']);
+        return Excel::download(new VentasProveedorViewExport($request->proveedorId, $request->fechaVentaDesde, $request->fechaVentaHasta), 'VentasProveedor.xlsx', \Maatwebsite\Excel\Excel::XLSX, ['Content-Type' => 'text/xlsx']);
     }
 
     public function exportComprasProveedoresCsv(Request $request)
