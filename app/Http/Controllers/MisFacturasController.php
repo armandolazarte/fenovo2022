@@ -96,7 +96,7 @@ class MisFacturasController extends Controller
                     $urls = '';
                     foreach ($invoices as $invoice) {
                         if ((!is_null($invoice->cae) && !is_null($invoice->url))) {
-                            $number = ($invoice->cyo) ? 'CyO - ' . $invoice->voucher_number : $invoice->voucher_number;
+                            $number =  $invoice->voucher_number ;
                             $urls .= '<a class="text-primary" title="Descargar factura" target="_blank" href="' . $invoice->url . '"> ' . $number . ' </a><br>';
                         }
                     }
