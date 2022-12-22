@@ -263,6 +263,10 @@ class IngresosController extends Controller
         $data            = $request->all();
         $data['user_id'] = \Auth::user()->id;
         $movement        = MovementTemp::create($data);
+        if(Movement::where('from',$data['from'])->where('voucher_number',$data['voucher_number'])->exists()){
+            $request->session()->flash('error', 'El número de remito con el proveedor ya fue cargado!');
+            return redirect()->back();
+        }
         return redirect()->route('ingresos.edit', ['id' => $movement->id]);
     }
 
