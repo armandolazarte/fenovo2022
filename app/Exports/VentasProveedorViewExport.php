@@ -32,33 +32,35 @@ class VentasProveedorViewExport implements FromView
         $arrMovimientos = [];
 
         $movimientos = DB::table('invoices as facturas')
-        ->join('movements as mov', 'facturas.movement_id', '=', 'mov.id')
-        ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
-        ->join('products as prod', 'detalle.product_id', '=', 'prod.id')
-        ->join('stores as tienda', 'mov.to', '=', 'tienda.id')
-        ->select(
-            'mov.date as fecha',
-            'facturas.voucher_number as comprobante',
-            'facturas.imp_total as importeTotal',
-            'facturas.pto_vta',
-            'facturas.cyo',
-            'mov.observacion',
-            'detalle.bultos',
-            'detalle.egress as kilos',
-            'detalle.unit_price as precioUnitario',
-            'detalle.tasiva',
-            'prod.name as producto',
-            'tienda.description as destino',
-        )
-        ->selectRaw('detalle.egress * detalle.unit_price as neto')
-        ->selectRaw('(detalle.egress * detalle.unit_price * detalle.tasiva)/100 as importeIva')
-        ->where('facturas.pto_vta', '=', $proveedor->punto_venta)
-        ->where('detalle.circuito', '=', 'CyO')
-        ->whereDate('mov.date', '>=', $this->fechaVentaDesde)
-        ->whereDate('mov.date', '<=', $this->fechaVentaHasta)
-        ->where('detalle.egress', '>', 0)
-        ->orderBy('facturas.created_at')
-        ->get();
+            ->join('movements as mov', 'facturas.movement_id', '=', 'mov.id')
+            ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
+            ->join('products as prod', 'detalle.product_id', '=', 'prod.id')
+            ->join('stores as tienda', 'mov.to', '=', 'tienda.id')
+            ->select(
+                'mov.date as fecha',
+                'facturas.voucher_number as comprobante',
+                'facturas.imp_total as importeTotal',
+                'facturas.pto_vta',
+                'facturas.cyo',
+                'mov.observacion',
+                'detalle.bultos',
+                'detalle.egress as kilos',
+                'detalle.unit_price as precioUnitario',
+                'detalle.tasiva',
+                'prod.name as producto',
+                'tienda.description as destino',
+            )
+            ->selectRaw('detalle.egress * detalle.unit_price as neto')
+            ->selectRaw('(detalle.egress * detalle.unit_price * detalle.tasiva)/100 as importeIva')
+            ->where('facturas.pto_vta', '=', $proveedor->punto_venta)
+            ->whereDate('mov.date', '>=', $this->fechaVentaDesde)
+            ->whereDate('mov.date', '<=', $this->fechaVentaHasta)
+            ->whereIn('mov.type', $arrTipos)
+            ->where('detalle.entidad_id', '=', 1)
+            ->where('detalle.egress', '>', 0)
+            ->where('detalle.circuito', '=', 'CyO')
+            ->orderBy('facturas.created_at')
+            ->get();
 
         foreach ($movimientos as $movimiento) {
             $objMovimiento = new stdClass();
@@ -79,23 +81,25 @@ class VentasProveedorViewExport implements FromView
         }
 
         $grupos = DB::table('movements as mov')
-        ->join('movement_products as mp', 'mp.movement_id', '=', 'mov.id')
-        ->join('products as prod', 'mp.product_id', '=', 'prod.id')
-        ->join('product_prices as price', 'price.product_id', '=', 'prod.id')
-        ->select(
-            'prod.cod_fenovo as cod_producto',
-            'prod.name as nombre'
-        )
-        ->selectRaw('SUM(egress) as kgs')
-        ->selectRaw('SUM(mp.egress * mp.unit_price) as neto')
-        ->selectRaw('SUM(mp.egress * mp.unit_price * mp.tasiva)/100 as importeIva')
-        ->where('mov.type','VENTA')
-        ->where('mp.circuito', '=', 'CyO')
-        ->where('prod.proveedor_id', '=', $proveedorId)
-        ->whereDate('mov.date','>=',$this->fechaVentaDesde)
-        ->whereDate('mov.date','<=',$this->fechaVentaHasta)
-        ->groupBy('cod_producto')
-        ->get();
+            ->join('movement_products as mp', 'mp.movement_id', '=', 'mov.id')
+            ->join('products as prod', 'mp.product_id', '=', 'prod.id')
+            ->join('product_prices as price', 'price.product_id', '=', 'prod.id')
+            ->select(
+                'prod.cod_fenovo as cod_producto',
+                'prod.name as nombre'
+            )
+            ->selectRaw('SUM(egress) as kgs')
+            ->selectRaw('SUM(mp.egress * mp.unit_price) as neto')
+            ->selectRaw('SUM(mp.egress * mp.unit_price * mp.tasiva)/100 as importeIva')
+            ->where('mov.type', 'VENTA')
+            ->where('mp.entidad_id', '=', 1)
+            ->where('mp.egress', '>', 0)
+            ->where('mp.circuito', '=', 'CyO')
+            ->where('prod.proveedor_id', '=', $proveedorId)
+            ->whereDate('mov.date', '>=', $this->fechaVentaDesde)
+            ->whereDate('mov.date', '<=', $this->fechaVentaHasta)
+            ->groupBy('cod_producto')
+            ->get();
 
         return view('exports.ventasProveedor', compact('arrMovimientos', 'grupos'));
     }
