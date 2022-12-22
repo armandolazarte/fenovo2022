@@ -144,10 +144,12 @@ class NotasCreditoController extends Controller
                 }
                 $deposito = (int)$request->input('deposito');
                 $tienda   = Store::find($deposito);
+                $voucher_number = $request->input('voucher_number');
+                $invoice        = Invoice::where('voucher_number', $voucher_number)->first();
 
                 // Si el destino es NAVE
                 $from       = ($tienda->store_type == 'N') ? \Auth::user()->store_active : $tienda->id;
-                $puntoVenta = ($tienda->store_type == 'N') ? env('PTO_VTA_FENOVO', 18) : $tienda->punto_venta;
+                $puntoVenta = $invoice->pto_vta;//($tienda->store_type == 'N') ? env('PTO_VTA_FENOVO', 18) : $tienda->punto_venta;
 
                 $count = Movement::where('from', $from)->whereIn('type', ['DEVOLUCION', 'DEVOLUCIONCLIENTE'])->count();
                 $orden = ($count) ? $count + 1 : 1;
@@ -165,7 +167,7 @@ class NotasCreditoController extends Controller
                 $insert_data['from']           = $from;
                 $insert_data['orden']          = $orden;
                 $insert_data['status']         = 'FINISHED';
-                $insert_data['voucher_number'] = $request->input('voucher_number');
+                $insert_data['voucher_number'] = $voucher_number;
                 $movement                      = Movement::create($insert_data);
 
                 $session_products = $this->sessionProductRepository->getByListId($list_id);
