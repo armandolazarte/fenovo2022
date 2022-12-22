@@ -17,6 +17,11 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-lg-12 col-xl-12">
+                    @if(session('error'))
+                        <div class="alert alert-danger" role="alert">
+                            {!! session('error') !!}
+                        </div>
+                    @endif
                     <div class="card card-custom gutter-b bg-white border-0">
                         <div class="card-body">
                             {{ Form::open(['route' => 'ingresos.store']) }}
@@ -49,7 +54,7 @@
                                     <input type="text" id="voucher_number" name="voucher_number" value=""
                                         class="form-control text-center" required="true">
                                 </div>
-                               
+
                                 <div class="col-md-2 text-center">
                                     <label class="text-dark">Guardar</label>
                                     <fieldset class="form-group mb-3">

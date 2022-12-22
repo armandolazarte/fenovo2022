@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Invoice;
 use App\Models\Movement;
 use App\Models\Panamas;
 
@@ -41,11 +42,11 @@ class MisFacturasController extends Controller
             return view('admin.mis-facturas.inicio');
         }
 
-        return redirect()->route('mis.facturas.list');        
+        return redirect()->route('mis.facturas.list');
     }
 
     public function list(Request $request)
-    {       
+    {
         $arrTypes = ['VENTA', 'TRASLADO'];
         $storeTypes = ['B', 'T', 'E'];
 
@@ -72,7 +73,7 @@ class MisFacturasController extends Controller
                 )
                 ->orderByDesc('movements.id')
                 ->groupBy('movements.id')
-                ->get();    
+                ->get();
 
             return Datatables::of($movimientos)
                 ->editColumn('movement_id', function ($movimiento) {
@@ -91,9 +92,15 @@ class MisFacturasController extends Controller
                     return ($movimiento->imp_total)?number_format($movimiento->imp_total, 2, ',', '.'):null;
                 })
                 ->addColumn('url', function ($movimiento) {
-                    return ($movimiento->url)
-                        ? '<a class="text-primary" title="Descargar factura" target="_blank" href="' . $movimiento->url . '">' .
-                            $movimiento->voucher_number . '</a>' : null;
+                    $invoices = Invoice::where('movement_id',$movimiento->id)->get();
+                    $urls = '';
+                    foreach ($invoices as $invoice) {
+                        if ((!is_null($invoice->cae) && !is_null($invoice->url))) {
+                            $number =  $invoice->voucher_number ;
+                            $urls .= '<a class="text-primary" title="Descargar factura" target="_blank" href="' . $invoice->url . '"> ' . $number . ' </a><br>';
+                        }
+                    }
+                    return $urls;
                 })
                 ->addColumn('panama', function ($movimiento) {
                     if ($movimiento->hasPanama()) {
