@@ -49,6 +49,7 @@ class VentasProveedorViewExport implements FromView
                 'detalle.tasiva',
                 'prod.name as producto',
                 'tienda.description as destino',
+                'tienda.state as provincia',
             )
             ->selectRaw('detalle.egress * detalle.unit_price as neto')
             ->selectRaw('(detalle.egress * detalle.unit_price * detalle.tasiva)/100 as importeIva')
@@ -76,6 +77,7 @@ class VentasProveedorViewExport implements FromView
             $objMovimiento->neto           = $movimiento->neto;
             $objMovimiento->importeIva     = $movimiento->importeIva;
             $objMovimiento->destino        = $movimiento->destino;
+            $objMovimiento->provincia      = $movimiento->provincia;
 
             array_push($arrMovimientos, $objMovimiento);
         }
