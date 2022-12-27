@@ -2,7 +2,9 @@
 
 namespace App\Exports;
 
+use App\Models\Customer;
 use App\Models\Proveedor;
+use App\Models\Store;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Concerns\Exportable;
@@ -27,29 +29,30 @@ class VentasProveedorViewExport implements FromView
         $proveedorId = $this->proveedorId;
         $proveedor   = Proveedor::find($proveedorId);
 
-        $arrTipos = ['VENTA'];
+        $arrTipos = ['VENTA', 'VENTACLIENTE'];
 
         $arrMovimientos = [];
 
         $movimientos = DB::table('invoices as facturas')
+            ->join('voucher_types as tipos', 'facturas.cbte_tipo', '=', 'tipos.afip_id')
             ->join('movements as mov', 'facturas.movement_id', '=', 'mov.id')
             ->join('movement_products as detalle', 'detalle.movement_id', '=', 'mov.id')
             ->join('products as prod', 'detalle.product_id', '=', 'prod.id')
-            ->join('stores as tienda', 'mov.to', '=', 'tienda.id')
             ->select(
                 'mov.date as fecha',
+                'mov.type as tipo',
+                'mov.to',
                 'facturas.voucher_number as comprobante',
                 'facturas.imp_total as importeTotal',
                 'facturas.pto_vta',
                 'facturas.cyo',
+                'tipos.description as tipoFactura',
                 'mov.observacion',
                 'detalle.bultos',
                 'detalle.egress as kilos',
                 'detalle.unit_price as precioUnitario',
                 'detalle.tasiva',
                 'prod.name as producto',
-                'tienda.description as destino',
-                'tienda.state as provincia',
             )
             ->selectRaw('detalle.egress * detalle.unit_price as neto')
             ->selectRaw('(detalle.egress * detalle.unit_price * detalle.tasiva)/100 as importeIva')
@@ -66,9 +69,13 @@ class VentasProveedorViewExport implements FromView
         foreach ($movimientos as $movimiento) {
             $objMovimiento = new stdClass();
 
+            $destino   = ($movimiento->tipo == 'VENTA') ? Store::find($movimiento->to)->description : Customer::find($movimiento->to)->razon_social;
+            $provincia = ($movimiento->tipo == 'VENTA') ? Store::find($movimiento->to)->state : Customer::find($movimiento->to)->state;
+
             $objMovimiento->fecha          = date('d/m/Y', strtotime($movimiento->fecha));
             $objMovimiento->comprobante    = $movimiento->comprobante;
             $objMovimiento->ventaDirecta   = ($movimiento->observacion == 'VENTA DIRECTA') ? 'SI' : '';
+            $objMovimiento->tipoFactura    = $movimiento->tipoFactura;
             $objMovimiento->producto       = $movimiento->producto;
             $objMovimiento->bultos         = $movimiento->bultos;
             $objMovimiento->kilos          = $movimiento->kilos;
@@ -76,8 +83,8 @@ class VentasProveedorViewExport implements FromView
             $objMovimiento->tasiva         = $movimiento->tasiva;
             $objMovimiento->neto           = $movimiento->neto;
             $objMovimiento->importeIva     = $movimiento->importeIva;
-            $objMovimiento->destino        = $movimiento->destino;
-            $objMovimiento->provincia      = $movimiento->provincia;
+            $objMovimiento->destino        = $destino;
+            $objMovimiento->provincia      = $provincia;
 
             array_push($arrMovimientos, $objMovimiento);
         }
@@ -93,7 +100,7 @@ class VentasProveedorViewExport implements FromView
             ->selectRaw('SUM(egress) as kgs')
             ->selectRaw('SUM(mp.egress * mp.unit_price) as neto')
             ->selectRaw('SUM(mp.egress * mp.unit_price * mp.tasiva)/100 as importeIva')
-            ->where('mov.type', 'VENTA')
+            ->whereIn('mov.type', $arrTipos)
             ->where('mp.entidad_id', '=', 1)
             ->where('mp.egress', '>', 0)
             ->where('mp.circuito', '=', 'CyO')

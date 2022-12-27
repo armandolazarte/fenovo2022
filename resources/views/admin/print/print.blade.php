@@ -106,33 +106,12 @@
                     </div>
 
                     <div class="card card-body gutter-b bg-white border-0">
-                        <div class="row mb-2 font-weight-bolder">
-                            <div class="col-3">
-                                Retenciones y Percepciones ER
-                            </div>
-                        </div>
-                        <div class="row mb-2 ml-2 border-bottom-dark text-center">
-                            <div class="col-2">
-                                <div class="input-group mb-3">
-                                    <input type="month" id="iibbFecha" name="iibbFecha" value="{{ date('Y-m') }}"
-                                        class="form-control">
-                                    <div class="input-group-append">
-                                        <span class="input-group-text" id="basic-addon2">
-                                            <a href="#" onclick="javascript:printIIBB()"
-                                                title="Exportar Ingresos Brutos">
-                                                <i class=" fa fa-file-csv"></i>
-                                            </a>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card card-body gutter-b bg-white border-0">
                         <div class="row mt-3 mb-4">
-                            <div class="col-3">
-                                <span class="font-weight-bolder">Compras</span> detalladas
+                            <div class="col-6">
+                                <span class="font-weight-bolder text-danger">Compras</span>
+                            </div>
+                            <div class="col-6">
+                                <span class="font-weight-bolder text-success">Ventas</span>
                             </div>
                         </div>
                         <div class="row mb-5 ml-2 border-bottom-dark text-center">
@@ -171,15 +150,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="row mt-3 mb-4">
-                            <div class="col-3">
-                                <span class="font-weight-bolder">Ventas</span> detalladas
-                            </div>
-                        </div>
-
-                        <div class="row mb-5 ml-2 border-bottom-dark text-center">
+                        
                             <div class="col-2">
                                 <div class="form-group mb-3">
                                     <label style="float:left">Desde</label>
@@ -216,6 +187,30 @@
                                 </div>
                             </div>
 
+                        </div>
+                    </div>
+
+                    <div class="card card-body gutter-b bg-white border-0">
+                        <div class="row mb-2 font-weight-bolder">
+                            <div class="col-3">
+                                Retenciones y Percepciones ER
+                            </div>
+                        </div>
+                        <div class="row mb-2 ml-2 border-bottom-dark text-center">
+                            <div class="col-2">
+                                <div class="input-group mb-3">
+                                    <input type="month" id="iibbFecha" name="iibbFecha" value="{{ date('Y-m') }}"
+                                        class="form-control">
+                                    <div class="input-group-append">
+                                        <span class="input-group-text" id="basic-addon2">
+                                            <a href="#" onclick="javascript:printIIBB()"
+                                                title="Exportar Ingresos Brutos">
+                                                <i class=" fa fa-file-csv"></i>
+                                            </a>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
