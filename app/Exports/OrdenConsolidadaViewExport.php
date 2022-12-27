@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Models\Invoice;
 use App\Models\Movement;
 use App\Models\MovementProduct;
 use App\Models\Store;
@@ -40,7 +41,11 @@ class OrdenConsolidadaViewExport implements FromView
             if ($movimiento->invoice_fenovo()) {
                 $explodes = explode('-', $movimiento->invoice_fenovo()->voucher_number);
                 $ptoVta   = str_pad((int)$explodes[0], 4, '0', STR_PAD_LEFT);
-                $importe  = $movimiento->invoice_fenovo()->imp_neto;
+                $invoices = Invoice::whereNotNull('cae')->where('movement_id',$movimiento->id)->get();
+                $importe  = 0;
+                foreach ($invoices as $invoice) {
+                    $importe += $invoice->imp_neto;
+                }
             } else {
                 $importe = '0.0';
             }
