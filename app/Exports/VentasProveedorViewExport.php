@@ -46,6 +46,7 @@ class VentasProveedorViewExport implements FromView
                 'facturas.imp_total as importeTotal',
                 'facturas.pto_vta',
                 'facturas.cyo',
+                'facturas.cbte_tipo',
                 'tipos.description as tipoFactura',
                 'mov.observacion',
                 'detalle.bultos',
