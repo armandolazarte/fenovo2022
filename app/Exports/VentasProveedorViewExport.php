@@ -75,7 +75,7 @@ class VentasProveedorViewExport implements FromView
 
             $objMovimiento->fecha          = date('d/m/Y', strtotime($movimiento->fecha));
             $objMovimiento->comprobante    = $movimiento->comprobante;
-            $objMovimiento->factura        = $this->getFactura($movimiento->cbte_tipo);
+           // $objMovimiento->factura        = $this->getFactura($movimiento->cbte_tipo);
             $objMovimiento->ventaDirecta   = ($movimiento->observacion == 'VENTA DIRECTA') ? 'SI' : '';
             $objMovimiento->tipoFactura    = $movimiento->tipoFactura;
             $objMovimiento->producto       = $movimiento->producto;
