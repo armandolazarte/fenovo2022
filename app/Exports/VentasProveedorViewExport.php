@@ -62,7 +62,7 @@ class VentasProveedorViewExport implements FromView
             ->whereIn('mov.type', $arrTipos)
             ->where('detalle.entidad_id', '=', 1)
             ->where('detalle.egress', '>', 0)
-            //->where('detalle.circuito', '=', 'CyO')
+            ->where('detalle.circuito', '=', 'CyO')
             ->orderBy('facturas.created_at')
             ->get();
 
