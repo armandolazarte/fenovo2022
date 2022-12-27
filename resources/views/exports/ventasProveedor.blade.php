@@ -2,6 +2,7 @@
     <tr>
         <td>Fecha</td>
         <td>Comprobante</td>
+        <td>Tipo de comprobante</td>
         <td>VtaDirecta</td>
         <td>Producto</td>
         <td>Bultos</td>
@@ -18,6 +19,7 @@
         <tr>
             <td>{{ $movimiento->fecha }}</td>
             <td>{{ $movimiento->comprobante }}</td>
+            <td>{{ $movimiento->factura }}</td>
             <td>{{ $movimiento->ventaDirecta }}</td>
             <td>{{ $movimiento->producto }}</td>
             <td>{{ $movimiento->bultos }}</td>
@@ -43,8 +45,10 @@
         <td>&nbsp;</td>
         <td>&nbsp;</td>
         <td>&nbsp;</td>
+        <td>&nbsp;</td>
     </tr>
     <tr>
+        <td>*********************</td>
         <td>*********************</td>
         <td>*********************</td>
         <td>*********************</td>
