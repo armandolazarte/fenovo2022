@@ -42,6 +42,7 @@ class VentasProveedorViewExport implements FromView
                 'facturas.imp_total as importeTotal',
                 'facturas.pto_vta',
                 'facturas.cyo',
+                'facturas.cbte_tipo',
                 'mov.observacion',
                 'detalle.bultos',
                 'detalle.egress as kilos',
@@ -68,6 +69,7 @@ class VentasProveedorViewExport implements FromView
 
             $objMovimiento->fecha          = date('d/m/Y', strtotime($movimiento->fecha));
             $objMovimiento->comprobante    = $movimiento->comprobante;
+            $objMovimiento->factura        = $this->getFactura($movimiento->cbte_tipo);
             $objMovimiento->ventaDirecta   = ($movimiento->observacion == 'VENTA DIRECTA') ? 'SI' : '';
             $objMovimiento->producto       = $movimiento->producto;
             $objMovimiento->bultos         = $movimiento->bultos;
@@ -106,6 +108,28 @@ class VentasProveedorViewExport implements FromView
         return view('exports.ventasProveedor', compact('arrMovimientos', 'grupos'));
     }
 
+    private function getFactura($cbteTipo){
+        switch ($cbteTipo) {
+            case '1':
+                return 'Factura A';
+                break;
+            case '2':
+                return 'Nota Debito A';
+                break;
+            case '3':
+                return 'Nota Credito A';
+                break;
+            case '6':
+                return 'Factura B';
+                break;
+            case '7':
+                return 'Nota Debito B';
+                break;
+            case '8':
+                return 'Nota Credito B';
+                break;
+        }
+    }
     private function getImporteIva($importe, $iva, $voucher)
     {
         if (strlen($voucher) == 0) {
