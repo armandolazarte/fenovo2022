@@ -85,6 +85,16 @@ class SessionOferta extends Model
         return $this->belongsToMany(Store::class, OfertaStore::class, 'session_id', 'store_id');
     }
 
+    public function listaStores()
+    {
+        $stores = $this->stores;
+        $lista    = '';
+        foreach ($stores as $store) {
+            $lista .= '(<b>'.str_pad($store->cod_fenovo, 3, '0', STR_PAD_LEFT).'</b>) '.$store->description.', ';
+        };
+        return $lista;
+    }
+
     public function hasExcepcion()
     {	
         return $this->belongsToMany(Store::class, OfertaStore::class, 'session_id', 'store_id')->exists();
