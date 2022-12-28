@@ -886,7 +886,7 @@ class ProductController extends Controller
                     $data['descp1']   = $data['descp2'] = 0;
 
                     if ($data['oferta_id'] > 0) {
-                        SessionOferta::updateOrCreate(['product_id' => $data['product_id']], $data);
+                        SessionOferta::updateOrCreate(['id' => $data['oferta_id']], $data);
                     } else {
                         SessionOferta::updateOrCreate([
                             'product_id'  => $data['product_id'],
@@ -1595,8 +1595,8 @@ class ProductController extends Controller
                     ->selectRaw('(t1.stock_f + t1.stock_r + t1.stock_cyo) * t1.unit_weight as kilage')
                     ->orderBy('t1.cod_fenovo')
                     ->get();
-                
-            }    
+
+            }
 
             $kgrs = $productos->sum('kilage');
 
