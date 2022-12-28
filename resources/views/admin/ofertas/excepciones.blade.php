@@ -32,7 +32,7 @@
                     <div class="col-12 ">
                         <div class="card card-custom gutter-b bg-white border-0">
                             <div class="card-body">
-                                <table class="display table-hover yajra-datatable">
+                                <table class="display table-hover yajra-datatable text-center">
                                     <thead>
                                         <tr class="bg-dark text-white">
                                             <th>CodFenovo</th>
@@ -41,7 +41,7 @@
                                             <th>Desde</th>
                                             <th>Hasta</th>
                                             <th>Vincular</th>
-                                            <th>Asociadas</th>
+                                            <th>Tiendas asociadas</th>
                                             <th></th>
                                             <th></th>
                                         </tr>
@@ -74,15 +74,15 @@
         @include('partials.table.setting'),
         ajax: "{{ route('oferta.excepciones') }}",
         columns: [
-            {data: 'cod_fenovo', 'class':'text-center col-1', orderable: false, searchable: false},
-            {data: 'producto'},
-            {data: 'p1tienda', 'class':'text-center col-1', orderable: false, searchable: false},
+            {data: 'cod_fenovo', orderable: false, searchable: false},
+            {data: 'producto', 'class':'text-left'},
+            {data: 'p1tienda', orderable: false, searchable: false},
             {data: 'fechadesde'},
             {data: 'fechahasta'},
-            {data: 'vincular', 'class':'text-center col-1', orderable: false, searchable: false},
-            {data: 'asociadas', 'class':'text-center', orderable: false, searchable: false},
-            {data: 'edit', 'class':'text-center', orderable: false, searchable: false},
-            {data: 'destroy', 'class':'text-center', orderable: false, searchable: false},
+            {data: 'vincular', orderable: false, searchable: false},
+            {data: 'tiendas', 'class':'text-left', orderable: false, searchable: false},
+            {data: 'edit', orderable: false, searchable: false},
+            {data: 'destroy', orderable: false, searchable: false},
         ]
     });
 </script>
