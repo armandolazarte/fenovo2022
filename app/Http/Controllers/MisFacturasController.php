@@ -47,7 +47,7 @@ class MisFacturasController extends Controller
 
     public function list(Request $request)
     {
-        $arrTypes = ['VENTA', 'TRASLADO'];
+        $arrTypes = ['VENTA', 'TRASLADO','DEVOLUCIONCLIENTE','DEVOLUCION'];
         $storeTypes = ['B', 'T', 'E'];
 
         if ($request->ajax()) {
