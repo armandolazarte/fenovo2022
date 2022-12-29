@@ -335,6 +335,8 @@
                     return false;
                 },
                 yes_fn: function() {
+                    let product_id = jQuery('#product_id').val();
+
                     jQuery.ajax({
                         url: '{{ route('actualizacion.destroy') }}',
                         type: 'POST',
@@ -342,7 +344,7 @@
                             id
                         },
                         success: function(response) {
-                            window.location.reload();
+                            window.location = '{{ route('product.edit') }}?id=' + product_id;
                         }
                     });
                 }
