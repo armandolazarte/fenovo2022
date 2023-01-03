@@ -61,7 +61,7 @@ class VentasProveedorViewExport implements FromView
             ->whereDate('mov.date', '>=', $this->fechaVentaDesde)
             ->whereDate('mov.date', '<=', $this->fechaVentaHasta)
             ->whereIn('mov.type', $arrTipos)
-            ->where('detalle.entidad_id', '=', 1)
+            //->where('detalle.entidad_id', '=', 1)
             ->where('detalle.egress', '>', 0)
             ->where('detalle.circuito', '=', 'CyO')
             ->orderBy('facturas.created_at')
