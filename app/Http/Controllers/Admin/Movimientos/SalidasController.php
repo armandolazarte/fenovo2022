@@ -1804,9 +1804,18 @@ class SalidasController extends Controller
 
             // Actualizo Nave
             if (Auth::user()->store_active == 1) {
-                $p->stock_f = $stock          * ($parametro->coeficiente / 100);
-                $p->stock_r = $stock - $stock * ($parametro->coeficiente / 100);
+                //sie le produto es de camelias el stock va 100 al cyo
+                if($p->proveedor_id == 4){
+                    $p->stock_cyo = $stock;
+                    $p->stock_f = 0;
+                    $p->stock_r = 0;
+                }else{
+                    $p->stock_cyo = 0;
+                    $p->stock_f = $stock          * ($parametro->coeficiente / 100);
+                    $p->stock_r = $stock - $stock * ($parametro->coeficiente / 100);
+                }
                 $p->save();
+
             } else {
                 // Actualizo Otro deposito
                 $product_store = ProductStore::whereStoreId(Auth::user()->store_active)->whereProductId($p->id)->first();
@@ -1817,9 +1826,15 @@ class SalidasController extends Controller
                         'product_id' => $p->id,
                     ]);
                 }
-
-                $product_store->stock_f = $stock          * ($parametro->coeficiente / 100);
-                $product_store->stock_r = $stock - $stock * ($parametro->coeficiente / 100);
+                if($p->proveedor_id == 4){
+                    $product_store->stock_cyo = $stock;
+                    $product_store->stock_f = 0;
+                    $product_store->stock_r = 0;
+                }else{
+                    $product_store->stock_cyo = 0;
+                    $product_store->stock_f = $stock          * ($parametro->coeficiente / 100);
+                    $product_store->stock_r = $stock - $stock * ($parametro->coeficiente / 100);
+                }
                 $product_store->save();
             }
         }
