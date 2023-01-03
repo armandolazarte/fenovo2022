@@ -71,6 +71,7 @@ class VentasProveedorViewExport implements FromView
             $objMovimiento = new stdClass();
 
             $destino   = ($movimiento->tipo == 'VENTA') ? Store::find($movimiento->to)->description : Customer::find($movimiento->to)->razon_social;
+            $origen    = ($movimiento->tipo == 'VENTA') ? Store::find($movimiento->from)->description : Customer::find($movimiento->from)->razon_social;
             $provincia = ($movimiento->tipo == 'VENTA') ? Store::find($movimiento->to)->state : Customer::find($movimiento->to)->state;
 
             $objMovimiento->fecha          = date('d/m/Y', strtotime($movimiento->fecha));
@@ -85,6 +86,7 @@ class VentasProveedorViewExport implements FromView
             $objMovimiento->tasiva         = $movimiento->tasiva;
             $objMovimiento->neto           = $movimiento->neto;
             $objMovimiento->importeIva     = $movimiento->importeIva;
+            $objMovimiento->origen         = $origen;
             $objMovimiento->destino        = $destino;
             $objMovimiento->provincia      = $provincia;
 

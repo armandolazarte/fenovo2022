@@ -11,6 +11,7 @@
         <td>AlicuotaIva</td>
         <td>Neto</td>
         <td>IvaCalculado</td>
+        <td>Origen</td>
         <td>Destino</td>
         <td>Provincia</td>
 
@@ -28,6 +29,7 @@
             <td>{{ $movimiento->tasiva }}</td>
             <td>{{ $movimiento->neto }}</td>
             <td>{{ round($movimiento->importeIva, 2) }}</td>
+            <td>{{ $movimiento->origen }}</td>
             <td>{{ $movimiento->destino }}</td>
             <td>{{ $movimiento->provincia }}</td>
         </tr>
@@ -46,8 +48,10 @@
         <td>&nbsp;</td>
         <td>&nbsp;</td>
         <td>&nbsp;</td>
+        <td>&nbsp;</td>
     </tr>
     <tr>
+        <td>*********************</td>
         <td>*********************</td>
         <td>*********************</td>
         <td>*********************</td>
