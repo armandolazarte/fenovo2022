@@ -41,6 +41,7 @@ class VentasProveedorViewExport implements FromView
             ->select(
                 'mov.date as fecha',
                 'mov.type as tipo',
+                'mov.from',
                 'mov.to',
                 'facturas.voucher_number as comprobante',
                 'facturas.imp_total as importeTotal',
