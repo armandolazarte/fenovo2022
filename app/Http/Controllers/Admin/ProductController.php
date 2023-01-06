@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Exports\DescuentosViewExport;
 use App\Exports\ListaMayoristaFenovo;
 use App\Exports\PresentacionesViewExport;
+use App\Exports\ProductosSenasaExport;
 use App\Exports\ProductsViewExport;
 use App\Exports\ProductsViewExportStock;
 use App\Exports\ProductsViewHistorial;
@@ -1612,6 +1613,11 @@ class ProductController extends Controller
     public function printListaMayoristaFenovo(Request $request)
     {
         return Excel::download(new ListaMayoristaFenovo(), 'lista-mayorista-fenovo-' . date('d-m-Y') . '.xlsx');
+    }
+
+    public function downloadProductosSenasa(Request $request)
+    {
+        return Excel::download(new ProductosSenasaExport(), 'productos-senasa-' . date('d-m-Y') . '.xlsx');
     }
 
     public function importNoCongelados()
