@@ -22,7 +22,7 @@
                     Actualización :: {{\Carbon\Carbon::parse($p->fecha_actualizacion)->format('d/m/Y')}}
                 </span>
             </a>
-            
+
             @endforeach
         </span>
 
@@ -30,7 +30,7 @@
         <a href="javascript:void(0)" onclick="eliminarOferta({{ $precio_oferta->id}})" title="Eliminar oferta">
             <i class=" fa fa-trash text-dark"></i>
         </a>
-        
+
         <a href="{{route('product.edit',['id' => $product->id, 'oferta_id' => $precio_oferta->id,'fecha_oferta' => $precio_oferta->fecha_desde ])}}#precios" onclick="jQuery('#loader').removeClass('hidden')">
             <span class="badge @if(Request::get('fecha_oferta') !== null && Request::get('oferta_id') == $precio_oferta->id) badge-primary @else badge-light @endif p-2">
                 {{ (!$precio_oferta->hasExcepcion())?'Oferta':'Excepcion' }} :: {{\Carbon\Carbon::parse($precio_oferta->fecha_desde)->format('d/m/Y')}} - {{\Carbon\Carbon::parse($precio_oferta->fecha_hasta)->format('d/m/Y')}}
@@ -260,7 +260,7 @@
                 <label class="text-body">Comision lista 1</label>
                 <fieldset class="input-group form-group mb-3">
                     <div class="input-group-prepend">
-                        <span class="input-group-text">$</span>
+                        <span class="input-group-text">%</span>
                     </div>
                     <input type="number" step="0.50" min="0" name="comlista1" id="comlista1" @if (isset($product)) value="{{$product->product_price->comlista1}}" @else value="0" @endif disabled class="form-control border-dark">
                 </fieldset>
@@ -289,7 +289,7 @@
                 <label class="text-body">Comision lista 2</label>
                 <fieldset class="input-group form-group mb-3">
                     <div class="input-group-prepend">
-                        <span class="input-group-text">$</span>
+                        <span class="input-group-text">%</span>
                     </div>
                     <input type="number" step="0.50" min="0" name="comlista2" id="comlista2" @if (isset($product)) value="{{$product->product_price->comlista2}}" @else value="0" @endif disabled class="form-control border-dark">
                 </fieldset>
