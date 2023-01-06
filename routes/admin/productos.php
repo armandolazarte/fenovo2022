@@ -68,6 +68,7 @@ Route::get('productos/importar/movimientos', [ProductController::class, 'importP
 Route::get('producto/distribuir-nave', [ProductController::class, 'distribuirNave'])->name('productos.distribuir.nave');
 Route::get('producto/stockbase/{storeId?}', [ProductController::class, 'distribuirBase'])->name('productos.distribuir.base');
 Route::get('descargar-lista-mayorista-fenovo', [ProductController::class, 'printListaMayoristaFenovo'])->name('download.lista.mayorista.fenovo');
+Route::get('descargar-productos-senasa', [ProductController::class, 'downloadProductosSenasa'])->name('download.productos.senasa');
 
 Route::get('producto/stockdepositos', [ProductController::class, 'stockDeposito'])->name('productos.stock.deposito');
 Route::get('producto/stockdepositos/detalle', [ProductController::class, 'stockDepositoDetalle'])->name('productos.stock.deposito.detalle');
