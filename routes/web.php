@@ -63,5 +63,5 @@ Route::group(['namespace' => 'Admin', 'middleware' => ['auth']], function () {
     Route::any('filepicker', [FilepickerController::class, 'handle'])->name('filepicker');
 });
 
-Route::get('factura-electronica/{movment_id}/{invoice_id?}', [InvoiceController::class, 'generateInvoicePdf'])->name('ver.fe');
+Route::get('factura-electronica/{movment_id}/{pto_vta?}/{cyo?}/{invoice_id?}', [InvoiceController::class, 'generateInvoicePdf'])->name('ver.fe');
 require __DIR__ . '/admin/cron/routes.php';
