@@ -80,11 +80,11 @@ class InvoiceController extends Controller
         return view('admin.invoice.list');
     }
 
-    public function generateInvoicePdf($movement_id,$pto_vta = false,$cyo = false)
+    public function generateInvoicePdf($movement_id,$pto_vta = false,$cyo = false,$invoice_id = false)
     {
         $titulo          = 'FACTURA ELECTRÓNICA';
         $array_productos = $alicuotas_array = [];
-        $invoice         = $this->invoiceRepository->getByMovement($movement_id,$pto_vta);
+        $invoice         = $this->invoiceRepository->getByMovement($movement_id,$pto_vta,$invoice_id);
 
         if (!is_null($invoice->cae)) {
             $movement = Movement::where('id', $movement_id)->firstOrFail();
