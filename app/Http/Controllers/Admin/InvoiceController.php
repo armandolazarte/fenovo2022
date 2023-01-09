@@ -80,8 +80,12 @@ class InvoiceController extends Controller
         return view('admin.invoice.list');
     }
 
-    public function generateInvoicePdf($movement_id,$pto_vta = false,$cyo = false,$invoice_id = false)
+    public function generateInvoicePdf(Request $request,$movement_id,$pto_vta = false,$cyo = false,$invoice_id = false)
     {
+        //if($request->has('pto_vta')) $pto_vta = $request->pto_vta;
+        if($request->has('cyo')) $cyo = $request->cyo;
+        if($request->has('invoice_id')) $invoice_id = $request->invoice_id;
+
         $titulo          = 'FACTURA ELECTRÓNICA';
         $array_productos = $alicuotas_array = [];
         $invoice         = $this->invoiceRepository->getByMovement($movement_id,$pto_vta,$invoice_id);
@@ -196,7 +200,7 @@ class InvoiceController extends Controller
             $qr_url      = 'images/' . $invoice->voucher_number . '.svg';
             $voucherType = VoucherType::where('afip_id', $invoice->cbte_tipo)->first();
 
-            $path = 'facturas/'.$invoice->voucher_number;
+            $path = 'facturas/'.$voucherType->code.'/'.$invoice->voucher_number;
 
             $pdf = PDF::loadView('print.invoice', compact('titulo','cyo', 'invoice', 'array_productos', 'alicuotas_array', 'voucherType', 'qr_url', 'paginas', 'total_lineas'));
             $link = Storage::disk('spaces-do')->put($path , $pdf->output(),'public');
