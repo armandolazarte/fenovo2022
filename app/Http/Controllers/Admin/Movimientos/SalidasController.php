@@ -194,7 +194,7 @@ class SalidasController extends Controller
                                 $urls .= '<a class="text-primary" title="Descargar factura" target="_blank" href="' . $invoice->url . '"> ' . $number . ' </a><br>';
                             } elseif (!is_null($invoice->cae) && is_null($invoice->url)) {
                                 $number = ($invoice->cyo) ? 'CyO - ' . $invoice->voucher_number : $invoice->voucher_number;
-                                $urls .= '<a class="text-primary" title="Generar Comprobantes" target="_blank" href="' . route('ver.fe', ['movment_id' => $movimiento->id,'pto_vta' => $invoice->pto_vta, 'cyo' => $invoice->cyo,'invoice_id' => $invoice->id]) . '">' . $number . ' </a><br>';
+                                $urls .= '<a class="text-primary" title="Generar Comprobantes" target="_blank" href="' . route('ver.fe', ['movment_id' => $movimiento->id,'pto_vta' => 0, 'cyo' => $invoice->cyo,'invoice_id' => $invoice->id]) . '">' . $number . ' </a><br>';
                             }
                         }
                         $factura = $urls;
