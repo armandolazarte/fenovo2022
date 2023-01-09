@@ -10,7 +10,7 @@ Route::get('/', function () {
 });
 
 Route::group(['middleware' => 'preventBackHistory'], function () {
-    
+
     Auth::routes();
     Route::get('/inicio', [App\Http\Controllers\HomeController::class, 'index'])->name('inicio');
 
@@ -63,5 +63,5 @@ Route::group(['namespace' => 'Admin', 'middleware' => ['auth']], function () {
     Route::any('filepicker', [FilepickerController::class, 'handle'])->name('filepicker');
 });
 
-Route::get('factura-electronica/{movment_id}', [InvoiceController::class, 'generateInvoicePdf'])->name('ver.fe');
+Route::get('factura-electronica/{movment_id}/{invoice_id?}', [InvoiceController::class, 'generateInvoicePdf'])->name('ver.fe');
 require __DIR__ . '/admin/cron/routes.php';
