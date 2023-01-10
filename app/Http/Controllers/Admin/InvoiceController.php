@@ -80,11 +80,11 @@ class InvoiceController extends Controller
         return view('admin.invoice.list');
     }
 
-    public function generateInvoicePdf(Request $request,$movement_id,$pto_vta = false,$cyo = false,$invoice_id = false)
+    public function generateInvoicePdf($movement_id,$pto_vta = false,$cyo = false,$invoice_id = false)
     {
         //if($request->has('pto_vta')) $pto_vta = $request->pto_vta;
-        if($request->has('cyo')) $cyo = $request->cyo;
-        if($request->has('invoice_id')) $invoice_id = $request->invoice_id;
+        //if($request->has('cyo')) $cyo = $request->cyo;
+        //if($request->has('invoice_id')) $invoice_id = $request->invoice_id;
 
         $titulo          = 'FACTURA ELECTRÓNICA';
         $array_productos = $alicuotas_array = [];
