@@ -39,6 +39,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
+use Log;
 use Maatwebsite\Excel\Facades\Excel;
 use PDFMerger;
 use stdClass;
@@ -1736,7 +1737,7 @@ class SalidasController extends Controller
     public function updateStock($code = false)
     {
         // Actualizar la lista de coeficientes en base a todos los productos congelados
-        $productos = Product::select('id', 'coeficiente_relacion_stock')->get();
+        /* $productos = Product::select('id', 'coeficiente_relacion_stock')->get();
         foreach ($productos as $producto) {
             $coeficiente = Coeficiente::find($producto->id);
             if (!$coeficiente) {
@@ -1745,7 +1746,7 @@ class SalidasController extends Controller
                     'coeficiente' => $producto->coeficiente_relacion_stock,
                 ]);
             }
-        }
+        } */
 
         if ($code) {
             $products = Product::where('cod_fenovo', $code)->get();
@@ -1754,6 +1755,18 @@ class SalidasController extends Controller
         }
 
         foreach ($products as $p) {
+
+            $stock_f = $p->stock_f;
+            $stock_r = $p->stock_r;
+            $total   = $stock_f + $stock_r;
+            $coeficiente = (int)($stock_f * 100 )/ $total;
+
+            Coeficiente::updateOrcreate([
+                'id'          => $p->id
+            ],[
+                'coeficiente' => $coeficiente,
+            ]);
+
             // Obtengo los movimientos
             $movements_products = MovementProduct::where('movement_id', '>', 611)
                 ->where('product_id', $p->id)
