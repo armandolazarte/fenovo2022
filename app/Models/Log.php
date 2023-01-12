@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Class Log
- * 
+ *
  * @property int $id
  * @property string|null $log
  * @property string|null $origin
@@ -26,6 +26,7 @@ class Log extends Model
 
 	protected $fillable = [
 		'log',
-		'origin'
+		'origin',
+        'user_id'
 	];
 }

@@ -10,6 +10,7 @@ use App\Models\Coeficiente;
 use App\Models\Customer;
 use App\Models\FleteSetting;
 use App\Models\Invoice;
+use App\Models\Log as ModelsLog;
 use App\Models\Movement;
 use App\Models\MovementProduct;
 use App\Models\OfertaStore;
@@ -1550,6 +1551,12 @@ class SalidasController extends Controller
         $mensaje = 'Anulación de ' . $cadena[0] . ', con destino a ' . $destino . ' con ' . count($items) . ' producto/s cargados. ';
         $mensaje .= 'Motivo <<' . $request->motivo . '>> ';
         $mensaje .= ' Generado por ' . $user . ' desde  ' . $desde;
+
+        ModelsLog::create([
+            'user_id' => \Auth::user()->id,
+            'log' => $mensaje,
+            'origin' => 'SalidasController->pendienteDestroy'
+        ]);
 
         //Mail::to('sistemas.ftk@gmail.com')->send(new NovedadMail($mensaje));
 
