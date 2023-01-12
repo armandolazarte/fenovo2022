@@ -1535,6 +1535,7 @@ class SalidasController extends Controller
         if($es_pedido){
             $ped = Pedido::where('voucher_number', $items[0]->nro_pedido)->first();
             PedidoEstados::where('pedido_id',$ped->id)->delete();
+            $ped->delete();
         }
 
         // Destino
@@ -1550,7 +1551,7 @@ class SalidasController extends Controller
         $mensaje .= 'Motivo <<' . $request->motivo . '>> ';
         $mensaje .= ' Generado por ' . $user . ' desde  ' . $desde;
 
-        Mail::to('sistemas.ftk@gmail.com')->send(new NovedadMail($mensaje));
+        //Mail::to('sistemas.ftk@gmail.com')->send(new NovedadMail($mensaje));
 
         SessionProduct::where('list_id', $request->list_id)->delete();
         return new JsonResponse(
