@@ -10,6 +10,7 @@ use App\Models\Coeficiente;
 use App\Models\Customer;
 use App\Models\FleteSetting;
 use App\Models\Invoice;
+use App\Models\Log as ModelsLog;
 use App\Models\Movement;
 use App\Models\MovementProduct;
 use App\Models\OfertaStore;
@@ -1529,7 +1530,14 @@ class SalidasController extends Controller
         $desde = Store::find(Auth::user()->store_active)->description;
 
         // Cantidad de Productos
-        $items = SessionProduct::where('list_id', $request->list_id)->count();
+        $items = SessionProduct::where('list_id', $request->list_id)->get();
+
+        $es_pedido = $items[0]->nro_pedido;
+        if($es_pedido){
+            $ped = Pedido::where('voucher_number', $items[0]->nro_pedido)->first();
+            PedidoEstados::where('pedido_id',$ped->id)->delete();
+            $ped->delete();
+        }
 
         // Destino
         $cadena = explode('_', $request->list_id);
@@ -1540,11 +1548,17 @@ class SalidasController extends Controller
             $destino = str_pad($tienda->cod_fenovo, 3, 0, STR_PAD_LEFT) . ' - ' . $tienda->description;
         }
 
-        $mensaje = 'Anulación de ' . $cadena[0] . ', con destino a ' . $destino . ' con ' . $items . ' producto/s cargados. ';
+        $mensaje = 'Anulación de ' . $cadena[0] . ', con destino a ' . $destino . ' con ' . count($items) . ' producto/s cargados. ';
         $mensaje .= 'Motivo <<' . $request->motivo . '>> ';
         $mensaje .= ' Generado por ' . $user . ' desde  ' . $desde;
 
-        Mail::to('sistemas.ftk@gmail.com')->send(new NovedadMail($mensaje));
+        ModelsLog::create([
+            'user_id' => \Auth::user()->id,
+            'log' => $mensaje,
+            'origin' => 'SalidasController->pendienteDestroy'
+        ]);
+
+        //Mail::to('sistemas.ftk@gmail.com')->send(new NovedadMail($mensaje));
 
         SessionProduct::where('list_id', $request->list_id)->delete();
         return new JsonResponse(
