@@ -227,6 +227,15 @@
                     jQuery("#costfenovo").val(data['costfenovo']);
                     jQuery("#plist0neto").val(data['plist0neto']);
                     jQuery("#plist0iva").val(data['plist0iva']);
+
+                    if(data['plist1'] == 0 && data['comlista1'] == 0){
+                        jQuery("#muplist1").val(0)
+                    }
+
+                    if(data['plist2'] == 0 && data['comlista2'] == 0){
+                        jQuery("#muplist2").val(0)
+                    }
+
                     jQuery("#plist1").val(data['plist1']);
                     jQuery("#comlista1").val(data['comlista1']);
                     jQuery("#plist2").val(data['plist2']);
