@@ -78,7 +78,7 @@
     @endphp
 
     <tr>
-        <td class="text-center">{{ (int)$session_product->quantity}}</td>
+        <td class="text-center">{{ (int)  $session_product->quantity}}</td>
         <td class="text-center">{{ (float)$session_product->unit_weight * (float)$session_product->unit_package * (float)$session_product->quantity }} </td>
         <td class="text-center">{{ $session_product->unit_package * $session_product->quantity }} </td>
         <td>{{$session_product->name}}</td>
