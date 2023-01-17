@@ -73,13 +73,13 @@
     @foreach ($array_productos as $session_product)
 
     @php
-    $total_kgrs += (float)$session_product->unit_weight * (float)$session_product->unit_package * (float)$session_product->quantity;
+    $total_kgrs += (float)$session_product->total_unit;
     $total_bultos += (float)$session_product->quantity;
     @endphp
 
     <tr>
         <td class="text-center">{{ (int)  $session_product->quantity}}</td>
-        <td class="text-center">{{ (float)$session_product->unit_weight * (float)$session_product->unit_package * (float)$session_product->quantity }} </td>
+        <td class="text-center">{{ number_format($session_product->total_unit,2) }} </td>
         <td class="text-center">{{ $session_product->unit_package * $session_product->quantity }} </td>
         <td>{{$session_product->name}}</td>
         <td class="text-center">{{$session_product->unit_package}}</td>

@@ -433,7 +433,7 @@ class SalidasController extends Controller
             }
             $destino         = $this->origenData($movement->type, $movement->to, true);
             $array_productos = [];
-            $movimientos     = $movement->panamas;
+            $movimientos     = $movement->group_panamas;
             foreach ($movimientos as $movimiento) {
                 $objProduct               = new stdClass();
                 $objProduct->cod_fenovo   = $movimiento->product->cod_fenovo;
@@ -443,7 +443,7 @@ class SalidasController extends Controller
                 $objProduct->palet        = $movimiento->product->palet . $movimiento->palet;
                 $objProduct->quantity     = $movimiento->bultos;
                 $objProduct->unity        = '( ' . $movimiento->unit_package . ' ' . $movimiento->product->unit_type . ' )';
-                $objProduct->total_unit   = number_format($movimiento->egress, 2, ',', '.');
+                $objProduct->total_unit   = $movimiento->kgs;;
                 $objProduct->class        = '';
                 array_push($array_productos, $objProduct);
             }
@@ -683,7 +683,7 @@ class SalidasController extends Controller
                 $objProduct->unit_price = number_format($producto->unit_price, 2, ',', '.');
                 $objProduct->subtotal   = number_format($subtotal, 2, ',', '.');
                 $objProduct->unity      = '( ' . $producto->unit_package . ' ' . $producto->product->unit_type . ' )';
-                $objProduct->total_unit = number_format($producto->bultos * $producto->unit_package, 2, ',', '.');
+                $objProduct->total_unit = $producto->kgs;
                 $objProduct->class      = '';
                 $neto += $subtotal;
                 array_push($array_productos, $objProduct);

@@ -80,7 +80,8 @@ class Movement extends Model
 
     public function group_products_egress()
     {
-        $movimientos =  $this->hasMany(MovementProduct::class)->where('egress', '>', 0)
+        $movimientos =  $this->hasMany(MovementProduct::class)
+             ->where('egress', '>', 0)
             ->select(['*', DB::raw('SUM(bultos) as bultos'), DB::raw('SUM(egress) as kgs')])
             ->groupBy('product_id');
 
@@ -156,7 +157,7 @@ class Movement extends Model
                     ->where('egress', '>', 0)
                     ->where('invoice', false)
                     ->where('circuito', '!=', 'CyO')
-                    ->select(['*', DB::raw('SUM(bultos) as bultos')])
+                    ->select(['*', DB::raw('SUM(bultos) as bultos'), DB::raw('SUM(egress) as kgs')])
                     ->groupBy('product_id');
     }
 
