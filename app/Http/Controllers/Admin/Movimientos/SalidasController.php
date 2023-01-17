@@ -671,7 +671,7 @@ class SalidasController extends Controller
             $array_productos = [];
             $productos       = $movement->group_panamas;
             foreach ($productos as $producto) {
-                $subtotal               = $producto->bultos * $producto->unit_price * $producto->unit_package;
+                $subtotal               = $producto->kgs * $producto->unit_price;
                 $objProduct             = new stdClass();
                 $objProduct->cant       = number_format($producto->bultos * $producto->unit_package, 2, ',', '.');
                 $objProduct->bultos     = $producto->bultos;
