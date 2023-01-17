@@ -409,7 +409,7 @@ class SalidasController extends Controller
                 $objProduct->quantity      = $movimiento->bultos;
                 $objProduct->palet         = $movimiento->product->palet . $movimiento->palet;
                 $objProduct->unity         = '( ' . $movimiento->unit_package . ' ' . $movimiento->product->unit_type . ' )';
-                $objProduct->total_unit    = number_format($movimiento->bultos * $movimiento->unit_package, 2, ',', '.');
+                $objProduct->total_unit    = number_format($movimiento->egress, 2, ',', '.');
                 $objProduct->class         = '';
                 array_push($array_productos, $objProduct);
             }
@@ -443,7 +443,7 @@ class SalidasController extends Controller
                 $objProduct->palet        = $movimiento->product->palet . $movimiento->palet;
                 $objProduct->quantity     = $movimiento->bultos;
                 $objProduct->unity        = '( ' . $movimiento->unit_package . ' ' . $movimiento->product->unit_type . ' )';
-                $objProduct->total_unit   = number_format($movimiento->bultos * $movimiento->unit_package, 2, ',', '.');
+                $objProduct->total_unit   = number_format($movimiento->egress, 2, ',', '.');
                 $objProduct->class        = '';
                 array_push($array_productos, $objProduct);
             }
