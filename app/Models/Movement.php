@@ -81,7 +81,7 @@ class Movement extends Model
     public function group_products_egress()
     {
         $movimientos =  $this->hasMany(MovementProduct::class)->where('egress', '>', 0)
-            ->select(['*', DB::raw('SUM(bultos) as bultos')])
+            ->select(['*', DB::raw('SUM(bultos) as bultos'), DB::raw('SUM(bultos * unit_package) as kgs')])
             ->groupBy('product_id');
 
         return $movimientos->join('products', 'movement_products.product_id', '=', 'products.id')->orderBy('products.cod_fenovo', 'asc');

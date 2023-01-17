@@ -409,7 +409,7 @@ class SalidasController extends Controller
                 $objProduct->quantity      = $movimiento->bultos;
                 $objProduct->palet         = $movimiento->product->palet . $movimiento->palet;
                 $objProduct->unity         = '( ' . $movimiento->unit_package . ' ' . $movimiento->product->unit_type . ' )';
-                $objProduct->total_unit    =  $movimiento->egress;
+                $objProduct->total_unit    =  $movimiento->kgs;
                 $objProduct->class         = '';
                 array_push($array_productos, $objProduct);
             }
