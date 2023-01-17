@@ -201,7 +201,11 @@ class SalidasController extends Controller
                         }
                         $factura = $urls;
                     } elseif (($movimiento->status != 'FINISHED_AND_GENERATED_FACT')) {
-                        $factura = '<a href="' . route('pre.invoice', ['movment_id' => $movimiento->id]) . '">Generar Comprobantes </a>';
+                        if($count){
+                            $factura = '<a href="' . route('pre.invoice', ['movment_id' => $movimiento->id]) . '">Generar Comprobantes </a>';
+                        }else{
+                            $factura = '--';
+                        }
                     }
                 }
 
