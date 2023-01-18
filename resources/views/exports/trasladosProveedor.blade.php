@@ -1,7 +1,7 @@
 <table>
     <tr>
         <td>Fecha</td>
-        <td>Comprobante</td>
+        <td>ID TRASLADO</td>
         <td>Producto</td>
         <td>Bultos</td>
         <td>Kilos</td>

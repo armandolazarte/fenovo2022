@@ -42,7 +42,7 @@ class TrasladosProveedorViewExport implements FromView
                             'mov.type as tipo',
                             'mov.from',
                             'mov.to',
-                            'mov.voucher_number as nro_remito',
+                            'mov.id as id_mov',
                             'mp.bultos',
                             'mp.egress as kilos',
                             'mp.unit_price as precioUnitario',
@@ -70,7 +70,7 @@ class TrasladosProveedorViewExport implements FromView
             $provincia = ($movimiento->tipo == 'TRASLADO') ? Store::find($movimiento->to)->state : Customer::find($movimiento->to)->state;
 
             $objMovimiento->fecha          = date('d/m/Y', strtotime($movimiento->fecha));
-            $objMovimiento->comprobante    = $movimiento->nro_remito;
+            $objMovimiento->comprobante    = $movimiento->id_mov;
             $objMovimiento->producto       = $movimiento->producto;
             $objMovimiento->bultos         = $movimiento->bultos;
             $objMovimiento->kilos          = $movimiento->kilos;
