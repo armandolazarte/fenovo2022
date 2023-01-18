@@ -186,6 +186,51 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="card card-body gutter-b bg-white border-0">
+                        <div class="row mt-3 mb-4">
+                            <div class="col-6">
+                                <span class="font-weight-bolder text-success">Traslados</span>
+                            </div>
+                        </div>
+                        <div class="row mb-5 ml-2 border-bottom-dark text-center">
+                            <div class="col-2">
+                                <div class="form-group mb-3">
+                                    <label style="float:left">Desde</label>
+                                    <input type="date" id="fechaTrasladoDesde" name="fechaTrasladoDesde"
+                                        value="{{ date('Y-m-d', strtotime('-30 days')) }}" class="form-control">
+                                </div>
+                            </div>
+
+                            <div class="col-2">
+                                <div class="form-group mb-3">
+                                    <label style="float:left">Hasta</label>
+                                    <input type="date" id="fechaTrasladoHasta" name="fechaTrasladoHasta"
+                                        value="{{ date('Y-m-d') }}" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-2">
+                                <label style="float:left">Proveedor</label>
+                                <div class="input-group mb-3">
+                                    <select class="js-example-basic-single js-states form-control bg-transparent"
+                                        name="proveedorTrasladoId" id="proveedorTrasladoId">
+                                        @foreach ($proveedores as $proveedor)
+                                            <option value="{{ $proveedor->id }}">
+                                                {{ $proveedor->name }}</option>
+                                        @endforeach
+                                    </select>
+
+                                    <div class="input-group-append">
+                                        <span class="input-group-text" id="basic-addon2">
+                                            <a href="#" onclick="printTrasladosProv()" title="Exportar Traslados">
+                                                <i class="fa fa-file-csv"></i>
+                                            </a>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
 
                         </div>
                     </div>
@@ -291,6 +336,15 @@
                 let fechaCompraHasta = jQuery("#fechaCompraHasta").val();
                 let url = "{{ route('export.compras.proveedores', '') }}" + "?proveedorId=" + proveedorId +
                     "&fechaCompraDesde=" + fechaCompraDesde + "&fechaCompraHasta=" + fechaCompraHasta;
+                window.open(url, '_blank');
+            }
+
+            const printTrasladosProv = () => {
+                let proveedorId = jQuery("#proveedorTrasladoId").val();
+                let fechaTrasladoDesde = jQuery("#fechaTrasladoDesde").val();
+                let fechaTrasladoHasta = jQuery("#fechaTrasladoHasta").val();
+                let url = "{{ route('export.traslados.proveedores', '') }}" + "?proveedorId=" + proveedorId +
+                    "&fechaTrasladoDesde=" + fechaTrasladoDesde + "&fechaTrasladoHasta=" + fechaTrasladoHasta;
                 window.open(url, '_blank');
             }
 
