@@ -24,3 +24,4 @@ Route::get('exportar/ingresos-brutos', [ExportarArchivosController::class, 'expo
 Route::get('exportar/ventas', [PrintController::class, 'exportMoviVentasCsv'])->name('export.ventas');
 Route::get('exportar/ventas/proveedores', [PrintController::class, 'exportVentasProveedoresCsv'])->name('export.ventas.proveedores');
 Route::get('exportar/compras/proveedores', [PrintController::class, 'exportComprasProveedoresCsv'])->name('export.compras.proveedores');
+Route::get('exportar/traslados/proveedores', [PrintController::class, 'exportTrasladosProveedoresCsv'])->name('export.traslados.proveedores');
