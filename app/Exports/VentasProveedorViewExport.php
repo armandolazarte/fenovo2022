@@ -29,7 +29,7 @@ class VentasProveedorViewExport implements FromView
         $proveedorId = $this->proveedorId;
         $proveedor   = Proveedor::find($proveedorId);
 
-        $arrTipos = ['VENTA', 'VENTACLIENTE'];
+        $arrTipos = ['VENTA', 'VENTACLIENTE','DEVOLUCION','DEVOLUCIONCLIENTE'];
 
         $arrMovimientos = [];
 
