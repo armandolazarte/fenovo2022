@@ -1031,8 +1031,16 @@ class ProductController extends Controller
                 return ['type' => 'error', 'msj' => 'El precio tienda 2 no debe ser menor a la tienda 1'];
             }
 
-            if($mupp1may < 14) $comlista2 = $comlista1 = $plist1 = $plist2 = 0;
-            if($mupp1may >= 14 && $mupp1may <= 24) $comlista2 = $plist2 = 0;
+            if($mupp1may < 14){
+                $plist1 = $plist2 = $p1may;
+                $comlista1  = $this->comlista1($plist0Iva, $plist1, $tasiva);
+                $comlista2  = $this->comlista2($plist0Iva, $plist2, $tasiva);
+            }
+
+            if($mupp1may >= 14 && $mupp1may <= 24){
+                $plist2 = $p1may;
+                $comlista2  = $this->comlista2($plist0Iva, $plist2, $tasiva);
+            }
 
             return [
                 'type'       => 'success',
