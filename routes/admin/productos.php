@@ -72,3 +72,4 @@ Route::get('descargar-productos-senasa', [ProductController::class, 'downloadPro
 
 Route::get('producto/stockdepositos', [ProductController::class, 'stockDeposito'])->name('productos.stock.deposito');
 Route::get('producto/stockdepositos/detalle', [ProductController::class, 'stockDepositoDetalle'])->name('productos.stock.deposito.detalle');
+Route::get('actualizar-precios-productos', [ProductController::class, 'actualizarMukp'])->name('actualizar.mukp');
