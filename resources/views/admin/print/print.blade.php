@@ -194,6 +194,10 @@
                             <div class="col-6">
                                 <span class="font-weight-bolder text-success">Traslados</span>
                             </div>
+                            <div class="col-2"></div>
+                            <div class="col-4">
+                                <span class="font-weight-bolder text-success">Logística de Bases</span>
+                            </div>
                         </div>
                         <div class="row mb-5 ml-2 border-bottom-dark text-center">
                             <div class="col-2">
@@ -225,6 +229,30 @@
                                     <div class="input-group-append">
                                         <span class="input-group-text" id="basic-addon2">
                                             <a href="#" onclick="printTrasladosProv()" title="Exportar Traslados">
+                                                <i class="fa fa-file-csv"></i>
+                                            </a>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-2"></div>
+
+                            <div class="col-2">
+                                <div class="form-group mb-3">
+                                    <label style="float:left">Desde</label>
+                                    <input type="date" id="fechaFleteDesde" name="fechaFleteDesde"
+                                        value="{{ date('Y-m-d', strtotime('-30 days')) }}" class="form-control">
+                                </div>
+                            </div>
+
+                            <div class="col-2">
+                                <label style="float:left">Hasta</label>
+                                <div class="input-group mb-3">
+                                    <input type="date" id="fechaFleteHasta" name="fechaFleteHasta"
+                                        value="{{ date('Y-m-d') }}" class="form-control">
+                                    <div class="input-group-append">
+                                        <span class="input-group-text" id="basic-addon2">
+                                            <a href="#" onclick="printFletesProv()" title="Exportar Fletes">
                                                 <i class="fa fa-file-csv"></i>
                                             </a>
                                         </span>
@@ -345,6 +373,14 @@
                 let fechaTrasladoHasta = jQuery("#fechaTrasladoHasta").val();
                 let url = "{{ route('export.traslados.proveedores', '') }}" + "?proveedorId=" + proveedorId +
                     "&fechaTrasladoDesde=" + fechaTrasladoDesde + "&fechaTrasladoHasta=" + fechaTrasladoHasta;
+                window.open(url, '_blank');
+            }
+
+            const printFletesProv = () => {
+                let proveedorId = jQuery("#proveedorFleteId").val();
+                let fechaFleteDesde = jQuery("#fechaFleteDesde").val();
+                let fechaFleteHasta = jQuery("#fechaFleteHasta").val();
+                let url = "{{ route('export.fletes.por.fecha', '') }}" + "?fechaFleteDesde=" + fechaFleteDesde + "&fechaFleteHasta=" + fechaFleteHasta;
                 window.open(url, '_blank');
             }
 
