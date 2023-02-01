@@ -96,6 +96,7 @@ class SalidasController extends Controller
                     ->where('from', 1)->where('categoria', '=', 1)      // SE AGREGA PARA FILTRAR INFO A DANTE
                     ->offset($start_val)
                     ->limit($limit_val)
+                    ->with('invoices')
                     ->orderBy('date', 'DESC')
                     ->orderBy('movements.id', 'DESC')
                     ->get();
@@ -103,6 +104,7 @@ class SalidasController extends Controller
                 $movimientos = Movement::whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
                     ->offset($start_val)
                     ->limit($limit_val)
+                    ->with('invoices')
                     ->orderBy('date', 'DESC')
                     ->orderBy('movements.id', 'DESC')
                     ->get();
@@ -121,6 +123,7 @@ class SalidasController extends Controller
                     ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
                     ->offset($start_val)
                     ->limit($limit_val)
+                    ->with('invoices')
                     ->orderBy('date', 'desc')
                     ->orderBy('movements.id', 'DESC')
                     ->get();
@@ -137,6 +140,7 @@ class SalidasController extends Controller
                     ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
                     ->offset($start_val)
                     ->limit($limit_val)
+                    ->with('invoices')
                     ->orderBy('date', 'desc')
                     ->orderBy('movements.id', 'DESC')
                     ->get();
@@ -153,6 +157,7 @@ class SalidasController extends Controller
                     ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
                     ->offset($start_val)
                     ->limit($limit_val)
+                    ->with('invoices')
                     ->orderBy('date', 'desc')
                     ->orderBy('movements.id', 'DESC')
                     ->get();
