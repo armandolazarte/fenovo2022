@@ -23,6 +23,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\RegistrosMovimientosExport;
 use App\Exports\VentasProveedorViewExport;
 use App\Exports\ComprasProveedorViewExport;
+use App\Exports\FletesViewExport;
 use App\Exports\TrasladosProveedorViewExport;
 use App\Models\Proveedor;
 use stdClass;
@@ -153,6 +154,11 @@ class PrintController extends Controller
     public function exportTrasladosProveedoresCsv(Request $request)
     {
         return Excel::download(new TrasladosProveedorViewExport($request->proveedorId, $request->fechaTrasladoDesde, $request->fechaTrasladoHasta), 'TrasladosProveedor.xlsx', \Maatwebsite\Excel\Excel::XLSX, ['Content-Type' => 'text/xlsx']);
+    }
+
+    public function exportFletesCsv(Request $request)
+    {
+        return Excel::download(new FletesViewExport($request->fechaFleteDesde, $request->fechaFleteHasta), 'Fletes.xlsx', \Maatwebsite\Excel\Excel::XLSX, ['Content-Type' => 'text/xlsx']);
     }
 
     public function exportStoreStocks(Request $request)
