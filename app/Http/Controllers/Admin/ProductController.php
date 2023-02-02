@@ -1075,7 +1075,7 @@ class ProductController extends Controller
                 $tasiva    = $pp->tasiva;
                 $plist1    = $pp->plist1;
                 $plist2    = $pp->plist2;
-dd($mupp1may >= 14 && $mupp1may <= 24);
+
                 if($mupp1may < 14){
                     $plist1 = $plist2 = $p1may;
                     $comlista1  = $this->comlista1($plist0Iva, $plist1, $tasiva);
@@ -1089,7 +1089,7 @@ dd($mupp1may >= 14 && $mupp1may <= 24);
                 if($mupp1may >= 14 && $mupp1may <= 24){
                     $plist2 = $p1may;
                     $comlista2  = $this->comlista2($plist0Iva, $plist2, $tasiva);
-                    $pp->plist1 = $plist1;
+                    $pp->plist2 = $plist2;
                     $pp->comlista2 = $comlista2;
                 }
                 $pp->save();
