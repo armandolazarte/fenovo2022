@@ -389,7 +389,9 @@ class InvoiceController extends Controller
                     $this->pto_vta = $store->punto_venta;
                 } */
                 $this->pto_vta = $movement->products_egress[0]->punto_venta;
-                $result  = $this->createVoucher($movement,$this->pto_vta);
+                ($this->pto_vta == 24)?$circuito = 'CyO':$circuito = false;
+
+                $result  = $this->createVoucher($movement,$this->pto_vta,$circuito);
                 if ($result['status']) {
                     $invoice = $this->invoiceRepository->getByMovement($movement_id);
                     if (isset($invoice)) {
