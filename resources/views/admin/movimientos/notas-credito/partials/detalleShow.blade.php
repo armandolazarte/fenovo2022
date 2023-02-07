@@ -18,7 +18,7 @@
             $subtotal = 0;
             @endphp
 
-            @foreach ($movement->movement_salida_products as $movimiento)
+            @foreach ($movement->movement_salida_all_products as $movimiento)
             <tr>
                 <td> {{ $movimiento->product->cod_fenovo }} </td>
                 <td class=" text-left"> {{ $movimiento->product->name }}</td>
@@ -43,7 +43,7 @@
                 <th></th>
                 <th></th>
                 <th></th>
-                <th>{{ $movement->movement_salida_products->sum('bultos') }}</th>
+                <th>{{ $movement->movement_salida_all_products->sum('bultos') }}</th>
                 <th></th>
                 <th>{{ $subtotal }}</th>
             </tr>
