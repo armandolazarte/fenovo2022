@@ -324,6 +324,27 @@ class Movement extends Model
         return new JsonResponse(['netoInvoice' => number_format($netoInvoice, 2, ',', '')]);
     }
 
+    public function netoTotal($store_active)
+    {
+        $arrEgreso = ['VENTA'];
+
+        $netoInvoice = DB::table('movements as m')
+            ->join('movement_products as mp', 'mp.movement_id', '=', 'm.id')
+            ->groupBy('mp.movement_id')
+            ->select([DB::raw('SUM(mp.bultos * mp.unit_price * mp.unit_package) as netoInvoice')])
+            ->orderBy('m.date', 'ASC')
+            ->where('m.id', $this->id)
+            ->where('mp.egress', '>', 0)
+            ->where('mp.invoice', '=', 1)
+            ->where('mp.entidad_id', $store_active)
+            ->where('mp.entidad_tipo', 'S')
+            ->whereIn('m.type', $arrEgreso)
+            ->pluck('netoInvoice')
+            ->first();
+
+        return $netoInvoice;
+    }
+
     public function neto21($invoice)
     {
         $arrEgreso = ['VENTA', 'VENTACLIENTE', 'TRASLADO','TRASLADOINTERNO'];

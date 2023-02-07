@@ -96,6 +96,7 @@ class SalidasController extends Controller
                     ->where('from', 1)->where('categoria', '=', 1)      // SE AGREGA PARA FILTRAR INFO A DANTE
                     ->offset($start_val)
                     ->limit($limit_val)
+                    ->with('invoice')
                     ->orderBy('date', 'DESC')
                     ->orderBy('movements.id', 'DESC')
                     ->get();
@@ -103,6 +104,7 @@ class SalidasController extends Controller
                 $movimientos = Movement::whereIn('type', $arrTypes)->whereDate('movements.created_at', '>', $fecha)
                     ->offset($start_val)
                     ->limit($limit_val)
+                    ->with('invoice')
                     ->orderBy('date', 'DESC')
                     ->orderBy('movements.id', 'DESC')
                     ->get();
@@ -121,6 +123,7 @@ class SalidasController extends Controller
                     ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
                     ->offset($start_val)
                     ->limit($limit_val)
+                    ->with('invoice')
                     ->orderBy('date', 'desc')
                     ->orderBy('movements.id', 'DESC')
                     ->get();
@@ -137,6 +140,7 @@ class SalidasController extends Controller
                     ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
                     ->offset($start_val)
                     ->limit($limit_val)
+                    ->with('invoice')
                     ->orderBy('date', 'desc')
                     ->orderBy('movements.id', 'DESC')
                     ->get();
@@ -153,6 +157,7 @@ class SalidasController extends Controller
                     ->having('txtMovimiento', 'LIKE', "%{$search_text}%")
                     ->offset($start_val)
                     ->limit($limit_val)
+                    ->with('invoice')
                     ->orderBy('date', 'desc')
                     ->orderBy('movements.id', 'DESC')
                     ->get();
@@ -191,12 +196,14 @@ class SalidasController extends Controller
                         $urls = '';
                         foreach ($movimiento->invoice as $invoice) {
                             if ((!is_null($invoice->cae) && !is_null($invoice->url) && $movimiento->status == 'FINISHED') ||
-                                 !is_null($invoice->cae) && !is_null($invoice->url) && $movimiento->status == 'FINISHED_AND_GENERATED_FACT') {
+                                 (!is_null($invoice->cae) && !is_null($invoice->url) && $movimiento->status == 'FINISHED_AND_GENERATED_FACT')) {
                                 $number = ($invoice->cyo) ? 'CyO - ' . $invoice->voucher_number : $invoice->voucher_number;
                                 $urls .= '<a class="text-primary" title="Descargar factura" target="_blank" href="' . $invoice->url . '"> ' . $number . ' </a><br>';
                             } elseif (!is_null($invoice->cae) && is_null($invoice->url)) {
                                 $number = ($invoice->cyo) ? 'CyO - ' . $invoice->voucher_number : $invoice->voucher_number;
                                 $urls .= '<a class="text-primary" title="Generar Comprobantes" target="_blank" href="' . route('ver.fe', ['movment_id' => $movimiento->id,'pto_vta' => 0, 'cyo' => $invoice->cyo,'invoice_id' => $invoice->id]) . '">' . $number . ' </a><br>';
+                            }elseif(is_null($invoice->cae) && is_null($invoice->url)){
+                                $urls .= $factura = '<a href="' . route('pre.invoice', ['movment_id' => $movimiento->id]) . '">Generar Comprobantes </a>';
                             }
                         }
                         $factura = $urls;

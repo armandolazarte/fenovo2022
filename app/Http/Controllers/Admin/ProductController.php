@@ -994,8 +994,7 @@ class ProductController extends Controller
         return $array_prices;
     }
 
-    protected function calcularPrecios($request)
-    {
+    protected function calcularPrecios($request){
         try {
             $validate       = ($request->has('validate')) ? (bool)$request->input('validate') : 1;
             $plistproveedor = ($request->has('plistproveedor')) ? $request->input('plistproveedor') : 0;
@@ -1031,8 +1030,16 @@ class ProductController extends Controller
                 return ['type' => 'error', 'msj' => 'El precio tienda 2 no debe ser menor a la tienda 1'];
             }
 
-            if($mupp1may < 14) $comlista2 = $comlista1 = $plist1 = $plist2 = 0;
-            if($mupp1may >= 14 && $mupp1may <= 24) $comlista2 = $plist2 = 0;
+            if($mupp1may < 14){
+                $plist1 = $plist2 = $p1may;
+                $comlista1  = $this->comlista1($plist0Iva, $plist1, $tasiva);
+                $comlista2  = $this->comlista2($plist0Iva, $plist2, $tasiva);
+            }
+
+            if($mupp1may >= 14 && $mupp1may <= 24){
+                $plist2 = $p1may;
+                $comlista2  = $this->comlista2($plist0Iva, $plist2, $tasiva);
+            }
 
             return [
                 'type'       => 'success',
@@ -1055,6 +1062,40 @@ class ProductController extends Controller
             ];
         } catch (\Exception $th) {
             return ['type' => 'error', 'msj' => $th->getMessage()];
+        }
+    }
+
+    public function actualizarMukp(){
+        $productosPrecios = ProductPrice::all();
+        foreach ($productosPrecios as $pp) {
+            try {
+                $mupp1may  = $pp->mupp1may;
+                $p1may     = $pp->p1may;
+                $plist0Iva = $pp->plist0iva;
+                $tasiva    = $pp->tasiva;
+                $plist1    = $pp->plist1;
+                $plist2    = $pp->plist2;
+
+                if($mupp1may < 14){
+                    $plist1 = $plist2 = $p1may;
+                    $comlista1  = $this->comlista1($plist0Iva, $plist1, $tasiva);
+                    $comlista2  = $this->comlista2($plist0Iva, $plist2, $tasiva);
+                    $pp->plist1 = $plist1;
+                    $pp->plist2 = $plist2;
+                    $pp->comlista1 = $comlista1;
+                    $pp->comlista2 = $comlista2;
+                }
+
+                if($mupp1may >= 14 && $mupp1may <= 24){
+                    $plist2 = $p1may;
+                    $comlista2  = $this->comlista2($plist0Iva, $plist2, $tasiva);
+                    $pp->plist2 = $plist2;
+                    $pp->comlista2 = $comlista2;
+                }
+                $pp->save();
+            } catch (\Exception $e) {
+                return $e->getMessage();
+            }
         }
     }
 
