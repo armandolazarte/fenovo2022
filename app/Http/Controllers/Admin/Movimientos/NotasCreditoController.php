@@ -183,14 +183,25 @@ class NotasCreditoController extends Controller
                     $stock_inicial_store = ($prod_store) ? $prod_store->stock_f + $prod_store->stock_r + $prod_store->stock_cyo : 0;
 
                     if ($prod_store) {
-                        $prod_store->stock_f += $cantidad;
+                        if($puntoVenta == 24){
+                            $prod_store->stock_cyo += $cantidad;
+                        }else{
+                            $prod_store->stock_f += $cantidad;
+                        }
                         $prod_store->save();
                     } else {
                         $data_prod_store['product_id'] = $product->product_id;
                         $data_prod_store['store_id']   = $movement->to;
-                        $data_prod_store['stock_f']    = $cantidad;
+                        if($puntoVenta == 24){
+                            $data_prod_store['stock_f']    = 0;
+                            $data_prod_store['stock_cyo']  = $cantidad;
+                        }else{
+                            $data_prod_store['stock_f']    = $cantidad;
+                            $data_prod_store['stock_cyo']  = 0;
+                        }
+
                         $data_prod_store['stock_r']    = 0;
-                        $data_prod_store['stock_cyo']  = 0;
+
                         ProductStore::create($data_prod_store);
                     }
                     $balance = (($stock_inicial_store - $cantidad) < 0) ? 0 : $stock_inicial_store - $cantidad;
@@ -210,7 +221,7 @@ class NotasCreditoController extends Controller
                         'egress'       => $cantidad,
                         'balance'      => $balance,
                         'punto_venta'  => $puntoVenta,
-                        'circuito'     => 'F',
+                        'circuito'     => ($puntoVenta == 24)?'CyO':'F',
                     ]);
 
                     // Revisar si la DEVOLUCION se dirige DEPOSITO NAVE
@@ -224,14 +235,24 @@ class NotasCreditoController extends Controller
                         $prod_dep               = ProductStore::where('product_id', $product->product_id)->where('store_id', $deposito)->first();
                         $stock_inicial_deposito = ($prod_dep) ? $prod_dep->stock_f + $prod_dep->stock_r + $prod_dep->stock_cyo : 0;
                         if ($prod_dep) {
-                            $prod_dep->stock_f += $cantidad;
+                            if($puntoVenta == 24){
+                                $prod_dep->stock_cyo += $cantidad;
+                            }else{
+                                $prod_dep->stock_f += $cantidad;
+                            }
                             $prod_dep->save();
                         } else {
                             $data_prod_store['product_id'] = $product->product_id;
                             $data_prod_store['store_id']   = $deposito;
-                            $data_prod_store['stock_f']    = $cantidad;
+                            if($puntoVenta == 24){
+                                $data_prod_store['stock_f']    = 0;
+                                $data_prod_store['stock_cyo']  = $cantidad;
+                            }else{
+                                $data_prod_store['stock_f']    = $cantidad;
+                                $data_prod_store['stock_cyo']  = 0;
+                            }
+
                             $data_prod_store['stock_r']    = 0;
-                            $data_prod_store['stock_cyo']  = 0;
                             ProductStore::create($data_prod_store);
                         }
                         $balance_dep = $stock_inicial_deposito + $cantidad;
@@ -252,7 +273,7 @@ class NotasCreditoController extends Controller
                         'egress'       => 0,
                         'balance'      => $balance_dep,
                         'punto_venta'  => $puntoVenta,
-                        'circuito'     => 'F',
+                        'circuito'     => ($puntoVenta == 24)?'CyO':'F',
                     ]);
                 }
 
