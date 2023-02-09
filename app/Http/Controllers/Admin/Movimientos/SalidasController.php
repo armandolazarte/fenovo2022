@@ -1773,20 +1773,17 @@ class SalidasController extends Controller
             }
         } */
 
-        /* if ($code) {
+        if ($code) {
             $products = Product::where('cod_fenovo', $code)->get();
         } else {
             $products = Product::all();
-        } */
+        }
 
-        $movimientos = MovementProduct::where('movement_id',7654)->where('entidad_id',1)->where('invoice',0)->with('product')->get();
-
-        foreach ($movimientos as $movimiento) {
-            $p = $movimiento->product;
+        foreach ($products as $p) {
 
             $stock_f = $p->stock_f;
             $stock_r = $p->stock_r;
-            $total   = (($stock_f + $stock_r) == 0)?1:$stock_f + $stock_r;
+            $total   = $stock_f + $stock_r;
             $coeficiente = (int)($stock_f * 100 )/ $total;
 
             Coeficiente::updateOrcreate([
@@ -1796,7 +1793,7 @@ class SalidasController extends Controller
             ]);
 
             // Obtengo los movimientos
-            $movements_products = MovementProduct::where('movement_id', '>', 7000)
+            $movements_products = MovementProduct::where('movement_id', '>', 611)
                 ->where('product_id', $p->id)
                 ->where('entidad_id', Auth::user()->store_active)
                 ->orderBy('movement_id', 'ASC')
