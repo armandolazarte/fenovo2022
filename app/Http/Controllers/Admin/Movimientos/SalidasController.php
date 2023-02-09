@@ -1773,17 +1773,20 @@ class SalidasController extends Controller
             }
         } */
 
-        if ($code) {
+        /* if ($code) {
             $products = Product::where('cod_fenovo', $code)->get();
         } else {
             $products = Product::all();
-        }
+        } */
 
-        foreach ($products as $p) {
+        $movimientos = MovementProduct::where('movement_id',7654)->where('entidad_id',1)->where('invoice',0)->with('product')->get();
+
+        foreach ($movimientos as $movimiento) {
+            $p = $movimiento->product;
 
             $stock_f = $p->stock_f;
             $stock_r = $p->stock_r;
-            $total   = $stock_f + $stock_r;
+            $total   = (($stock_f + $stock_r) == 0)?1:$stock_f + $stock_r;
             $coeficiente = (int)($stock_f * 100 )/ $total;
 
             Coeficiente::updateOrcreate([
@@ -1793,7 +1796,7 @@ class SalidasController extends Controller
             ]);
 
             // Obtengo los movimientos
-            $movements_products = MovementProduct::where('movement_id', '>', 611)
+            $movements_products = MovementProduct::where('movement_id', '>', 7000)
                 ->where('product_id', $p->id)
                 ->where('entidad_id', Auth::user()->store_active)
                 ->orderBy('movement_id', 'ASC')
@@ -1821,6 +1824,14 @@ class SalidasController extends Controller
                         ]);
                     } elseif ($mp->egress > 0) {
                         $new_balance  = $balance_orig - $cantidad;
+                        $balance_orig = $new_balance;
+
+                        MovementProduct::where('id', $mp->id)->update([
+                            'balance' => $new_balance,
+                            'egress'  => $cantidad,
+                        ]);
+                    }else{
+                        $new_balance  = $balance_orig;
                         $balance_orig = $new_balance;
 
                         MovementProduct::where('id', $mp->id)->update([
