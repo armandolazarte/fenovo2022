@@ -92,7 +92,11 @@ class InvoiceController extends Controller
 
         if (!is_null($invoice->cae)) {
             $movement = Movement::where('id', $movement_id)->firstOrFail();
+
             if ($movement->type == 'DEVOLUCION' || $movement->type == 'DEVOLUCIONCLIENTE') {
+                $voucher  = explode('-',$movement->voucher_number);
+                $voucher  = (int) $voucher[0];
+                $cyo = ($voucher == 24)?true:false;
                 $titulo = 'NOTA CRÉDITO';
             }
             if ($movement->type == 'DEBITO' || $movement->type == 'DEBITOCLIENTE') {
