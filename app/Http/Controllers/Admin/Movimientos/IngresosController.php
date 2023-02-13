@@ -146,9 +146,9 @@ class IngresosController extends Controller
     public function getCompras(Request $request)
     {
         $totalFilteredRecord = $totalDataRecord = $draw = '';
-
+        $status = ['FINISHED','CHECKED'];
         $totalDataRecord = Movement::where('type', 'COMPRA')
-            ->whereStatus('FINISHED')
+            ->whereIn('status',$status)
             ->with('movement_ingreso_products')
             ->orderBy('date', 'DESC')
             ->orderBy('id', 'DESC')
@@ -161,7 +161,7 @@ class IngresosController extends Controller
         if (empty($request->input('search.value'))) {
             if (\Auth::user()->rol() == 'superadmin' || \Auth::user()->rol() == 'admin') {
                 $movimientos = Movement::where('type', 'COMPRA')
-                    ->whereStatus('FINISHED')
+                    ->whereIn('status',$status)
                     ->offset($start_val)
                     ->limit($limit_val)
                     ->orderBy('date', 'DESC')
@@ -170,7 +170,7 @@ class IngresosController extends Controller
             } else {
                 $movimientos = Movement::where('type', 'COMPRA')
                     ->where('user_id', Auth::user()->id)
-                    ->whereStatus('FINISHED')
+                    ->whereIn('status',$status)
                     ->offset($start_val)
                     ->limit($limit_val)
                     ->orderBy('date', 'DESC')
@@ -180,7 +180,7 @@ class IngresosController extends Controller
         } else {
             $search_text = $request->input('search.value');
 
-            $movimientos = Movement::where('type', 'COMPRA')->whereStatus('FINISHED')
+            $movimientos = Movement::where('type', 'COMPRA')->whereIn('status',$status)
                 ->join('proveedors', 'movements.from', '=', 'proveedors.id')
                 ->select('movements.*')
                 ->selectRaw('CONCAT(movements.id," ", movements.subtype," ", proveedors.name) as txtMovimiento')
@@ -191,7 +191,7 @@ class IngresosController extends Controller
                 ->orderBy('movements.id', 'DESC')
                 ->get();
 
-            $totalFilteredRecord = Movement::where('type', 'COMPRA')->whereStatus('FINISHED')
+            $totalFilteredRecord = Movement::where('type', 'COMPRA')->whereIn('status',$status)
                 ->join('proveedors', 'movements.from', '=', 'proveedors.id')
                 ->select('movements.*')
                 ->selectRaw('CONCAT(movements.id," ", movements.subtype," ", proveedors.name) as txtMovimiento')
