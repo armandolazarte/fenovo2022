@@ -228,7 +228,11 @@ class NotasCreditoController extends Controller
                     if ($deposito == 1) {
                         $prod        = Product::where('id', $product->product_id)->first();
                         $balance_dep = $prod->stockReal() + $cantidad;
-                        $prod->stock_f += $cantidad;
+                        if($puntoVenta == 24 || $product->producto->proveedor_id == 4){
+                            $prod->stock_cyo += $cantidad;
+                        }else{
+                            $prod->stock_f += $cantidad;
+                        }
                         $prod->save();
                     } else {
                         // A otros :: Depósito Reclamos u BASES (Blas Parera, Resistencia, Reconquista, etc )
