@@ -183,16 +183,16 @@ class NotasCreditoController extends Controller
                     $stock_inicial_store = ($prod_store) ? $prod_store->stock_f + $prod_store->stock_r + $prod_store->stock_cyo : 0;
 
                     if ($prod_store) {
-                        if($puntoVenta == 24){
+                        if($puntoVenta == 24 || $product->producto->proveedor_id == 4){
                             $prod_store->stock_cyo += $cantidad;
                         }else{
-                            $prod_store->stock_f += $cantidad;
+                            $prod_store->stock_f   += $cantidad;
                         }
                         $prod_store->save();
                     } else {
                         $data_prod_store['product_id'] = $product->product_id;
                         $data_prod_store['store_id']   = $movement->to;
-                        if($puntoVenta == 24){
+                        if($puntoVenta == 24 || $product->producto->proveedor_id == 4){
                             $data_prod_store['stock_f']    = 0;
                             $data_prod_store['stock_cyo']  = $cantidad;
                         }else{
@@ -221,21 +221,25 @@ class NotasCreditoController extends Controller
                         'egress'       => $cantidad,
                         'balance'      => $balance,
                         'punto_venta'  => $puntoVenta,
-                        'circuito'     => ($puntoVenta == 24)?'CyO':'F',
+                        'circuito'     => ($puntoVenta == 24 || $product->producto->proveedor_id == 4)?'CyO':'F',
                     ]);
 
                     // Revisar si la DEVOLUCION se dirige DEPOSITO NAVE
                     if ($deposito == 1) {
                         $prod        = Product::where('id', $product->product_id)->first();
                         $balance_dep = $prod->stockReal() + $cantidad;
-                        $prod->stock_f += $cantidad;
+                        if($puntoVenta == 24 || $product->producto->proveedor_id == 4){
+                            $prod->stock_cyo += $cantidad;
+                        }else{
+                            $prod->stock_f += $cantidad;
+                        }
                         $prod->save();
                     } else {
                         // A otros :: Depósito Reclamos u BASES (Blas Parera, Resistencia, Reconquista, etc )
                         $prod_dep               = ProductStore::where('product_id', $product->product_id)->where('store_id', $deposito)->first();
                         $stock_inicial_deposito = ($prod_dep) ? $prod_dep->stock_f + $prod_dep->stock_r + $prod_dep->stock_cyo : 0;
                         if ($prod_dep) {
-                            if($puntoVenta == 24){
+                            if($puntoVenta == 24 || $product->producto->proveedor_id == 4){
                                 $prod_dep->stock_cyo += $cantidad;
                             }else{
                                 $prod_dep->stock_f += $cantidad;
@@ -244,7 +248,7 @@ class NotasCreditoController extends Controller
                         } else {
                             $data_prod_store['product_id'] = $product->product_id;
                             $data_prod_store['store_id']   = $deposito;
-                            if($puntoVenta == 24){
+                            if($puntoVenta == 24 || $product->producto->proveedor_id == 4){
                                 $data_prod_store['stock_f']    = 0;
                                 $data_prod_store['stock_cyo']  = $cantidad;
                             }else{
@@ -273,7 +277,7 @@ class NotasCreditoController extends Controller
                         'egress'       => 0,
                         'balance'      => $balance_dep,
                         'punto_venta'  => $puntoVenta,
-                        'circuito'     => ($puntoVenta == 24)?'CyO':'F',
+                        'circuito'     => ($puntoVenta == 24 || $product->producto->proveedor_id == 4)?'CyO':'F',
                     ]);
                 }
 
