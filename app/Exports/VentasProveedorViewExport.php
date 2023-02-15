@@ -54,7 +54,7 @@ class VentasProveedorViewExport implements FromView
                 'detalle.egress as kilos',
                 'detalle.unit_price as precioUnitario',
                 'detalle.tasiva',
-                'prod.name as producto',
+                'prod.name as producto'
             )
             ->selectRaw('detalle.egress * detalle.unit_price as neto')
             ->selectRaw('(detalle.egress * detalle.unit_price * detalle.tasiva)/100 as importeIva')
@@ -71,9 +71,21 @@ class VentasProveedorViewExport implements FromView
         foreach ($movimientos as $movimiento) {
             $objMovimiento = new stdClass();
 
-            $destino   = ($movimiento->tipo == 'VENTA') ? Store::find($movimiento->to)->description : Customer::find($movimiento->to)->razon_social;
+            if($movimiento->tipo == 'VENTA'){
+                $s         = Store::find($movimiento->to);
+                $destino   = $s->description ;
+                $provincia = $s->state;
+            }else{
+                $c = Customer::find($movimiento->to);
+                if($c){
+                    $destino   = $c->razon_social;
+                    $provincia = $c->state;
+                }else{
+                    $destino = '';
+                    $provincia = '';
+                }
+            }
             $origen    = Store::find($movimiento->from)->description;
-            $provincia = ($movimiento->tipo == 'VENTA') ? Store::find($movimiento->to)->state : Customer::find($movimiento->to)->state;
 
             $objMovimiento->fecha          = date('d/m/Y', strtotime($movimiento->fecha));
             $objMovimiento->comprobante    = $movimiento->comprobante;
