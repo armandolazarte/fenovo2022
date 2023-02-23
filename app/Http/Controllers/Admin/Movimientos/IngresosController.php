@@ -146,7 +146,7 @@ class IngresosController extends Controller
     public function getCompras(Request $request)
     {
         $totalFilteredRecord = $totalDataRecord = $draw = '';
-        $status = ['CHECKED'];
+        $status = ['FINISHED'];
         $totalDataRecord = Movement::where('type', 'COMPRA')
             ->whereIn('status',$status)
             ->with('movement_ingreso_products')
