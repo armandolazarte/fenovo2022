@@ -93,12 +93,12 @@ class VentasProveedorViewExport implements FromView
             $objMovimiento->ventaDirecta   = ($movimiento->observacion == 'VENTA DIRECTA') ? 'SI' : '';
             $objMovimiento->tipoFactura    = $movimiento->tipoFactura;
             $objMovimiento->producto       = $movimiento->producto;
-            $objMovimiento->bultos         = $movimiento->bultos;
-            $objMovimiento->kilos          = $movimiento->kilos;
+            $objMovimiento->bultos         = ($movimiento->cbte_tipo == 3)?$movimiento->bultos * -1 : $movimiento->bultos;
+            $objMovimiento->kilos          = ($movimiento->cbte_tipo == 3)?$movimiento->kilos * -1 : $movimiento->kilos;
             $objMovimiento->precioUnitario = $movimiento->precioUnitario;
             $objMovimiento->tasiva         = $movimiento->tasiva;
-            $objMovimiento->neto           = $movimiento->neto;
-            $objMovimiento->importeIva     = $movimiento->importeIva;
+            $objMovimiento->neto           = ($movimiento->cbte_tipo == 3)?$movimiento->neto * -1 : $movimiento->neto;
+            $objMovimiento->importeIva     = ($movimiento->cbte_tipo == 3)?$movimiento->importeIva * -1 : $movimiento->importeIva;
             $objMovimiento->origen         = $origen;
             $objMovimiento->destino        = $destino;
             $objMovimiento->provincia      = $provincia;
