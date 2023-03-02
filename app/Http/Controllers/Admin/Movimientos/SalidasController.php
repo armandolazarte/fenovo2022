@@ -637,7 +637,7 @@ class SalidasController extends Controller
             $fecha           = \Carbon\Carbon::parse($movement->created_at)->format('d/m/Y');
             $neto            = $request->input('neto');
             $array_productos = [];
-            $productos       = ($movement->type == 'TRASLADO' || $movement->type == 'TRASLADOINTERNO') ? $movement->group_products_egress : $movement->group_movement_salida_products;
+            $productos       = ($movement->type == 'TRASLADO' || $movement->type == 'TRASLADOINTERNO') ? $movement->group_products_egress : $movement->group_products_egress;
 
             foreach ($productos as $producto) {
                 if ($producto->invoice) {
