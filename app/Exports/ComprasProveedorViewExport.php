@@ -15,6 +15,9 @@ class ComprasProveedorViewExport implements FromView
     protected $request;
 
     use Exportable;
+    protected $proveedorId;
+    protected $fechaCompraDesde;
+    protected $fechaCompraHasta;
 
     public function __construct(string $proveedorId,$fechaCompraDesde,$fechaCompraHasta) {
         $this->proveedorId  = $proveedorId;
@@ -32,6 +35,7 @@ class ComprasProveedorViewExport implements FromView
                             ->join('product_prices as price', 'price.product_id', '=', 'prod.id')
                             ->select(
                                 'mov.date as fecha',
+                                'mov.created_at as fechacarga',
                                 'mov.voucher_number as nro_remito',
                                 'prod.cod_fenovo as cod_producto',
                                 'prod.name as nombre',
@@ -46,8 +50,8 @@ class ComprasProveedorViewExport implements FromView
                             ->where('mov.type','COMPRA')
                             ->where('mov.subtype','CyO')
                             ->where('prod.proveedor_id', '=', $proveedorId)
-                            ->whereDate('mov.date','>=',$this->fechaCompraDesde)
-                            ->whereDate('mov.date','<=',$this->fechaCompraHasta)
+                            ->whereDate('mov.created_at','>=',$this->fechaCompraDesde)
+                            ->whereDate('mov.created_at','<=',$this->fechaCompraHasta)
                             ->get();
 
         $grupos = DB::table('movements as mov')
@@ -56,6 +60,7 @@ class ComprasProveedorViewExport implements FromView
                             ->join('product_prices as price', 'price.product_id', '=', 'prod.id')
                             ->select(
                                 'prod.cod_fenovo as cod_producto',
+                                'mov.created_at as fechacarga',
                                 'prod.name as nombre'
                             )
                             ->selectRaw('SUM(entry) as kgs')
@@ -64,8 +69,8 @@ class ComprasProveedorViewExport implements FromView
                             ->where('mov.type','COMPRA')
                             ->where('mov.subtype','CyO')
                             ->where('prod.proveedor_id', '=', $proveedorId)
-                            ->whereDate('mov.date','>=',$this->fechaCompraDesde)
-                            ->whereDate('mov.date','<=',$this->fechaCompraHasta)
+                            ->whereDate('mov.created_at','>=',$this->fechaCompraDesde)
+                            ->whereDate('mov.created_at','<=',$this->fechaCompraHasta)
                             ->groupBy('cod_producto')
                             ->get();
 
