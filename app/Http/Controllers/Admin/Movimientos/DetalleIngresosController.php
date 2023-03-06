@@ -38,7 +38,7 @@ class DetalleIngresosController extends Controller
                     ->where('t2.fecha_desde', '<=', $hoy)
                     ->where('t2.fecha_hasta', '>=', $hoy)
                     ->first();
-                $excepcion = OfertaStore::where('session_id',$oferta->idOferta)->exists();
+                $excepcion = ($oferta) ? OfertaStore::where('session_id',$oferta->idOferta)->exists() : false;
                 if($excepcion){
                     $costo_fenovo = $product->product_price->costfenovo;
                     $unit_price   = $product->product_price->plist0neto;
