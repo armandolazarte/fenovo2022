@@ -7,6 +7,7 @@ use App\Models\InvoiceCompra;
 use App\Models\Movement;
 use App\Models\MovementProduct;
 use App\Models\MovementProductTemp;
+use App\Models\OfertaStore;
 use App\Models\Product;
 use App\Models\ProductStore;
 use Carbon\Carbon;
@@ -32,13 +33,19 @@ class DetalleIngresosController extends Controller
                 // Buscar si el producto tiene oferta del proveedor
                 $oferta = DB::table('products as t1')
                     ->join('session_ofertas as t2', 't1.id', '=', 't2.product_id')
-                    ->select('t2.costfenovo', 't2.plist0neto')
+                    ->select('t2.costfenovo', 't2.plist0neto','t2.id as idOferta')
                     ->where('t1.id', $movimiento['product_id'])
                     ->where('t2.fecha_desde', '<=', $hoy)
                     ->where('t2.fecha_hasta', '>=', $hoy)
                     ->first();
-                $costo_fenovo = (!$oferta) ? $product->product_price->costfenovo : $oferta->costfenovo;
-                $unit_price   = (!$oferta) ? $product->product_price->plist0neto : $oferta->plist0neto;
+                $excepcion = OfertaStore::where('session_id',$oferta->idOferta)->exists();
+                if($excepcion){
+                    $costo_fenovo = $product->product_price->costfenovo;
+                    $unit_price   = $product->product_price->plist0neto;
+                }else{
+                    $costo_fenovo = (!$oferta) ? $product->product_price->costfenovo : $oferta->costfenovo;
+                    $unit_price   = (!$oferta) ? $product->product_price->plist0neto : $oferta->plist0neto;
+                }
 
                 MovementProductTemp::Create(
                     [

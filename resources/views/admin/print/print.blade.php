@@ -326,6 +326,36 @@
                         </div>
                     </div>
 
+
+                    <div class="card card-body gutter-b bg-white border-0">
+                        <div class="row mt-3 mb-4">
+                            <div class="col-6">
+                                <span class="font-weight-bolder text-danger">TXT productos en Stock Cero</span>
+                            </div>
+                        </div>
+                        <div class="row mb-5 ml-2 border-bottom-dark text-center">
+                            <div class="col-4">
+                                <label style="float:left">Depositos</label>
+                                <div class="input-group mb-3">
+                                    <select class="js-example-basic-single js-states form-control bg-transparent" name="depositoId" id="depositoId">
+                                        @foreach ($depositos as $deposito)
+                                            <option value="{{ $deposito->id }}">
+                                                {{ $deposito->description }}</option>
+                                        @endforeach
+                                    </select>
+
+                                    <div class="input-group-append">
+                                        <span class="input-group-text" id="basic-addon2">
+                                            <a href="#" onclick="exportarTXT()" title="Exportar TXT">
+                                                <i class="fa fa-file-csv"></i>
+                                            </a>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -364,6 +394,12 @@
                 let fechaCompraHasta = jQuery("#fechaCompraHasta").val();
                 let url = "{{ route('export.compras.proveedores', '') }}" + "?proveedorId=" + proveedorId +
                     "&fechaCompraDesde=" + fechaCompraDesde + "&fechaCompraHasta=" + fechaCompraHasta;
+                window.open(url, '_blank');
+            }
+
+            const exportarTXT = () => {
+                let depositoId = jQuery("#proveedorCompraId").val();
+                let url = "{{ route('export.productos.no.stock', '') }}" + "?depositoId=" + depositoId;
                 window.open(url, '_blank');
             }
 

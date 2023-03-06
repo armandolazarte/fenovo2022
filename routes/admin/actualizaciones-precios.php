@@ -26,3 +26,4 @@ Route::get('exportar/ventas/proveedores', [PrintController::class, 'exportVentas
 Route::get('exportar/compras/proveedores', [PrintController::class, 'exportComprasProveedoresCsv'])->name('export.compras.proveedores');
 Route::get('exportar/traslados/proveedores', [PrintController::class, 'exportTrasladosProveedoresCsv'])->name('export.traslados.proveedores');
 Route::get('exportar/fletes-por-fechas', [PrintController::class, 'exportFletesCsv'])->name('export.fletes.por.fecha');
+Route::get('exportar/txt-porductos-sin-stock', [PrintController::class, 'exportProductosNoStock'])->name('export.productos.no.stock');

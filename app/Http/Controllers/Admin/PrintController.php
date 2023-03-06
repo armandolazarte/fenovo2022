@@ -25,7 +25,10 @@ use App\Exports\VentasProveedorViewExport;
 use App\Exports\ComprasProveedorViewExport;
 use App\Exports\FletesViewExport;
 use App\Exports\TrasladosProveedorViewExport;
+use App\Models\Product;
+use App\Models\ProductStore;
 use App\Models\Proveedor;
+use File;
 use stdClass;
 
 class PrintController extends Controller
@@ -56,7 +59,8 @@ class PrintController extends Controller
         $tiposalidas = $this->enumRepository->getType('movimientos');
         $stores      = $this->storeRepository->getActives();
         $proveedores = Proveedor::select('id', 'name')->where('punto_venta', '!=', 1)->orderBy('name')->get();
-        return view('admin.print.print', compact('tiposalidas', 'stores', 'proveedores'));
+        $depositos   = Store::where('store_type','B')->get();
+        return view('admin.print.print', compact('tiposalidas', 'stores', 'proveedores','depositos'));
     }
 
     public function printMovimientosPDF(Request $request)
@@ -171,5 +175,27 @@ class PrintController extends Controller
     public function exportarMovimientos()
     {
         return Excel::download(new RegistrosMovimientosExport(), 'registros-' . date('d-m-Y') . '.xlsx');
+    }
+
+    public function exportProductosNoStock(Request $request){
+        $depositoId = $request->depositoId;
+        $productos = Product::all();
+        $array_productos = [];
+        foreach ($productos as $p) {
+            $ps = ProductStore::whereStoreId($depositoId)->whereProductId($p->id)->first();
+            if($ps){
+                $stock = $ps->stock_cyo + $ps->stock_f + $ps->stock_r;
+                if($stock == 0 || $stock < 0){
+                    array_push($array_productos,$p->cod_fenovo);
+                }
+            }else{
+                array_push($array_productos,$p->cod_fenovo);
+            }
+        }
+
+        $fileName = 'depositoId'.$depositoId. '.txt';
+        $text = 'array('. implode(',',$array_productos).')';
+        File::put(public_path('/exportacion/'.$fileName),$text);
+        return response()->download(public_path('/exportacion/'.$fileName));
     }
 }
