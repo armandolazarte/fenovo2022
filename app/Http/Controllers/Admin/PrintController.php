@@ -179,7 +179,7 @@ class PrintController extends Controller
 
     public function exportProductosNoStock(Request $request){
         $depositoId = $request->depositoId;
-        $productos = Product::all();
+        $productos = Product::orderBy('cod_fenovo','ASC')->get();
         $array_productos = [];
         foreach ($productos as $p) {
             $ps = ProductStore::whereStoreId($depositoId)->whereProductId($p->id)->first();
