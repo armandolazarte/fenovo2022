@@ -398,7 +398,7 @@
             }
 
             const exportarTXT = () => {
-                let depositoId = jQuery("#proveedorCompraId").val();
+                let depositoId = jQuery("#depositoId").val();
                 let url = "{{ route('export.productos.no.stock', '') }}" + "?depositoId=" + depositoId;
                 window.open(url, '_blank');
             }
