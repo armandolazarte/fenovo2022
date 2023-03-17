@@ -207,23 +207,40 @@ class ProductController extends Controller
                 ->get();
         } else {
             $search_text = $request->input('search.value');
+            if(strlen($search_text) > 3){
+                $store = Store::where('description', 'LIKE', "%{$search_text}%")->first();
+                $storeId = $store->id;
 
-            $movimientos = MovementProduct::with(['movement'])
+                $movimientos = MovementProduct::with(['movement'])
+                    ->whereEntidadTipo('S')
+                    ->whereEntidadId(1)
+                    ->whereProductId($request->id)
+                    ->whereHas('movement', function ($query) use ($storeId) {
+                        $query->where('to', $storeId);
+                    })
+                    ->offset($start_val)
+                    ->limit($limit_val)
+                    ->orderBy('movement_id', 'DESC')
+                    ->get();
+
+                $totalFilteredRecord = MovementProduct::with(['movement'])
+                    ->whereEntidadTipo('S')
+                    ->whereEntidadId(1)
+                    ->whereProductId($request->id)
+                    ->whereHas('movement', function ($query) use ($storeId) {
+                        $query->where('to', $storeId);
+                    })
+                    ->count();
+            }else{
+                $movimientos = MovementProduct::with(['movement'])
                 ->whereEntidadTipo('S')
                 ->whereEntidadId(1)
                 ->whereProductId($request->id)
-                ->where('movement_id', 'LIKE', "%{$search_text}%")
                 ->offset($start_val)
                 ->limit($limit_val)
                 ->orderBy('movement_id', 'DESC')
                 ->get();
-
-            $totalFilteredRecord = MovementProduct::with(['movement'])
-                ->whereEntidadTipo('S')
-                ->whereEntidadId(1)
-                ->whereProductId($request->id)
-                ->where('movement_id', 'LIKE', "%{$search_text}%")
-                ->count();
+            }
         }
 
         $arrSend = [];
